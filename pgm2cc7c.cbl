@@ -193,7 +193,7 @@
            EVALUATE  WS-ESTADO-CUENTA                                   01890002
                WHEN  ZERO                                               01900002
                   ADD 1 TO WS-CANT-CTAS-SUC                             01910002
-                  ADD WS-SUC-IMPORTE TO WS-IMPORTE-SUC                   01920002
+                  ADD WS-SUC-IMPORTE TO WS-IMPORTE-SUC                  01920002
                                                                         01930002
                WHEN OTHER                                               01940002
                   CONTINUE                                              01950002
