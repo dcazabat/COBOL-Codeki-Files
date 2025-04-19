@@ -1,0 +1,242 @@
+       IDENTIFICATION DIVISION.                                         
+       PROGRAM-ID PGM3CC7C.
+       AUTHOR.        D. CAZABAT.                                       
+       INSTALLATION.  CURSO CODEKI.                                     
+       DATE-WRITTEN.  19/04/2025.                                       
+       DATE-COMPILED. 19/04/2025.                                               
+      **********************************************************        
+      *                                                        *        
+      *  PROGRAMA PARA EMITIR TOTAL IMPORTES POR SUCURSAL       *        
+      *  Y TOTAL GENERAL DE IMPORTES                           *        
+      *  LA ENTRADA CLASIFICADA X SUCURSAL                     *        
+      *                                                        *        
+      **********************************************************        
+       ENVIRONMENT DIVISION.                                            
+       CONFIGURATION SECTION.
+       SPECIAL-NAMES.
+           DECIMAL-POINT IS COMMA.
+       
+       INPUT-OUTPUT SECTION.
+       FILE-CONTROL.                                                    
+             SELECT ENTRADA ASSIGN DDENTRA                              
+                    FILE STATUS IS WS-ENT-CODE.                         
+                                                                        
+       DATA DIVISION.                                                   
+       FILE SECTION.                                                    
+       FD ENTRADA                                                      
+            BLOCK CONTAINS 0 RECORDS                                    
+            RECORDING MODE IS F.                                        
+                                                                        
+       01 REG-ENTRADA    PIC X(20).                                     
+                                                                        
+      **************************************                            
+       WORKING-STORAGE SECTION.                                         
+      **************************************                            
+       77  FILLER        PIC X(26) VALUE '* INICIO WORKING-STORAGE *'.  
+       77  FILLER        PIC X(26) VALUE '* CODIGOS RETORNO FILES  *'.  
+       77  WS-ENT-CODE      PIC XX    VALUE SPACES.                     
+                                                                        
+       01  WS-STATUS-FIN    PIC X.                                      
+           88  WS-FIN-LECTURA         VALUE 'Y'.                        
+           88  WS-NO-FIN-LECTURA      VALUE 'N'.                        
+                                                                        
+       77  FILLER       PIC X(26) VALUE '* LAYOUT ENTRADA MESES   *'.   
+      **************************************                            
+               COPY CPSUCU.                                             
+      **************************************                            
+                                                                        
+      ********  TOTAL IMPORTES X SUCURSAL ******                        
+       77  WS-SUCURSAL-ANT      PIC 9(2)        VALUE     ZEROS.        
+       77  WS-TOTAL-SUCURSAL    PIC S9(9)V99    VALUE     ZEROS.        
+       77  WS-TOTAL-GENERAL     PIC S9(9)V99    VALUE     ZEROS.        
+       77  WS-EDIT-TOTAL        PIC ZZZ.ZZZ.ZZ9,99.                     
+       77  WS-EDIT-GENERAL      PIC ZZZ.ZZZ.ZZ9,99.                     
+       77  WS-CANT-LEIDAS       PIC 9(4)        VALUE     ZEROS.        
+       77  WS-EDIT-LEIDAS       PIC ZZZ9        VALUE     ZEROS.        
+      ********     CONSTANTES       ***************                     
+       77  WS-TOTAL-GEN         PIC X(30)                               
+                      VALUE    ' TOTAL GENERAL DE IMPORTES'.             
+                                                                        
+      ********     FECHA DE PROCESO ***************                     
+       01  WS-FECHA.                                                    
+           03  WS-FECHA-AA      PIC 99            VALUE ZEROS.          
+           03  WS-FECHA-MM      PIC 99            VALUE ZEROS.          
+           03  WS-FECHA-DD      PIC 99            VALUE ZEROS.          
+                                                                        
+       77  FILLER        PIC X(26) VALUE '* FINAL  WORKING-STORAGE *'.  
+                                                                        
+      ***************************************************************.  
+       PROCEDURE DIVISION.                                              
+      **************************************                            
+      *                                    *                            
+      *  CUERPO PRINCIPAL DEL PROGRAMA     *                            
+      *                                    *                            
+      **************************************                            
+       MAIN-PROGRAM.                                                    
+                                                                        
+           PERFORM 1000-INICIO  THRU   F-1000-INICIO.                   
+                                                                        
+           PERFORM 2000-PROCESO  THRU  F-2000-PROCESO                   
+                   UNTIL WS-FIN-LECTURA.                                
+                                                                        
+           PERFORM 9999-FINAL    THRU  F-9999-FINAL.                    
+                                                                        
+       F-MAIN-PROGRAM. GOBACK.                                          
+                                                                        
+      **************************************                            
+      *                                    *                            
+      *  CUERPO INICIO APERTURA ARCHIVOS   *                            
+      *                                    *                            
+      **************************************                            
+       1000-INICIO.                                                     
+           ACCEPT WS-FECHA FROM DATE.                                   
+           DISPLAY 'FECHA DE PROCESO: ' WS-FECHA-DD '/' WS-FECHA-MM 
+                   '/' WS-FECHA-AA                                     
+                                                                        
+           SET WS-NO-FIN-LECTURA TO TRUE.                               
+                                                                        
+           OPEN INPUT  ENTRADA.                                         
+           IF WS-ENT-CODE IS NOT EQUAL '00'                             
+              DISPLAY '* ERROR EN OPEN ENTRADA = ' WS-ENT-CODE          
+              MOVE 9999 TO RETURN-CODE                                  
+              SET  WS-FIN-LECTURA TO TRUE                               
+           END-IF.                                                      
+                                                                        
+      **************************************                            
+      *  PRIMER LECTURA PARA CORTE CONTROL *                            
+      **************************************                            
+                                                                        
+           READ ENTRADA INTO WS-REG-SUCURSAL                           
+                        AT END SET WS-FIN-LECTURA TO TRUE.              
+                                                                        
+           EVALUATE WS-ENT-CODE                                         
+             WHEN '00'                                                  
+                 MOVE WS-SUC-NRO       TO WS-SUCURSAL-ANT               
+                 ADD WS-SUC-IMPORTE    TO WS-TOTAL-SUCURSAL             
+                                          WS-TOTAL-GENERAL              
+                 ADD 1 TO WS-CANT-LEIDAS                                
+                                                                        
+              WHEN '10'                                                 
+              DISPLAY '* ARCHIVO ENTRADA VACÍO      ' WS-ENT-CODE       
+              MOVE 9999 TO RETURN-CODE                                  
+              SET WS-FIN-LECTURA TO TRUE                                
+                                                                        
+           WHEN OTHER                                                   
+              DISPLAY '* ERROR EN LECTURA ENTRADA = ' WS-ENT-CODE       
+              MOVE 9999 TO RETURN-CODE                                  
+              SET WS-FIN-LECTURA TO TRUE                                
+                                                                        
+           END-EVALUATE.                                                
+                                                                        
+       F-1000-INICIO.   EXIT.                                           
+                                                                        
+      **************************************                            
+      *                                    *                            
+      *  CUERPO PRINCIPAL DE PROCESOS      *                            
+      *  LECTURA FILE INPUT CLASIFICADO    *                            
+      *                                    *                            
+      **************************************                            
+       2000-PROCESO.                                                    
+                                                                        
+           ADD WS-SUC-IMPORTE TO WS-TOTAL-SUCURSAL                      
+                                                                        
+           READ ENTRADA INTO WS-REG-SUCURSAL                            
+                        AT END SET WS-FIN-LECTURA TO TRUE.              
+                                                                        
+           EVALUATE WS-ENT-CODE                                         
+             WHEN '00'                                                  
+                                                                        
+           ADD 1   TO     WS-CANT-LEIDAS                                
+           PERFORM 2200-SEGUIR-PROCESO                                  
+                      THRU F-2200-SEGUIR-PROCESO                        
+                                                                        
+              WHEN '10'                                                 
+              SET WS-FIN-LECTURA TO TRUE                                
+              PERFORM 2100-ULTIMO-REGISTRO                              
+                THRU  F-2100-ULTIMO-REGISTRO                           
+                                                                        
+           WHEN OTHER                                                   
+              DISPLAY '* ERROR EN LECTURA ENTRADA = ' WS-ENT-CODE       
+              MOVE 9999 TO RETURN-CODE                                  
+              SET WS-FIN-LECTURA TO TRUE                                
+                                                                        
+           END-EVALUATE.                                                
+                                                                        
+       F-2000-PROCESO. EXIT.                                            
+                                                                        
+      **************************************                            
+      *                                    *                            
+      *  MUESTRA ULTIMO REGISTRO           *                            
+      *                                    *                            
+      **************************************                            
+       2100-ULTIMO-REGISTRO.                                            
+                                                                        
+           PERFORM 2230-CORTE-SUCURSAL                                  
+                     THRU F-2230-CORTE-SUCURSAL                         
+                                                                        
+           MOVE WS-TOTAL-SUCURSAL TO WS-EDIT-TOTAL                      
+           ADD WS-TOTAL-SUCURSAL TO WS-TOTAL-GENERAL                    
+                                                                        
+           DISPLAY '*****************************************'           
+           DISPLAY 'SUCURSAL: ' WS-SUCURSAL-ANT                         
+           DISPLAY 'TOTAL SUCURSAL: ' WS-EDIT-TOTAL                     
+           DISPLAY '*****************************************'          
+                                                                        
+           MOVE WS-TOTAL-GENERAL TO WS-EDIT-GENERAL                     
+           DISPLAY ' '                                                  
+           DISPLAY WS-TOTAL-GEN                                         
+           DISPLAY 'TOTAL GENERAL: ' WS-EDIT-GENERAL                    
+           DISPLAY ' '                                                  
+           MOVE WS-CANT-LEIDAS TO WS-EDIT-LEIDAS                       
+           DISPLAY 'REGISTROS PROCESADOS: ' WS-EDIT-LEIDAS              
+                                                                        
+       F-2100-ULTIMO-REGISTRO. EXIT.                                    
+                                                                        
+       2200-SEGUIR-PROCESO.                                             
+                                                                        
+           IF WS-SUC-NRO EQUAL WS-SUCURSAL-ANT                          
+              CONTINUE                                                  
+           ELSE                                                         
+                 PERFORM 2230-CORTE-SUCURSAL THRU                       
+                       F-2230-CORTE-SUCURSAL                            
+           END-IF.                                                      
+                                                                        
+       F-2200-SEGUIR-PROCESO. EXIT.                                     
+                                                                        
+      **************************************                            
+      *                                    *                            
+      *  PARRAFO QUE CONTROLA EL CORTE     *                            
+      *  DE SUCURSAL                       *                            
+      *                                    *                            
+      **************************************                            
+       2230-CORTE-SUCURSAL.                                             
+           MOVE WS-TOTAL-SUCURSAL TO WS-EDIT-TOTAL                      
+           ADD WS-TOTAL-SUCURSAL TO WS-TOTAL-GENERAL                    
+                                                                        
+           DISPLAY '*****************************************'          
+           DISPLAY 'SUCURSAL: ' WS-SUCURSAL-ANT                         
+           DISPLAY 'TOTAL SUCURSAL: ' WS-EDIT-TOTAL                     
+           DISPLAY '*****************************************'          
+                                                                        
+           MOVE WS-SUC-NRO      TO WS-SUCURSAL-ANT                      
+           MOVE WS-SUC-IMPORTE  TO WS-TOTAL-SUCURSAL                    
+                                                                        
+       F-2230-CORTE-SUCURSAL. EXIT.                                     
+                                                                        
+      **************************************                            
+      *                                    *                            
+      *  CUERPO FINAL CIERRE DE FILES      *                            
+      *                                    *                            
+      **************************************                            
+       9999-FINAL.                                                      
+                                                                        
+           CLOSE ENTRADA                                                
+              IF WS-ENT-CODE IS NOT EQUAL '00'                          
+                DISPLAY '* ERROR EN CLOSE ENTRADA = '                   
+                                            WS-ENT-CODE                 
+                MOVE 9999 TO RETURN-CODE                                
+                SET WS-FIN-LECTURA TO TRUE                              
+             END-IF.                                                    
+                                                                        
+       F-9999-FINAL.                                                    
+           EXIT.                                                        

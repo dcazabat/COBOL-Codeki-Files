@@ -1,0 +1,8 @@
+       IDENTIFICATION DIVISION.                                         03330000
+       PROGRAM-ID.    PGMSUMA.                                          03340000
+       AUTHOR.        D. CAZABAT.                                       03350000
+       INSTALLATION.  CURSO CODEKI.                                     03360000
+       DATE-WRITTEN.  04/11/2025.                                       03370000
+       DATE-COMPILED. 04/11/2025.                                       03380000
+       SECURITY.      UNCLASSIFIED.                                     03390000
+       
