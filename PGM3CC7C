@@ -1,5 +1,5 @@
        IDENTIFICATION DIVISION.                                         
-       PROGRAM-ID PGM3CC7C.
+       PROGRAM-ID.    PGM3CC7C.
        AUTHOR.        D. CAZABAT.                                       
        INSTALLATION.  CURSO CODEKI.                                     
        DATE-WRITTEN.  19/04/2025.                                       
@@ -140,9 +140,14 @@
       *                                    *                            
       **************************************                            
        2000-PROCESO.                                                    
-                                                                        
-           ADD WS-SUC-IMPORTE TO WS-TOTAL-SUCURSAL                      
-                                                                        
+           ADD WS-SUC-IMPORTE TO WS-TOTAL-SUCURSAL          
+
+      *************************************************
+      *                                               *
+      ***  LECTURA DE REGISTRO ENTRADA CLASIFICADO  ***
+      *                                               *
+      *************************************************
+
            READ ENTRADA INTO WS-REG-SUCURSAL                            
                         AT END SET WS-FIN-LECTURA TO TRUE.              
                                                                         
@@ -164,7 +169,6 @@
               SET WS-FIN-LECTURA TO TRUE                                
                                                                         
            END-EVALUATE.                                                
-                                                                        
        F-2000-PROCESO. EXIT.                                            
                                                                         
       **************************************                            
@@ -173,7 +177,6 @@
       *                                    *                            
       **************************************                            
        2100-ULTIMO-REGISTRO.                                            
-                                                                        
            PERFORM 2230-CORTE-SUCURSAL                                  
                      THRU F-2230-CORTE-SUCURSAL                         
                                                                         
@@ -192,18 +195,15 @@
            DISPLAY ' '                                                  
            MOVE WS-CANT-LEIDAS TO WS-EDIT-LEIDAS                       
            DISPLAY 'REGISTROS PROCESADOS: ' WS-EDIT-LEIDAS              
-                                                                        
        F-2100-ULTIMO-REGISTRO. EXIT.                                    
                                                                         
        2200-SEGUIR-PROCESO.                                             
-                                                                        
            IF WS-SUC-NRO EQUAL WS-SUCURSAL-ANT                          
               CONTINUE                                                  
            ELSE                                                         
                  PERFORM 2230-CORTE-SUCURSAL THRU                       
                        F-2230-CORTE-SUCURSAL                            
            END-IF.                                                      
-                                                                        
        F-2200-SEGUIR-PROCESO. EXIT.                                     
                                                                         
       **************************************                            
@@ -223,7 +223,6 @@
                                                                         
            MOVE WS-SUC-NRO      TO WS-SUCURSAL-ANT                      
            MOVE WS-SUC-IMPORTE  TO WS-TOTAL-SUCURSAL                    
-                                                                        
        F-2230-CORTE-SUCURSAL. EXIT.                                     
                                                                         
       **************************************                            
@@ -232,7 +231,6 @@
       *                                    *                            
       **************************************                            
        9999-FINAL.                                                      
-                                                                        
            CLOSE ENTRADA                                                
               IF WS-ENT-CODE IS NOT EQUAL '00'                          
                 DISPLAY '* ERROR EN CLOSE ENTRADA = '                   
@@ -240,6 +238,5 @@
                 MOVE 9999 TO RETURN-CODE                                
                 SET WS-FIN-LECTURA TO TRUE                              
              END-IF.                                                    
-                                                                        
-       F-9999-FINAL.                                                    
-           EXIT.
+       F-9999-FINAL. EXIT.
+       
