@@ -6,7 +6,7 @@
        DATE-COMPILED. 19/04/2025.                                               
       **********************************************************        
       *                                                        *        
-      *  PROGRAMA PARA EMITIR TOTAL IMPORTES POR SUCURSAL       *        
+      *  PROGRAMA PARA EMITIR TOTAL IMPORTES POR SUCURSAL      *        
       *  Y TOTAL GENERAL DE IMPORTES                           *        
       *  LA ENTRADA CLASIFICADA X SUCURSAL                     *        
       *                                                        *        
@@ -42,7 +42,7 @@
                                                                         
        77  FILLER       PIC X(26) VALUE '* LAYOUT ENTRADA MESES   *'.   
       **************************************                            
-               COPY CPSUCU.                                             
+               COPY CORTE.                                             
       **************************************                            
                                                                         
       ********  TOTAL IMPORTES X SUCURSAL ******                        
@@ -100,6 +100,7 @@
               DISPLAY '* ERROR EN OPEN ENTRADA = ' WS-ENT-CODE          
               MOVE 9999 TO RETURN-CODE                                  
               SET  WS-FIN-LECTURA TO TRUE                               
+              GOBACK                                                   
            END-IF.                                                      
                                                                         
       **************************************                            
@@ -120,11 +121,13 @@
               DISPLAY '* ARCHIVO ENTRADA VACÍO      ' WS-ENT-CODE       
               MOVE 9999 TO RETURN-CODE                                  
               SET WS-FIN-LECTURA TO TRUE                                
+              GOBACK                                                   
                                                                         
            WHEN OTHER                                                   
               DISPLAY '* ERROR EN LECTURA ENTRADA = ' WS-ENT-CODE       
               MOVE 9999 TO RETURN-CODE                                  
               SET WS-FIN-LECTURA TO TRUE                                
+              GOBACK                                                   
                                                                         
            END-EVALUATE.                                                
                                                                         
@@ -239,4 +242,4 @@
              END-IF.                                                    
                                                                         
        F-9999-FINAL.                                                    
-           EXIT.                                                        
+           EXIT.
