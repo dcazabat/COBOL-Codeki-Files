@@ -1,4 +1,4 @@
-       IDENTIFICATION DIVISION.                                         
+IDENTIFICATION DIVISION.                                         
        PROGRAM-ID.    PGM3CC7C.
        AUTHOR.        D. CAZABAT.                                       
        INSTALLATION.  CURSO CODEKI.                                     
@@ -74,12 +74,15 @@
       **************************************                            
        MAIN-PROGRAM.                                                    
                                                                         
-           PERFORM 1000-INICIO  THRU   F-1000-INICIO.                   
+           PERFORM 1000-INICIO 
+              THRU F-1000-INICIO.                   
                                                                         
-           PERFORM 2000-PROCESO  THRU  F-2000-PROCESO                   
-                   UNTIL WS-FIN-LECTURA.                                
+           PERFORM 2000-PROCESO 
+              THRU F-2000-PROCESO                   
+              UNTIL WS-FIN-LECTURA.                                
                                                                         
-           PERFORM 9999-FINAL    THRU  F-9999-FINAL.                    
+           PERFORM 9999-FINAL 
+              THRU F-9999-FINAL.                    
                                                                         
        F-MAIN-PROGRAM. GOBACK.                                          
                                                                         
@@ -90,12 +93,12 @@
       **************************************                            
        1000-INICIO.                                                     
            ACCEPT WS-FECHA FROM DATE.                                   
-           DISPLAY 'FECHA DE PROCESO: ' WS-FECHA-DD '/' WS-FECHA-MM 
-                   '/' WS-FECHA-AA                                     
+           DISPLAY 'FECHA DE PROCESO: ' 
+              WS-FECHA-DD '/' WS-FECHA-MM '/' WS-FECHA-AA                                     
                                                                         
            SET WS-NO-FIN-LECTURA TO TRUE.                               
                                                                         
-           OPEN INPUT  ENTRADA.                                         
+           OPEN INPUT ENTRADA.                                         
            IF WS-ENT-CODE IS NOT EQUAL '00'                             
               DISPLAY '* ERROR EN OPEN ENTRADA = ' WS-ENT-CODE          
               MOVE 9999 TO RETURN-CODE                                  
@@ -112,25 +115,23 @@
                                                                         
            EVALUATE WS-ENT-CODE                                         
              WHEN '00'                                                  
-                 MOVE WS-SUC-NRO       TO WS-SUCURSAL-ANT               
-                 ADD WS-SUC-IMPORTE    TO WS-TOTAL-SUCURSAL             
-                                          WS-TOTAL-GENERAL              
-                 ADD 1 TO WS-CANT-LEIDAS                                
+                MOVE WS-SUC-NRO       TO WS-SUCURSAL-ANT               
+                ADD WS-SUC-IMPORTE    TO WS-TOTAL-SUCURSAL             
+                                         WS-TOTAL-GENERAL              
+                ADD 1 TO WS-CANT-LEIDAS                                
                                                                         
-              WHEN '10'                                                 
-              DISPLAY '* ARCHIVO ENTRADA VACÍO      ' WS-ENT-CODE       
-              MOVE 9999 TO RETURN-CODE                                  
-              SET WS-FIN-LECTURA TO TRUE                                
-              GOBACK                                                   
+             WHEN '10'                                                 
+                DISPLAY '* ARCHIVO ENTRADA VACÍO      ' WS-ENT-CODE       
+                MOVE 9999 TO RETURN-CODE                                  
+                SET WS-FIN-LECTURA TO TRUE                                
+                GOBACK                                                   
                                                                         
-           WHEN OTHER                                                   
-              DISPLAY '* ERROR EN LECTURA ENTRADA = ' WS-ENT-CODE       
-              MOVE 9999 TO RETURN-CODE                                  
-              SET WS-FIN-LECTURA TO TRUE                                
-              GOBACK                                                   
-                                                                        
+             WHEN OTHER                                                   
+                DISPLAY '* ERROR EN LECTURA ENTRADA = ' WS-ENT-CODE       
+                MOVE 9999 TO RETURN-CODE                                  
+                SET WS-FIN-LECTURA TO TRUE                                
+                GOBACK                                                   
            END-EVALUATE.                                                
-                                                                        
        F-1000-INICIO.   EXIT.                                           
                                                                         
       **************************************                            
@@ -140,33 +141,29 @@
       *                                    *                            
       **************************************                            
        2000-PROCESO.                                                    
-           ADD WS-SUC-IMPORTE TO WS-TOTAL-SUCURSAL          
-
       *************************************************
       *                                               *
       ***  LECTURA DE REGISTRO ENTRADA CLASIFICADO  ***
       *                                               *
       *************************************************
-
            READ ENTRADA INTO WS-REG-SUCURSAL                            
                         AT END SET WS-FIN-LECTURA TO TRUE.              
                                                                         
            EVALUATE WS-ENT-CODE                                         
              WHEN '00'                                                  
+                ADD 1 TO WS-CANT-LEIDAS                                
+                PERFORM 2200-SEGUIR-PROCESO                                  
+                   THRU F-2200-SEGUIR-PROCESO                        
                                                                         
-           ADD 1   TO     WS-CANT-LEIDAS                                
-           PERFORM 2200-SEGUIR-PROCESO                                  
-                      THRU F-2200-SEGUIR-PROCESO                        
+             WHEN '10'                                                 
+                SET WS-FIN-LECTURA TO TRUE                                
+                PERFORM 2100-ULTIMO-REGISTRO                              
+                   THRU  F-2100-ULTIMO-REGISTRO                           
                                                                         
-              WHEN '10'                                                 
-              SET WS-FIN-LECTURA TO TRUE                                
-              PERFORM 2100-ULTIMO-REGISTRO                              
-                THRU  F-2100-ULTIMO-REGISTRO                           
-                                                                        
-           WHEN OTHER                                                   
-              DISPLAY '* ERROR EN LECTURA ENTRADA = ' WS-ENT-CODE       
-              MOVE 9999 TO RETURN-CODE                                  
-              SET WS-FIN-LECTURA TO TRUE                                
+             WHEN OTHER                                                   
+                DISPLAY '* ERROR EN LECTURA ENTRADA = ' WS-ENT-CODE       
+                MOVE 9999 TO RETURN-CODE                                  
+                SET WS-FIN-LECTURA TO TRUE                                
                                                                         
            END-EVALUATE.                                                
        F-2000-PROCESO. EXIT.                                            
@@ -239,4 +236,4 @@
                 SET WS-FIN-LECTURA TO TRUE                              
              END-IF.                                                    
        F-9999-FINAL. EXIT.
-       
+
