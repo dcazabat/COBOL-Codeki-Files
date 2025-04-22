@@ -1,4 +1,4 @@
-IDENTIFICATION DIVISION.                                         
+       IDENTIFICATION DIVISION.                                         
        PROGRAM-ID.    PGM3CC7C.
        AUTHOR.        D. CAZABAT.                                       
        INSTALLATION.  CURSO CODEKI.                                     
@@ -157,7 +157,7 @@ IDENTIFICATION DIVISION.
                                                                         
              WHEN '10'                                                 
                 SET WS-FIN-LECTURA TO TRUE                                
-                PERFORM 2100-ULTIMO-REGISTRO                              
+                PERFORM 2400-ULTIMO-REGISTRO                              
                    THRU  F-2100-ULTIMO-REGISTRO                           
                                                                         
              WHEN OTHER                                                   
@@ -168,22 +168,41 @@ IDENTIFICATION DIVISION.
            END-EVALUATE.                                                
        F-2000-PROCESO. EXIT.                                            
                                                                         
+       2200-SEGUIR-PROCESO.                                             
+           IF WS-SUC-NRO EQUAL WS-SUCURSAL-ANT                          
+              CONTINUE                                                  
+           ELSE                                                         
+              PERFORM 2300-CORTE-SUCURSAL 
+                 THRU F-2300-CORTE-SUCURSAL                            
+           END-IF.                                                      
+       F-2200-SEGUIR-PROCESO. EXIT.                                     
+                                                                        
+      **************************************                            
+      *                                    *                            
+      *  PARRAFO QUE CONTROLA EL CORTE     *                            
+      *  DE SUCURSAL                       *                            
+      *                                    *                            
+      **************************************                            
+       2300-CORTE-SUCURSAL.                                             
+           MOVE WS-TOTAL-SUCURSAL TO WS-EDIT-TOTAL                      
+           ADD WS-TOTAL-SUCURSAL TO WS-TOTAL-GENERAL                    
+                                                                        
+           DISPLAY '*****************************************'          
+           DISPLAY 'SUCURSAL: ' WS-SUCURSAL-ANT                         
+           DISPLAY 'TOTAL SUCURSAL: ' WS-EDIT-TOTAL                     
+                                                                        
+           MOVE WS-SUC-NRO      TO WS-SUCURSAL-ANT                      
+           MOVE WS-SUC-IMPORTE  TO WS-TOTAL-SUCURSAL                    
+       F-2300-CORTE-SUCURSAL. EXIT.   
+
       **************************************                            
       *                                    *                            
       *  MUESTRA ULTIMO REGISTRO           *                            
       *                                    *                            
       **************************************                            
-       2100-ULTIMO-REGISTRO.                                            
-           PERFORM 2230-CORTE-SUCURSAL                                  
+       2400-ULTIMO-REGISTRO.                                            
+           PERFORM 2300-CORTE-SUCURSAL                                  
                      THRU F-2230-CORTE-SUCURSAL                         
-                                                                        
-           MOVE WS-TOTAL-SUCURSAL TO WS-EDIT-TOTAL                      
-           ADD WS-TOTAL-SUCURSAL TO WS-TOTAL-GENERAL                    
-                                                                        
-           DISPLAY '*****************************************'           
-           DISPLAY 'SUCURSAL: ' WS-SUCURSAL-ANT                         
-           DISPLAY 'TOTAL SUCURSAL: ' WS-EDIT-TOTAL                     
-           DISPLAY '*****************************************'          
                                                                         
            MOVE WS-TOTAL-GENERAL TO WS-EDIT-GENERAL                     
            DISPLAY ' '                                                  
@@ -194,33 +213,6 @@ IDENTIFICATION DIVISION.
            DISPLAY 'REGISTROS PROCESADOS: ' WS-EDIT-LEIDAS              
        F-2100-ULTIMO-REGISTRO. EXIT.                                    
                                                                         
-       2200-SEGUIR-PROCESO.                                             
-           IF WS-SUC-NRO EQUAL WS-SUCURSAL-ANT                          
-              CONTINUE                                                  
-           ELSE                                                         
-                 PERFORM 2230-CORTE-SUCURSAL THRU                       
-                       F-2230-CORTE-SUCURSAL                            
-           END-IF.                                                      
-       F-2200-SEGUIR-PROCESO. EXIT.                                     
-                                                                        
-      **************************************                            
-      *                                    *                            
-      *  PARRAFO QUE CONTROLA EL CORTE     *                            
-      *  DE SUCURSAL                       *                            
-      *                                    *                            
-      **************************************                            
-       2230-CORTE-SUCURSAL.                                             
-           MOVE WS-TOTAL-SUCURSAL TO WS-EDIT-TOTAL                      
-           ADD WS-TOTAL-SUCURSAL TO WS-TOTAL-GENERAL                    
-                                                                        
-           DISPLAY '*****************************************'          
-           DISPLAY 'SUCURSAL: ' WS-SUCURSAL-ANT                         
-           DISPLAY 'TOTAL SUCURSAL: ' WS-EDIT-TOTAL                     
-           DISPLAY '*****************************************'          
-                                                                        
-           MOVE WS-SUC-NRO      TO WS-SUCURSAL-ANT                      
-           MOVE WS-SUC-IMPORTE  TO WS-TOTAL-SUCURSAL                    
-       F-2230-CORTE-SUCURSAL. EXIT.                                     
                                                                         
       **************************************                            
       *                                    *                            
