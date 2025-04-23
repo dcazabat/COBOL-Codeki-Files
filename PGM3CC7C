@@ -116,9 +116,9 @@
            EVALUATE WS-ENT-CODE                                         
              WHEN '00'                                                  
                 MOVE WS-SUC-NRO       TO WS-SUCURSAL-ANT               
-                ADD WS-SUC-IMPORTE    TO WS-TOTAL-SUCURSAL             
-                                         WS-TOTAL-GENERAL              
-                ADD 1 TO WS-CANT-LEIDAS                                
+                MOVE WS-SUC-IMPORTE   TO WS-TOTAL-SUCURSAL             
+                ADD 1 TO WS-CANT-LEIDAS
+                DISPLAY WS-CANT-LEIDAS ' // ' WS-SUC-NRO
                                                                         
              WHEN '10'                                                 
                 DISPLAY '* ARCHIVO ENTRADA VACÍO      ' WS-ENT-CODE       
@@ -157,7 +157,7 @@
                                                                         
              WHEN '10'                                                 
                 SET WS-FIN-LECTURA TO TRUE                                
-                PERFORM 2400-ULTIMO-REGISTRO                              
+                PERFORM 2100-ULTIMO-REGISTRO                              
                    THRU  F-2100-ULTIMO-REGISTRO                           
                                                                         
              WHEN OTHER                                                   
@@ -168,41 +168,14 @@
            END-EVALUATE.                                                
        F-2000-PROCESO. EXIT.                                            
                                                                         
-       2200-SEGUIR-PROCESO.                                             
-           IF WS-SUC-NRO EQUAL WS-SUCURSAL-ANT                          
-              CONTINUE                                                  
-           ELSE                                                         
-              PERFORM 2300-CORTE-SUCURSAL 
-                 THRU F-2300-CORTE-SUCURSAL                            
-           END-IF.                                                      
-       F-2200-SEGUIR-PROCESO. EXIT.                                     
-                                                                        
-      **************************************                            
-      *                                    *                            
-      *  PARRAFO QUE CONTROLA EL CORTE     *                            
-      *  DE SUCURSAL                       *                            
-      *                                    *                            
-      **************************************                            
-       2300-CORTE-SUCURSAL.                                             
-           MOVE WS-TOTAL-SUCURSAL TO WS-EDIT-TOTAL                      
-           ADD WS-TOTAL-SUCURSAL TO WS-TOTAL-GENERAL                    
-                                                                        
-           DISPLAY '*****************************************'          
-           DISPLAY 'SUCURSAL: ' WS-SUCURSAL-ANT                         
-           DISPLAY 'TOTAL SUCURSAL: ' WS-EDIT-TOTAL                     
-                                                                        
-           MOVE WS-SUC-NRO      TO WS-SUCURSAL-ANT                      
-           MOVE WS-SUC-IMPORTE  TO WS-TOTAL-SUCURSAL                    
-       F-2300-CORTE-SUCURSAL. EXIT.   
-
       **************************************                            
       *                                    *                            
       *  MUESTRA ULTIMO REGISTRO           *                            
       *                                    *                            
       **************************************                            
-       2400-ULTIMO-REGISTRO.                                            
-           PERFORM 2300-CORTE-SUCURSAL                                  
-                     THRU F-2230-CORTE-SUCURSAL                         
+       2100-ULTIMO-REGISTRO.                                            
+           PERFORM 2230-CORTE-SUCURSAL                                  
+              THRU F-2230-CORTE-SUCURSAL                         
                                                                         
            MOVE WS-TOTAL-GENERAL TO WS-EDIT-GENERAL                     
            DISPLAY ' '                                                  
@@ -213,10 +186,37 @@
            DISPLAY 'REGISTROS PROCESADOS: ' WS-EDIT-LEIDAS              
        F-2100-ULTIMO-REGISTRO. EXIT.                                    
                                                                         
+      **************************************                            
+      *                                    *                            
+      *  SEGUIR PROCESO                    *                            
+      *                                    *                            
+      **************************************                                                                   
+       2200-SEGUIR-PROCESO.                                             
+           IF WS-SUC-NRO EQUAL WS-SUCURSAL-ANT
+              ADD WS-SUC-IMPORTE TO WS-TOTAL-SUCURSAL                                                  
+           ELSE                                                         
+              PERFORM 2230-CORTE-SUCURSAL 
+                 THRU F-2230-CORTE-SUCURSAL
+              ADD WS-SUC-IMPORTE TO WS-TOTAL-SUCURSAL                            
+           END-IF.                                                      
+       F-2200-SEGUIR-PROCESO. EXIT.                                     
+
+       2230-CORTE-SUCURSAL.                                             
+           MOVE WS-TOTAL-SUCURSAL TO WS-EDIT-TOTAL                      
+           ADD WS-TOTAL-SUCURSAL TO WS-TOTAL-GENERAL                    
+                                                                        
+           DISPLAY '*****************************************'          
+           DISPLAY 'SUCURSAL: ' WS-SUCURSAL-ANT                         
+           DISPLAY 'TOTAL SUCURSAL: ' WS-EDIT-TOTAL                     
+                                                                        
+           MOVE WS-SUC-NRO      TO WS-SUCURSAL-ANT                      
+           MOVE ZEROS           TO WS-TOTAL-SUCURSAL                    
+       F-2230-CORTE-SUCURSAL. EXIT.                                     
                                                                         
       **************************************                            
       *                                    *                            
-      *  CUERPO FINAL CIERRE DE FILES      *                            
+      *  PARRAFO QUE CONTROLA EL CORTE     *                            
+      *  DE SUCURSAL                       *                            
       *                                    *                            
       **************************************                            
        9999-FINAL.                                                      
