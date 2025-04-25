@@ -92,8 +92,9 @@
            PERFORM 2500-I-LEER THRU 2500-F-LEER.                        00742212
                                                                         00742508
            IF WS-FIN-LECTURA                                            00742609
-              DISPLAY '* ARCHIVO ENTRADA VACIO EN INICIO' FS-ENT        00742708
+              DISPLAY '* ARCHIVO ENTRADA VAC²O EN INICIO' FS-ENT        00742708
            ELSE                                                         00742808
+                                                                        00742908
               MOVE WS-SUC-NRO TO WS-SUC-NRO-ANT                         00745022
               MOVE WS-SUC-TIPC1 TO WS-SUC-TIPC1-ANT                     00746022
               ADD 1 TO WS-CANT-SUC                                      00747022
