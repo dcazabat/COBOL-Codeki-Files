@@ -1,0 +1,25 @@
+//KC03C7CC JOB CLASS=A,MSGCLASS=O,MSGLEVEL=(1,1),NOTIFY=&SYSUID,
+//             TIME=(,3)
+//JCLLIB       JCLLIB ORDER=KC02787.CURSOS.PROCLIB
+//***********************************************
+//*   COMPILADOR COBOL BATCH                    *
+//*   ALUMLIB DIGITAR SU USERID ALUMNO          *
+//*   REEMPLAZANDO XXX POR 3 ULT LETRAS USER ID *
+//*                                             *
+//*   GOPGM DIGITAR SU PROGRAM-ID               *
+//*         EL MISMO DEBE ESTAR EN              *
+//*         KC03XXX.CURSOS.FUENTE               *
+//*                                             *
+//*   COBOL.SYSLIB PARA UTILIZAR COPY DE        *
+//*   ESTRUCTURA DE DATOS EN WORKING STORAGE    *
+//*                                             *
+//*   PARA VER SALIDA DE COMPILE INGRESAR       *
+//*   AL SPOOL MEDIANTE OPCI�N SD               *
+//*   PREFIX KC03XXX* U OWNER KC03XXX           *
+//*                                             *
+//*                                             *
+//***********************************************
+//STEP1  EXEC COMPCOBO,
+//       ALUMLIB=KC03C7C.CURSOS,
+//       GOPGM=PGM2CC7C
+//COBOL.SYSLIB DD DSN=KC02788.ALU9999.COPYLIB,DISP=SHR
