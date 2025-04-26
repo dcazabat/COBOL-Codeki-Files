@@ -1,0 +1,116 @@
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. PGMTEST.
+
+      ****************************************************
+      *                                                  *
+      *  ASINCRONICA 7: CORTE CONTROL                    *
+      *  ============================                    *
+      *                                                  *
+      *  - HACE UN  CORTE DE CONTROL POR WS-SUC-TIP-DOC  *
+      *  - Y OTRO CORTE DE CONTROL POR WS-SUC-SEXO       *
+      *                                                  *
+      ****************************************************
+
+       ENVIRONMENT DIVISION.
+       CONFIGURATION SECTION.
+
+       SPECIAL-NAMES.
+           DECIMAL-POINT IS COMMA.
+
+       INPUT-OUTPUT SECTION.
+       FILE-CONTROL.
+             SELECT ENTRADA ASSIGN DDENTRA
+                    FILE STATUS IS FS-ENT.
+
+       DATA DIVISION.
+       FILE SECTION.
+       FD ENTRADA
+            BLOCK CONTAINS 0 RECORDS
+            RECORDING MODE IS F.
+
+       01 REG-ENTRADA    PIC X(93).
+
+       WORKING-STORAGE SECTION.
+       77 WS-TIP-DOC-ANT      PIC XX VALUE SPACES.
+       77 WS-SEXO-ANT         PIC X  VALUE SPACES.
+       77 WS-CANT-TIP-DOC     PIC 9(4) VALUE ZEROS.
+       77 WS-CANT-SEXO        PIC 9(4) VALUE ZEROS.
+       77 WS-TOTAL-PERSONAS   PIC 9(6) VALUE ZEROS.
+
+       77 WS-FIN-LECTURA      PIC X VALUE 'N'.
+           88 FIN-LECTURA     VALUE 'Y'.
+           88 NO-FIN-LECTURA  VALUE 'N'.
+
+      ********     FECHA DE PROCESO     *****************************
+       01  WS-FECHA.
+           03  WS-FECHA-AA      PIC 99            VALUE ZEROS.
+           03  WS-FECHA-MM      PIC 99            VALUE ZEROS.
+           03  WS-FECHA-DD      PIC 99            VALUE ZEROS.
+      
+      ***************  FORMATO DE ENTRADA DE DATOS **************
+               COPY CLICOB.
+      
+       PROCEDURE DIVISION.
+       MAIN-PROCEDURE.
+          ACCEPT WS-FECHA FROM DATE.
+           DISPLAY 'FECHA DE PROCESO: '
+              WS-FECHA-DD '/' WS-FECHA-MM '/' WS-FECHA-AA
+              SET WS-NO-FIN-LECTURA TO TRUE.
+
+           OPEN INPUT ENTRADA
+
+           IF FS-ENT IS NOT EQUAL '00'
+              DISPLAY '* ERROR EN OPEN ENTRADA INICIO = ' FS-ENT
+              SET  WS-FIN-LECTURA TO TRUE
+           END-IF.
+
+           IF WS-FIN-LECTURA
+              DISPLAY '* ARCHIVO ENTRADA VACIO EN INICIO' FS-ENT
+           ELSE
+              PERFORM UNTIL FIN-LECTURA
+                  READ ENTRADA INTO WS-REG-CLICOB.
+                      AT END
+                          SET FIN-LECTURA TO TRUE
+                      NOT AT END
+                          PERFORM PROCESAR-REGISTRO
+                  END-READ
+              END-PERFORM
+              PERFORM IMPRIMIR-SUBTOTAL-SEXO
+              PERFORM IMPRIMIR-SUBTOTAL-TIP-DOC
+              
+              DISPLAY "Total de Registros Procesados: " WS-TOTAL-PERSONAS
+           END-IF
+
+
+           CLOSE ENTRADA
+           STOP RUN.
+
+       PROCESAR-REGISTRO.
+           IF WS-SUC-TIP-DOC NOT EQUAL WS-TIP-DOC-ANT
+               PERFORM IMPRIMIR-SUBTOTAL-SEXO
+               PERFORM IMPRIMIR-SUBTOTAL-TIP-DOC
+               MOVE WS-SUC-TIP-DOC TO WS-TIP-DOC-ANT
+               MOVE ZEROS TO WS-CANT-TIP-DOC
+               MOVE ZEROS TO WS-CANT-SEXO
+           END-IF
+
+           IF WS-SUC-SEXO NOT EQUAL WS-SEXO-ANT
+               PERFORM IMPRIMIR-SUBTOTAL-SEXO
+               MOVE WS-SUC-SEXO TO WS-SEXO-ANT
+               MOVE ZEROS TO WS-CANT-SEXO
+           END-IF
+
+           ADD 1 TO WS-CANT-TIP-DOC
+           ADD 1 TO WS-CANT-SEXO
+           ADD 1 TO WS-TOTAL-PERSONAS.
+
+       IMPRIMIR-SUBTOTAL-SEXO.
+           IF WS-CANT-SEXO > 0
+               DISPLAY "      Tipo de Sexo " WS-SEXO-ANT " con " WS-CANT-SEXO " personas"
+           END-IF.
+
+       IMPRIMIR-SUBTOTAL-TIP-DOC.
+           IF WS-CANT-TIP-DOC > 0
+               DISPLAY "Tipo de Documento " WS-TIP-DOC-ANT
+               DISPLAY " Total de Personas " WS-CANT-TIP-DOC
+           END-IF.
