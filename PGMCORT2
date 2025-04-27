@@ -53,6 +53,10 @@
 
        77  WS-CANT-LEIDAS      PIC 9(4)          VALUE ZEROS.
        77  WS-EDIT-LEIDAS      PIC ZZZ9          VALUE ZEROS.
+       77  WS-CANT-LEIDAS-OK   PIC 9(4)          VALUE ZEROS.
+       77  WS-EDIT-LEIDAS-OK   PIC ZZZ9          VALUE ZEROS.
+       77  WS-CANT-LEIDAS-NOK  PIC 9(4)          VALUE ZEROS.
+       77  WS-EDIT-LEIDAS-NOK  PIC ZZZ9          VALUE ZEROS.
        77  WS-TOTAL-TPDOC      PIC 9(4)          VALUE ZEROS.
 
       ***************  FORMATO DE ENTRADA DE DATOS **************
@@ -63,7 +67,10 @@
            03  WS-FECHA-AA      PIC 99            VALUE ZEROS.
            03  WS-FECHA-MM      PIC 99            VALUE ZEROS.
            03  WS-FECHA-DD      PIC 99            VALUE ZEROS.
-
+      *************  BANDERA DE PROCESAD DE REGISTRO  **************
+       01  WS-PROCESAR-REG      PIC X VALUE 'N'.
+           88 WS-PROCESAR-SI    VALUE 'S'.
+           88 WS-PROCESAR-NO    VALUE 'N'.      
       *****************************************************
        PROCEDURE DIVISION.
       *****************************************************
@@ -130,18 +137,20 @@
                 PERFORM 2300-CORTE-TPDOC
                    THRU 2300-F-CORTE-TPDOC
            ELSE
-              IF WS-SUC-TIP-DOC EQUAL WS-SUC-TPDOC-ANT
-                  ADD 1 TO WS-CANT-TPDOC
-                  IF WS-SUC-SEXO EQUAL WS-SUC-SEXO-ANT
-                     ADD 1 TO WS-CANT-SEXO
-                  ELSE
-                     PERFORM 2600-CORTE-SEXO
-                        THRU 2600-F-CORTE-SEXO
-                  END-IF
-              ELSE
-                  PERFORM 2300-CORTE-TPDOC
-                     THRU 2300-F-CORTE-TPDOC
-              END-IF
+              IF WS-PROCESAR-SI 
+                 IF WS-SUC-TIP-DOC EQUAL WS-SUC-TPDOC-ANT
+                     ADD 1 TO WS-CANT-TPDOC
+                     IF WS-SUC-SEXO EQUAL WS-SUC-SEXO-ANT
+                        ADD 1 TO WS-CANT-SEXO
+                     ELSE
+                        PERFORM 2600-CORTE-SEXO
+                           THRU 2600-F-CORTE-SEXO
+                     END-IF
+                 ELSE
+                     PERFORM 2300-CORTE-TPDOC
+                        THRU 2300-F-CORTE-TPDOC
+                 END-IF
+              END-IF.
            END-IF.
 
        2000-F-PROCESO. EXIT.
@@ -176,7 +185,17 @@
              EVALUATE FS-ENT
                WHEN '00'
                 ADD 1 TO WS-CANT-LEIDAS  
-                CONTINUE
+                MOVE 'N' TO WS-PROCESAR-REG
+            
+                EVALUATE WS-SUC-TIP-DOC
+                  *> SE verifica si el tipo de documento es correcto
+                  WHEN 'DU' WHEN 'PA' WHEN 'PE' WHEN 'CI'
+                    ADD 1 TO WS-CANT-LEIDAS-OK
+                    MOVE 'S' TO WS-PROCESAR-REG
+                  WHEN OTHER
+                    ADD 1 TO WS-CANT-LEIDAS-NOK
+                    MOVE 'N' TO WS-PROCESAR-REG
+                END-EVALUATE
 
                WHEN '10'
                 SET WS-FIN-LECTURA TO TRUE
@@ -207,8 +226,12 @@
       ****************************************************
 
            MOVE WS-CANT-LEIDAS TO WS-EDIT-LEIDAS
+           MOVE WS-CANT-LEIDAS-OK TO WS-EDIT-LEIDAS-OK
+           MOVE WS-CANT-LEIDAS-NOK TO WS-EDIT-LEIDAS-NOK
            DISPLAY '**********************************************'
-           DISPLAY 'REGISTROS PROCESADOS         = ' WS-EDIT-LEIDAS.
+           DISPLAY 'REGISTROS PROCESADOS OK     = ' WS-EDIT-LEIDAS-OK
+           DISPLAY 'REGISTROS PROCESADOS NOK    = ' WS-EDIT-LEIDAS-NOK
+           DISPLAY 'REGISTROS PROCESADOS        = ' WS-EDIT-LEIDAS.
            DISPLAY '**********************************************'
 
            CLOSE ENTRADA
