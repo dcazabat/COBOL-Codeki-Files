@@ -197,6 +197,11 @@
        2200-GRABAR-GRAB.                                                01970000
            MOVE WS-CANT-GRAB TO NOV-SECUEN                              01980000
            MOVE WS-REG-NOVCLIE TO NOV-RESTO                             01990000
+           
+           *> Display para la Solucion 2
+           DISPLAY " TIPO DOC " NOV-TIP-DOC " NRO DOC " NOV-NRO-DOC
+                   " // Registro Validado OK "
+           
                                                                         02000000
            WRITE REG-S1GRAB FROM REG-NOVCLIE-VAL                        02010000
                                                                         02020000
