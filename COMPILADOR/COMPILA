@@ -14,12 +14,12 @@
 //*   ESTRUCTURA DE DATOS EN WORKING STORAGE    *
 //*                                             *
 //*   PARA VER SALIDA DE COMPILE INGRESAR       *
-//*   AL SPOOL MEDIANTE OPCIï¿½N SD               *
+//*   AL SPOOL MEDIANTE OPCIìN SD               *
 //*   PREFIX KC03XXX* U OWNER KC03XXX           *
 //*                                             *
 //*                                             *
 //***********************************************
 //STEP1  EXEC COMPCOBO,
 //       ALUMLIB=KC03C7C.CURSOS,
-//       GOPGM=PGM2CC7C
+//       GOPGM=PGMCORT2
 //COBOL.SYSLIB DD DSN=KC02788.ALU9999.COPYLIB,DISP=SHR
