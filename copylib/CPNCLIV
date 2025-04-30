@@ -1,0 +1,15 @@
+      **************************************                            00010000
+      *         LAYOUT NOVEDAD CLIENTES    *                            00020000
+      *                                    *                            00030000
+      *  KC03XXX.NOVCLIEN.VALID            *                            00040000
+      *                                    *                            00040102
+      *  ES EL CPNOVCLI VALIDADO           *                            00040202
+      *                                    *                            00041000
+      *         LARGO 55 BYTES             *                            00042000
+      *                                    *                            00043000
+      **************************************                            00044000
+                                                                        00045000
+       01 REG-NOVCLIE-VAL.                                              00046001
+           03  NOV-SECUEN          PIC 9(05)    VALUE ZEROS.            00046100
+           03  NOV-RESTO           PIC X(50)    VALUE SPACES.           00046202
+                                                                        00046301
