@@ -70,7 +70,7 @@
        77  WS-CANT-ERRR            PIC 9(5)      VALUE ZEROS.           00690009
        77  WS-EDIT-ERRR            PIC ZZZ9      VALUE ZEROS.           00700009
        77  WS-LINEA-SEPARACION     PIC X(40) 
-           VALUE '----------------------------------------.
+           VALUE '----------------------------------------'.
 
       ***************************************************************** 00630009
       * VARIABLES DE CONTROL DE ERRORES                                 
@@ -81,7 +81,8 @@
        77  WS-ERROR-TPCTA          PIC X(50)     VALUE SPACES.          00740009
 
       ********     FECHA DE PROCESO     *****************************   00750009
-       77 WS-FECHA-AAAAMMDD        PIC X(8).                            00760009
+       77 WS-FECHA-AAAAMMDD        PIC X(8).
+       77 WS-FECHA-NUMERO          PIC 9(8).                            00760009
        01  WS-FECHA.                                                    00770009
            05 WS-FECHA-AA          PIC 9(2).                            00780009
            05 WS-FECHA-MM          PIC 9(2).                            00790009
@@ -139,21 +140,6 @@
            DISPLAY 'FECHA DE PROCESO: '                                 01310009
               WS-FECHA-DD '/' WS-FECHA-MM '/' WS-FECHA-AA               01320009
            DISPLAY WS-LINEA-SEPARACION 
-                                                                        01330009
-           INITIALIZE WS-DIAS-POR-MES                                   01340009
-           MOVE 31 TO WS-DIAS-MES(1)                                    01350009
-           MOVE 28 TO WS-DIAS-MES(2)                                    01360009
-           MOVE 31 TO WS-DIAS-MES(3)                                    01370009
-           MOVE 30 TO WS-DIAS-MES(4)                                    01380009
-           MOVE 31 TO WS-DIAS-MES(5)                                    01390009
-           MOVE 30 TO WS-DIAS-MES(6)                                    01400009
-           MOVE 31 TO WS-DIAS-MES(7)                                    01410009
-           MOVE 31 TO WS-DIAS-MES(8)                                    01420009
-           MOVE 30 TO WS-DIAS-MES(9)                                    01430009
-           MOVE 31 TO WS-DIAS-MES(10)                                   01440009
-           MOVE 30 TO WS-DIAS-MES(11)                                   01450009
-           MOVE 31 TO WS-DIAS-MES(12)                                   01460009
-                                                                        01470009
                                                                         01480009
            OPEN INPUT  NOVCLI                                           01490009
                                                                         01500009
@@ -363,51 +349,13 @@
       *----------------------------------------------------------------*03530009
       * VALIDAR FECHA EN FORMATO AAAAMMDD                              *03540009
       *----------------------------------------------------------------*03550009
-       4000-VALIDAR-FECHA.                                              03560009
-           MOVE 'S' TO WS-FECHA-VALIDA                                  03570009
-                                                                        03590009
-      *    EXTRAER COMPONENTES DE LA FECHA                              03600009
-           MOVE WS-FECHA-AAAAMMDD(1:4) TO WS-FECHA-AA                   03610009
-           MOVE WS-FECHA-AAAAMMDD(5:2) TO WS-FECHA-MM                   03620009
-           MOVE WS-FECHA-AAAAMMDD(7:2) TO WS-FECHA-DD                   03630009
-                                                                        03640009
-      *    VALIDAR EL MES                                               03650009
-           IF WS-FECHA-MM < 1 OR WS-FECHA-MM > 12                       03660009
-               MOVE 'N' TO WS-FECHA-VALIDA                              03670009
-           ELSE                                                         03680009
-               PERFORM 4100-VALIDAR-BISIESTO                            03690009
-                  THRU 4100-VALIDAR-BISIESTO-F                          03700009
-                                                                        03710009
-      *        VALIDAR DC DE LA FECHA DEL MES                           03720009
-               IF WS-FECHA-DD < 1 OR                                    03730009
-                  WS-FECHA-DD > WS-DIAS-MES(WS-FECHA-MM)                03740009
-                   MOVE 'N' TO WS-FECHA-VALIDA                          03750009
-               END-IF                                                   03760009
-           END-IF.                                                      03770009
-       4000-VALIDAR-FECHA-F. EXIT.                                      03780009
-                                                                        03790009
-       4100-VALIDAR-BISIESTO.                                           03800009
-      *    DETERMINAR SI ES ANIO BISIESTO                               03810009
-           MOVE ZEROS TO WS-RESTO-CUATRO                                03820009
-           MOVE ZEROS TO WS-RESTO-CIEN                                  03830009
-           MOVE ZEROS TO WS-RESTO-CUATROCIENTOS                         03840009
-                                                                        03850009
-           DIVIDE WS-FECHA-AA BY 4                                      03860009
-               GIVING WS-RESTO REMAINDER WS-RESTO-CUATRO.               03870009
-           DIVIDE WS-FECHA-AA BY 100                                    03880009
-               GIVING WS-RESTO REMAINDER WS-RESTO-CIEN.                 03890009
-           DIVIDE WS-FECHA-AA BY 400                                    03900009
-               GIVING WS-RESTO REMAINDER WS-RESTO-CUATROCIENTOS.        03910009
-                                                                        03920009
-      *    AJUSTAR DC AS DE FEBRERO SI ES BISIESTO                      03930009
-           IF WS-FECHA-MM = 2                                           03940009
-               IF (WS-RESTO-CUATRO = 0 AND WS-RESTO-CIEN NOT = 0) OR    03950009
-                  WS-RESTO-CUATROCIENTOS = 0                            03960009
-                   MOVE 29 TO WS-DIAS-MES(2)                            03970009
-               ELSE                                                     03980009
-                   MOVE 28 TO WS-DIAS-MES(2)                            03990009
-               END-IF                                                   04000009
-           END-IF                                                       04010009
-       4100-VALIDAR-BISIESTO-F. EXIT.                                   04020009
-                                                                        04030009
-                                                                        04040009
+       4000-VALIDAR-FECHA.
+           MOVE WS-FECHA-AAAAMMDD TO WS-FECHA-NUMERO
+           IF FUNCTION TEST-DATE-YYYYMMDD(WS-FECHA-NUMERO) = 0
+              MOVE 'S' TO WS-FECHA-VALIDA                               03580009
+           ELSE                                                         03590009
+              MOVE 'N' TO WS-FECHA-VALIDA                               03600009
+           END-IF                                                       03610009
+           .                                                            03620009
+       4000-VALIDAR-FECHA-F. EXIT.                                      03630009
+

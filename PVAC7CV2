@@ -1,0 +1,413 @@
+       IDENTIFICATION DIVISION.                                         00010009
+       PROGRAM-ID PGMVAC7C.                                             00020009
+       AUTHOR.        D. CAZABAT.                                       00030009
+       INSTALLATION.  CURSO CODEKI.                                     00040009
+       DATE-WRITTEN.  30/04/2025.                                       00050009
+       DATE-COMPILED. 30/04/2025.                                       00060009
+      **********************************************************        00070009
+      *                                                        *        00080009
+      *  OBJETIVO: PRACTICA CODIFICACION COBOL                 *        00090009
+      *  ASINCRONICA 8: VALIDACION                             *        00100009
+      *                                                        *        00110009
+      **********************************************************        00120009
+       ENVIRONMENT DIVISION.                                            00130009
+       INPUT-OUTPUT SECTION.                                            00140009
+       FILE-CONTROL.                                                    00150009
+             SELECT NOVCLI   ASSIGN DNOVCLI                             00160009
+                    FILE STATUS IS FS-NOVCLI.                           00170009
+                                                                        00180009
+             SELECT S1GRAB   ASSIGN DDGRAB                              00190009
+                    FILE STATUS IS FS-S1GRAB.                           00200009
+                                                                        00210009
+             SELECT S2ERRR   ASSIGN DDERRR                              00220009
+                    FILE STATUS IS FS-S2ERRR.                           00230009
+                                                                        00240009
+       DATA DIVISION.                                                   00250009
+       FILE SECTION.                                                    00260009
+       FD NOVCLI                                                        00270009
+            BLOCK CONTAINS 0 RECORDS                                    00280009
+            RECORDING MODE IS F.                                        00290009
+                                                                        00300009
+       01 REG-NOVCLI    PIC X(50).                                      00310009
+                                                                        00320009
+       FD S1GRAB                                                        00330009
+            BLOCK CONTAINS 0 RECORDS                                    00340009
+            RECORDING MODE IS F.                                        00350009
+                                                                        00360009
+       01 REG-S1GRAB     PIC X(55).                                     00370009
+                                                                        00380009
+       FD S2ERRR                                                        00390009
+            BLOCK CONTAINS 0 RECORDS                                    00400009
+            RECORDING MODE IS F.                                        00410009
+                                                                        00420009
+       01 REG-S2ERRR     PIC X(55).                                     00430009
+                                                                        00440009
+      **************************************                            00450009
+       WORKING-STORAGE SECTION.                                         00460009
+      **************************************                            00470009
+       77  FILLER        PIC X(26) VALUE '* INICIO WORKING-STORAGE *'.  00480009
+                                                                        00490009
+      **************************************                            00500009
+      * FILE STATUS                                                     00510009
+      **************************************                            00520009
+                                                                        00530009
+       77  FS-NOVCLI      PIC XX    VALUE SPACES.                       00540009
+           88  FS-NOVCLI-FIN        VALUE '10'.                         00550009
+                                                                        00560009
+       77  FS-S1GRAB      PIC XX    VALUE SPACES.                       00570009
+           88  FS-S1GRAB-FIN        VALUE '10'.                         00580009
+                                                                        00590009
+       77  FS-S2ERRR      PIC XX    VALUE SPACES.                       00600009
+           88  FS-S2ERRR-FIN        VALUE '10'.                         00610009
+                                                                        00620009
+      ***************************************************************** 00630009
+      * CONTADOR DE TOTALES                                             00640009
+      ***************************************************************** 00650009
+       77  WS-CANT-LEIDOS          PIC 9(5)      VALUE ZEROS.           00660009
+       77  WS-EDIT-LEIDOS          PIC ZZZ9      VALUE ZEROS.           00670009
+       77  WS-CANT-GRAB            PIC 9(5)      VALUE ZEROS.           00680009
+       77  WS-EDIT-GRAB            PIC ZZZ9      VALUE ZEROS.           00690009
+       77  WS-CANT-ERRR            PIC 9(5)      VALUE ZEROS.           00700009
+       77  WS-EDIT-ERRR            PIC ZZZ9      VALUE ZEROS.           00710009
+       77  WS-LINEA-SEPARACION     PIC X(40)                            00720012
+           VALUE '----------------------------------------.             00730012
+                                                                        00740012
+      ***************************************************************** 00750009
+      * VARIABLES DE CONTROL DE ERRORES                                 00760012
+      ***************************************************************** 00770009
+       77  WS-ERROR-FECHA          PIC X(50)     VALUE SPACES.          00780009
+       77  WS-ERROR-TPDOC          PIC X(50)     VALUE SPACES.          00790009
+       77  WS-ERROR-SUCUR          PIC X(50)     VALUE SPACES.          00800009
+       77  WS-ERROR-TPCTA          PIC X(50)     VALUE SPACES.          00810009
+                                                                        00820012
+      ********     FECHA DE PROCESO     *****************************   00830009
+       77 WS-FECHA-AAAAMMDD        PIC X(8).                            00840009
+       01  WS-FECHA.                                                    00850009
+           05 WS-FECHA-AA          PIC 9(2).                            00860009
+           05 WS-FECHA-MM          PIC 9(2).                            00870009
+           05 WS-FECHA-DD          PIC 9(2).                            00880009
+                                                                        00890009
+       01  WS-FECHA-VALIDA         PIC X(1) VALUE 'S'.                  00900009
+           88 FECHA-VALIDA                  VALUE 'S'.                  00910009
+           88 FECHA-NO-VALIDA               VALUE 'N'.                  00920009
+                                                                        00930009
+       01  WS-DIAS-POR-MES.                                             00940009
+           05 WS-DIAS-MES             PIC 9(2) OCCURS 12 TIMES.         00950009
+                                                                        00960009
+       01  WS-AUX.                                                      00970009
+           05 WS-RESTO                PIC 9(4).                         00980009
+           05 WS-RESTO-CUATRO         PIC 9(4).                         00990009
+           05 WS-RESTO-CIEN           PIC 9(4).                         01000009
+           05 WS-RESTO-CUATROCIENTOS  PIC 9(4).                         01010009
+      *************  BANDERA DE PROCESAD DE REGISTRO  **************    01020009
+       01  WS-PROCESAR-REG      PIC X VALUE 'N'.                        01030009
+           88 WS-PROCESAR-SI    VALUE 'S'.                              01040009
+           88 WS-PROCESAR-NO    VALUE 'N'.                              01050009
+      ***************************************************************.  01060009
+       01  FILLER        PIC X(26) VALUE '* FINAL  WORKING-STORAGE *'.  01070009
+      ***************************************************************.  01080009
+                                                                        01090009
+      ***************  FORMATO DE ENTRADA DE DATOS **************       01100009
+               COPY CPNOVCLI.                                           01110009
+      ***************  FORMATO DE SALIDA DE DATOS ***************       01120009
+               COPY CPNCLIV.                                            01130009
+                                                                        01140009
+       PROCEDURE DIVISION.                                              01150009
+      **************************************                            01160009
+      *                                    *                            01170009
+      *  CUERPO PRINCIPAL DEL PROGRAMA     *                            01180009
+      *                                    *                            01190009
+      **************************************                            01200009
+       MAIN-PROGRAM.                                                    01210009
+                                                                        01220009
+           PERFORM 1000-INICIO   THRU    1000-INICIO-F                  01230009
+                                                                        01240009
+           PERFORM 2000-PROCESO  THRU    2000-PROCESO-F                 01250009
+                   UNTIL FS-NOVCLI-FIN                                  01260009
+                                                                        01270009
+           PERFORM 3000-FINAL    THRU    3000-FINAL-F                   01280009
+           .                                                            01290009
+       F-MAIN-PROGRAM. GOBACK.                                          01300009
+                                                                        01310009
+      **************************************                            01320009
+      *                                    *                            01330009
+      *  CUERPO INICIO APERTURA ARCHIVOS   *                            01340009
+      *                                    *                            01350009
+      **************************************                            01360009
+       1000-INICIO.                                                     01370009
+           ACCEPT WS-FECHA FROM DATE.                                   01380009
+           DISPLAY 'FECHA DE PROCESO: '                                 01390009
+              WS-FECHA-DD '/' WS-FECHA-MM '/' WS-FECHA-AA               01400009
+           DISPLAY WS-LINEA-SEPARACION                                  01410012
+                                                                        01420009
+           INITIALIZE WS-DIAS-POR-MES                                   01430009
+           MOVE 31 TO WS-DIAS-MES(1)                                    01440009
+           MOVE 28 TO WS-DIAS-MES(2)                                    01450009
+           MOVE 31 TO WS-DIAS-MES(3)                                    01460009
+           MOVE 30 TO WS-DIAS-MES(4)                                    01470009
+           MOVE 31 TO WS-DIAS-MES(5)                                    01480009
+           MOVE 30 TO WS-DIAS-MES(6)                                    01490009
+           MOVE 31 TO WS-DIAS-MES(7)                                    01500009
+           MOVE 31 TO WS-DIAS-MES(8)                                    01510009
+           MOVE 30 TO WS-DIAS-MES(9)                                    01520009
+           MOVE 31 TO WS-DIAS-MES(10)                                   01530009
+           MOVE 30 TO WS-DIAS-MES(11)                                   01540009
+           MOVE 31 TO WS-DIAS-MES(12)                                   01550009
+                                                                        01560009
+                                                                        01570009
+           OPEN INPUT  NOVCLI                                           01580009
+                                                                        01590009
+           IF FS-NOVCLI IS NOT EQUAL '00'                               01600009
+              DISPLAY '* ERROR EN OPEN SUCURSAL= '  FS-NOVCLI           01610009
+              MOVE 9999 TO RETURN-CODE                                  01620009
+              SET  FS-NOVCLI-FIN TO TRUE                                01630009
+           ELSE                                                         01640009
+              PERFORM 2100-LEER                                         01650009
+                 THRU 2100-LEER-F                                       01660009
+           END-IF                                                       01670009
+                                                                        01680009
+           OPEN OUTPUT S1GRAB                                           01690009
+           IF FS-S1GRAB IS NOT EQUAL '00'                               01700009
+              DISPLAY '* ERROR EN OPEN SALIDA = '  FS-S1GRAB            01710009
+              MOVE 9999 TO RETURN-CODE                                  01720009
+              SET  FS-NOVCLI-FIN TO TRUE                                01730009
+           END-IF                                                       01740009
+      *                                                                 01750009
+           OPEN OUTPUT S2ERRR                                           01760009
+           IF FS-S2ERRR IS NOT EQUAL '00'                               01770009
+              DISPLAY '* ERROR EN OPEN SALIDA = '  FS-S2ERRR            01780009
+              MOVE 9999 TO RETURN-CODE                                  01790009
+              SET  FS-NOVCLI-FIN TO TRUE                                01800009
+           END-IF                                                       01810009
+           .                                                            01820009
+       1000-INICIO-F. EXIT.                                             01830009
+                                                                        01840009
+      **************************************                            01850009
+      *                                    *                            01860009
+      *  CUERPO PRINCIPAL DE PROCESOS      *                            01870009
+      *                                    *                            01880009
+      **************************************                            01890009
+       2000-PROCESO.                                                    01900009
+      *                                                                 01910009
+           IF WS-PROCESAR-SI                                            01920009
+              ADD 1 TO WS-CANT-GRAB                                     01930009
+              PERFORM 2200-GRABAR-GRAB                                  01940009
+                 THRU 2200-GRABAR-GRAB-F                                01950009
+           ELSE                                                         01960009
+             ADD 1 TO WS-CANT-ERRR                                      01970009
+             PERFORM 2300-GRABAR-ERRR                                   01980009
+                THRU 2300-GRABAR-ERRR-F                                 01990009
+           END-IF                                                       02000009
+                                                                        02010009
+           PERFORM 2100-LEER                                            02020009
+              THRU 2100-LEER-F                                          02030009
+           .                                                            02040009
+       2000-PROCESO-F. EXIT.                                            02050009
+                                                                        02060009
+      **************************************                            02070009
+      *  LEER REGISTROS                    *                            02080009
+      **************************************                            02090009
+       2100-LEER.                                                       02100009
+           READ NOVCLI INTO WS-REG-NOVCLIE                              02110009
+           MOVE SPACES TO WS-ERROR-FECHA                                02120009
+           MOVE SPACES TO WS-ERROR-TPDOC                                02130009
+           MOVE SPACES TO WS-ERROR-SUCUR                                02140009
+           MOVE SPACES TO WS-ERROR-TPCTA                                02150009
+                                                                        02160009
+           EVALUATE FS-NOVCLI                                           02170009
+             WHEN '00'                                                  02180009
+               ADD 1 TO WS-CANT-LEIDOS                                  02190009
+               MOVE 'S' TO WS-PROCESAR-REG                              02200009
+                                                                        02210009
+               *> Asigno el campo de fecha de la copylib a la           02220009
+               *> variable de trabajo WS-FECHA-AAAAMMDD                 02230009
+               MOVE NOV-CLI-FECHA(1:8) TO WS-FECHA-AAAAMMDD             02240009
+               PERFORM 4000-VALIDAR-FECHA                               02250009
+                  THRU 4000-VALIDAR-FECHA-F                             02260009
+               IF NOT FECHA-VALIDA                                      02270009
+                  MOVE 'N' TO WS-PROCESAR-REG                           02280009
+                  MOVE 'LA FECHA INVALIDA ' TO WS-ERROR-FECHA           02290009
+               END-IF                                                   02300009
+                                                                        02310009
+               *> Se verifica si el tipo de documento es correcto       02320009
+               IF NOT (NOV-TIP-DOC = 'DU' OR                            02330009
+                  NOV-TIP-DOC = 'PA' OR                                 02340009
+                  NOV-TIP-DOC = 'PE' OR                                 02350009
+                  NOV-TIP-DOC = 'CI')                                   02360009
+                  MOVE 'N' TO WS-PROCESAR-REG                           02370009
+                  MOVE 'TIPO DE DOCUMENTO INCORRECTO' TO WS-ERROR-TPDOC 02380009
+               END-IF                                                   02390009
+                                                                        02400009
+                *> Se verifica si la sucursal es correcta               02410009
+               IF NOT (NOV-SUC >= 1 AND NOV-SUC <= 99)                  02420009
+                  MOVE 'N' TO WS-PROCESAR-REG                           02430009
+                  MOVE 'SUCURSAL INCORRECTA' TO WS-ERROR-SUCUR          02440009
+               END-IF                                                   02450009
+                                                                        02460009
+                *> Se verifica el tipo de cuenta es correcto            02470009
+               IF NOT (NOV-CLI-TIPO = 1 OR                              02480009
+                  NOV-CLI-TIPO = 2 OR                                   02490009
+                  NOV-CLI-TIPO = 3)                                     02500009
+                  MOVE 'N' TO WS-PROCESAR-REG                           02510009
+                  MOVE 'TIPO DE CUENTA INCORRECTA' TO WS-ERROR-TPCTA    02520009
+               END-IF                                                   02530009
+                                                                        02540009
+             WHEN '10'                                                  02550009
+               CONTINUE                                                 02560009
+                                                                        02570009
+             WHEN OTHER                                                 02580009
+               DISPLAY '* ERROR EN LECTURA SUCURSAL= ' FS-NOVCLI        02590009
+               MOVE 9999 TO RETURN-CODE                                 02600009
+               SET FS-NOVCLI-FIN  TO TRUE                               02610009
+           END-EVALUATE                                                 02620009
+           .                                                            02630009
+       2100-LEER-F. EXIT.                                               02640009
+                                                                        02650009
+      **************************************                            02660009
+      *  GRABAR LOS REGISTROS OK           *                            02670009
+      **************************************                            02680009
+       2200-GRABAR-GRAB.                                                02690009
+           MOVE WS-CANT-GRAB TO NOV-SECUEN                              02700009
+           MOVE WS-REG-NOVCLIE TO NOV-RESTO                             02710009
+           WRITE REG-S1GRAB FROM REG-NOVCLIE-VAL                        02720009
+                                                                        02730009
+           IF FS-S1GRAB IS NOT EQUAL '00'                               02740009
+              DISPLAY '* ERROR EN GRABAR REGISTRO= ' FS-S1GRAB          02750009
+              MOVE 9999 TO RETURN-CODE                                  02760009
+              SET FS-NOVCLI-FIN  TO TRUE                                02770009
+           END-IF.                                                      02780009
+       2200-GRABAR-GRAB-F. EXIT.                                        02790009
+      **************************************                            02800009
+      *  GRABAR ERRRULINO                  *                            02810009
+      **************************************                            02820009
+       2300-GRABAR-ERRR.                                                02830009
+           MOVE WS-CANT-ERRR TO NOV-SECUEN                              02840009
+           MOVE WS-REG-NOVCLIE TO NOV-RESTO                             02850009
+           *> Display de los registros con error                        02860009
+           DISPLAY " TIPO DOC " NOV-TIP-DOC " NRO DOC " NOV-NRO-DOC     02870009
+           DISPLAY "   CONTINENE ESTOS ERRORES: "                       02880009
+           IF WS-ERROR-FECHA NOT = SPACES                               02890009
+              DISPLAY "    - " WS-ERROR-FECHA                           02900009
+           END-IF                                                       02910009
+           IF WS-ERROR-TPDOC NOT = SPACES                               02920009
+              DISPLAY "    - " WS-ERROR-TPDOC                           02930009
+           END-IF                                                       02940009
+           IF WS-ERROR-SUCUR NOT = SPACES                               02950009
+              DISPLAY "    - " WS-ERROR-SUCUR                           02960009
+           END-IF                                                       02970009
+           IF WS-ERROR-TPCTA NOT = SPACES                               02980009
+              DISPLAY "    - " WS-ERROR-TPCTA                           02990009
+           END-IF                                                       03000009
+           DISPLAY WS-LINEA-SEPARACION                                  03010012
+           WRITE REG-S2ERRR FROM REG-NOVCLIE-VAL                        03020009
+                                                                        03030009
+           IF FS-S2ERRR IS NOT EQUAL '00'                               03040009
+              DISPLAY '* ERROR EN GRABAR REGISTRO= ' FS-S2ERRR          03050009
+              MOVE 9999 TO RETURN-CODE                                  03060009
+              SET FS-NOVCLI-FIN  TO TRUE                                03070009
+           END-IF.                                                      03080009
+       2300-GRABAR-ERRR-F. EXIT.                                        03090009
+                                                                        03100009
+                                                                        03110009
+      **************************************                            03120009
+      *                                    *                            03130009
+      *  CUERPO FINAL                      *                            03140009
+      *                                    *                            03150009
+      **************************************                            03160009
+       3000-FINAL.                                                      03170009
+           IF RETURN-CODE NOT EQUAL 9999                                03180009
+             PERFORM 3010-CLOSE-FILES                                   03190009
+                THRU 3010-CLOSE-FILES-F                                 03200009
+             PERFORM 3020-MOSTRAR-TOTALES                               03210009
+                THRU 3020-MOSTRAR-TOTALES-F                             03220009
+           END-IF.                                                      03230009
+       3000-FINAL-F. EXIT.                                              03240009
+      **************************************                            03250009
+      *   CERRAR ARCHIVOS                  *                            03260009
+      **************************************                            03270009
+       3010-CLOSE-FILES.                                                03280009
+           CLOSE NOVCLI                                                 03290009
+              IF FS-NOVCLI  IS NOT EQUAL '00'                           03300009
+                DISPLAY '* ERROR EN CLOSE SUCURSAL= ' FS-NOVCLI         03310009
+                MOVE 9999 TO RETURN-CODE                                03320009
+             END-IF                                                     03330009
+                                                                        03340009
+           CLOSE S1GRAB                                                 03350009
+              IF FS-S1GRAB   IS NOT EQUAL '00'                          03360009
+                DISPLAY '* ERROR EN CLOSE GRABNINO= ' FS-S1GRAB         03370009
+                MOVE 9999 TO RETURN-CODE                                03380009
+             END-IF                                                     03390009
+                                                                        03400009
+           CLOSE S2ERRR                                                 03410009
+              IF FS-S2ERRR   IS NOT EQUAL '00'                          03420009
+                DISPLAY '* ERROR EN CLOSE GRABNINO= ' FS-S2ERRR         03430009
+                MOVE 9999 TO RETURN-CODE                                03440009
+             END-IF                                                     03450009
+           .                                                            03460009
+       3010-CLOSE-FILES-F. EXIT.                                        03470009
+                                                                        03480009
+      **************************************                            03490009
+      *  MOSTRAR TOTALES                   *                            03500009
+      **************************************                            03510009
+       3020-MOSTRAR-TOTALES.                                            03520009
+           MOVE WS-CANT-LEIDOS TO WS-EDIT-LEIDOS                        03530009
+           MOVE WS-CANT-GRAB   TO WS-EDIT-GRAB                          03540009
+           MOVE WS-CANT-ERRR   TO WS-EDIT-ERRR                          03550009
+           DISPLAY WS-LINEA-SEPARACION                                  03560012
+           DISPLAY ' TOTAL DE ENTRADAS LEIDAS '  WS-EDIT-LEIDOS         03570009
+           DISPLAY ' TOTAL DE GRABADOS OK     '  WS-EDIT-GRAB           03580009
+           DISPLAY ' TOTAL DE GRABADOS NO OK  '  WS-EDIT-ERRR           03590009
+           DISPLAY WS-LINEA-SEPARACION.                                 03600012
+       3020-MOSTRAR-TOTALES-F. EXIT.                                    03610009
+                                                                        03620009
+      *----------------------------------------------------------------*03630009
+      * VALIDAR FECHA EN FORMATO AAAAMMDD                              *03640009
+      *----------------------------------------------------------------*03650009
+       4000-VALIDAR-FECHA.                                              03660009
+           MOVE 'S' TO WS-FECHA-VALIDA                                  03670009
+                                                                        03680009
+      *    EXTRAER COMPONENTES DE LA FECHA                              03690009
+           MOVE WS-FECHA-AAAAMMDD(1:4) TO WS-FECHA-AA                   03700009
+           MOVE WS-FECHA-AAAAMMDD(5:2) TO WS-FECHA-MM                   03710009
+           MOVE WS-FECHA-AAAAMMDD(7:2) TO WS-FECHA-DD                   03720009
+                                                                        03730009
+      *    VALIDAR EL MES                                               03740009
+           IF WS-FECHA-MM < 1 OR WS-FECHA-MM > 12                       03750009
+               MOVE 'N' TO WS-FECHA-VALIDA                              03760009
+           ELSE                                                         03770009
+               PERFORM 4100-VALIDAR-BISIESTO                            03780009
+                  THRU 4100-VALIDAR-BISIESTO-F                          03790009
+                                                                        03800009
+      *        VALIDAR DC DE LA FECHA DEL MES                           03810009
+               IF WS-FECHA-DD < 1 OR                                    03820009
+                  WS-FECHA-DD > WS-DIAS-MES(WS-FECHA-MM)                03830009
+                   MOVE 'N' TO WS-FECHA-VALIDA                          03840009
+               END-IF                                                   03850009
+           END-IF.                                                      03860009
+       4000-VALIDAR-FECHA-F. EXIT.                                      03870009
+                                                                        03880009
+       4100-VALIDAR-BISIESTO.                                           03890009
+      *    DETERMINAR SI ES ANIO BISIESTO                               03900009
+           MOVE ZEROS TO WS-RESTO-CUATRO                                03910009
+           MOVE ZEROS TO WS-RESTO-CIEN                                  03920009
+           MOVE ZEROS TO WS-RESTO-CUATROCIENTOS                         03930009
+                                                                        03940009
+           DIVIDE WS-FECHA-AA BY 4                                      03950009
+               GIVING WS-RESTO REMAINDER WS-RESTO-CUATRO.               03960009
+           DIVIDE WS-FECHA-AA BY 100                                    03970009
+               GIVING WS-RESTO REMAINDER WS-RESTO-CIEN.                 03980009
+           DIVIDE WS-FECHA-AA BY 400                                    03990009
+               GIVING WS-RESTO REMAINDER WS-RESTO-CUATROCIENTOS.        04000009
+                                                                        04010009
+      *    AJUSTAR DC AS DE FEBRERO SI ES BISIESTO                      04020009
+           IF WS-FECHA-MM = 2                                           04030009
+               IF (WS-RESTO-CUATRO = 0 AND WS-RESTO-CIEN NOT = 0) OR    04040009
+                  WS-RESTO-CUATROCIENTOS = 0                            04050009
+                   MOVE 29 TO WS-DIAS-MES(2)                            04060009
+               ELSE                                                     04070009
+                   MOVE 28 TO WS-DIAS-MES(2)                            04080009
+               END-IF                                                   04090009
+           END-IF                                                       04100009
+       4100-VALIDAR-BISIESTO-F. EXIT.                                   04110009
+                                                                        04120009
+                                                                        04130009
