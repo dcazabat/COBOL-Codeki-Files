@@ -1,34 +1,34 @@
-//KC03C7CC JOB CLASS=A,MSGCLASS=O,MSGLEVEL=(1,1),NOTIFY=&SYSUID,        00010004
-//             TIME=(,5)                                                00020004
-//************************************                                  00030004
-//* EJEMPLO EJECUCION JOB BATCH      *                                  00040004
-//************************************                                  00050004
-//*                                                                     00060004
-//STEP1    EXEC PGM=IDCAMS,COND=(8,LT)                                  00070004
-//SYSPRINT DD SYSOUT=*                                                  00080004
-//SYSIN    DD *                                                         00090004
-     DELETE   KC03C7C.CURSOS.NOVCLIEN.VALID                             00100004
-     DELETE   KC03C7C.CURSOS.NOVCLIEN.INVALID                           00110004
-     DELETE   KC03C7C.CURSOS.SPOOL.OUTPUT                               00120006
-     SET MAXCC=0                                                        00130004
-//*                                                                     00140004
-//***************************************                               00150004
-//* EJECUCION PROGRAMA PGMVAC7C ASYNC 8 *                               00160004
-//***************************************                               00170004
-//STEP2    EXEC PGM=PGMVAC7C                                            00180004
-//STEPLIB  DD DSN=KC03C7C.CURSOS.PGMLIB,DISP=SHR                        00190004
-//DNOVCLI  DD DSN=KC03C7C.ARCHIVOS.NOVCLIEN,DISP=SHR                    00200004
-//DDGRAB   DD DSN=KC03C7C.CURSOS.NOVCLIEN.VALID,DISP=(,CATLG),          00210004
-//            UNIT=SYSDA,VOL=SER=ZASWO1,                                00220004
-//            DCB=(LRECL=55,BLKSIZE=5500,RECFM=FB),                     00230004
-//            SPACE=(TRK,(1,1),RLSE)                                    00240004
-//DDERRR   DD DSN=KC03C7C.CURSOS.NOVCLIEN.INVALID,DISP=(,CATLG),        00250004
-//            UNIT=SYSDA,VOL=SER=ZASWO1,                                00260004
-//            DCB=(LRECL=55,BLKSIZE=5500,RECFM=FB),                     00270004
-//            SPACE=(TRK,(1,1),RLSE)                                    00280004
-//SYSOUT   DD DSN=KC03C7C.CURSOS.SPOOL.OUTPUT,                          00290005
-//            UNIT=SYSDA,VOL=SER=ZASWO1,                                00300004
-//            DCB=(RECFM=FBA,LRECL=133,BLKSIZE=27930),                  00310005
-//            SPACE=(CYL,(1,1),RLSE),                                   00320004
-//            DISP=(NEW,CATLG,DELETE)                                   00330004
-//SYSUDUMP DD SYSOUT=*                                                  00340004
+//KC03C7CC JOB CLASS=A,MSGCLASS=O,MSGLEVEL=(1,1),NOTIFY=&SYSUID,        
+//             TIME=(,5)                                                
+//************************************                                  
+//* EJEMPLO EJECUCION JOB BATCH      *                                  
+//************************************                                  
+//*                                                                     
+//STEP1    EXEC PGM=IDCAMS,COND=(8,LT)                                  
+//SYSPRINT DD SYSOUT=*                                                  
+//SYSIN    DD *                                                         
+     DELETE   KC03C7C.CURSOS.NOVCLIEN.VALID                             
+     DELETE   KC03C7C.CURSOS.NOVCLIEN.INVALID                           
+     DELETE   KC03C7C.CURSOS.SPOOL.OUTPUT                               
+     SET MAXCC=0                                                        
+//*                                                                     
+//***************************************                               
+//* EJECUCION PROGRAMA PGMVAC7C ASYNC 8 *                               
+//***************************************                               
+//STEP2    EXEC PGM=PGMVAC7C                                            
+//STEPLIB  DD DSN=KC03C7C.CURSOS.PGMLIB,DISP=SHR                        
+//DNOVCLI  DD DSN=KC03C7C.ARCHIVOS.NOVCLIEN,DISP=SHR                    
+//DDGRAB   DD DSN=KC03C7C.CURSOS.NOVCLIEN.VALID,DISP=(,CATLG),          
+//            UNIT=SYSDA,VOL=SER=ZASWO1,                                
+//            DCB=(LRECL=55,BLKSIZE=5500,RECFM=FB),                     
+//            SPACE=(TRK,(1,1),RLSE)                                    
+//DDERRR   DD DSN=KC03C7C.CURSOS.NOVCLIEN.INVALID,DISP=(,CATLG),        
+//            UNIT=SYSDA,VOL=SER=ZASWO1,                                
+//            DCB=(LRECL=55,BLKSIZE=5500,RECFM=FB),                     
+//            SPACE=(TRK,(1,1),RLSE)                                    
+//SYSOUT   DD DSN=KC03C7C.CURSOS.SPOOL.OUTPUT,                          
+//            UNIT=SYSDA,VOL=SER=ZASWO1,                                
+//            DCB=(RECFM=FBA,LRECL=133,BLKSIZE=27930),                  
+//            SPACE=(CYL,(1,1),RLSE),                                   
+//            DISP=(NEW,CATLG,DELETE)                                   
+//SYSUDUMP DD SYSOUT=*                                                  

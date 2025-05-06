@@ -83,6 +83,9 @@
       ********     FECHA DE PROCESO     *****************************   00750009
        77 WS-FECHA-AAAAMMDD        PIC X(8).
        77 WS-FECHA-NUMERO          PIC 9(8).                            00760009
+       77 WS-FECHA-AAAA            PIC X(4).
+       77 WS-FECHA-NUMDESDE        PIC 9(8)      VALUE ZEROS.
+       77 WS-FECHA-NUMHASTA        PIC 9(8)      VALUE ZEROS.
        01  WS-FECHA.                                                    00770009
            05 WS-FECHA-AA          PIC 9(2).                            00780009
            05 WS-FECHA-MM          PIC 9(2).                            00790009
@@ -137,8 +140,10 @@
       **************************************                            01280009
        1000-INICIO.                                                     01290009
            ACCEPT WS-FECHA FROM DATE.                                   01300009
-           DISPLAY 'FECHA DE PROCESO: '                                 01310009
-              WS-FECHA-DD '/' WS-FECHA-MM '/' WS-FECHA-AA               01320009
+           MOVE '20' TO WS-FECHA-AAAA(1:2)
+           MOVE WS-FECHA-AA TO WS-FECHA-AAAA(3:2)
+           DISPLAY 'FECHA DE PROCESO: 
+              WS-FECHA-DD '/' WS-FECHA-MM '/' WS-FECHA-AAAA
            DISPLAY WS-LINEA-SEPARACION 
                                                                         01480009
            OPEN INPUT  NOVCLI                                           01490009
@@ -350,9 +355,22 @@
       * VALIDAR FECHA EN FORMATO AAAAMMDD                              *03540009
       *----------------------------------------------------------------*03550009
        4000-VALIDAR-FECHA.
+           *> Se asigna la fecha de proceso a la variable de trabajo
            MOVE WS-FECHA-AAAAMMDD TO WS-FECHA-NUMERO
+
+           *> Se asigna la fecha de proceso a FECHA DESDE
+           MOVE FUNCTION CURRENT-DATE(1:4) TO WS-FECHA-NUMDESDE(1:4)
+           MOVE '0101' TO WS-FECHA-NUMDESDE(5:4)
+
+           *> Se asigna la fecha de proceso a FECHA HASTA
+           MOVE FUNCTION CURRENT-DATE(1:8) TO WS-FECHA-NUMHASTA
            IF FUNCTION TEST-DATE-YYYYMMDD(WS-FECHA-NUMERO) = 0
-              MOVE 'S' TO WS-FECHA-VALIDA                               03580009
+             IF WS-FECHA-NUMDESDE <= WS-FECHA-NUMERO AND
+                WS-FECHA-NUMERO <= WS-FECHA-NUMHASTA
+                MOVE 'S' TO WS-FECHA-VALIDA
+             ELSE
+                MOVE 'N' TO WS-FECHA-VALIDA
+             END-IF
            ELSE                                                         03590009
               MOVE 'N' TO WS-FECHA-VALIDA                               03600009
            END-IF                                                       03610009
