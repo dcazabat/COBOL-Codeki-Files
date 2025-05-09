@@ -1,0 +1,245 @@
+       IDENTIFICATION DIVISION.                                         00010000
+        PROGRAM-ID PGMTABLA.                                            00011001
+      **************************************                            00012000
+      *                                    *                            00013000
+      *  PROGRAMA PARA GENERAR UNA TABLA   *                            00014001
+      *  EN WORKING CON LOS DIAS X MES     *                            00015003
+      *  LA ENTRADA CLASIFICADA 1 X 2 ASC  *                            00015103
+      *                                    *                            00016000
+      **************************************                            00017000
+      *      MANTENIMIENTO DE PROGRAMA     *                            00018000
+      **************************************                            00019000
+      *  FECHA   *    DETALLE        * COD *                            00019100
+      **************************************                            00019200
+      *          *                   *     *                            00019300
+      *          *                   *     *                            00019400
+      **************************************                            00019500
+       ENVIRONMENT DIVISION.                                            00020000
+       INPUT-OUTPUT SECTION.                                            00020203
+       FILE-CONTROL.                                                    00020303
+             SELECT ENTRADA ASSIGN DDENTRA                              00020403
+                    FILE STATUS IS WS-ENT-CODE.                         00020503
+                                                                        00020603
+             SELECT SALIDA  ASSIGN DDSALID                              00020703
+                    FILE STATUS IS WS-SAL-CODE.                         00020803
+                                                                        00020903
+       DATA DIVISION.                                                   00039003
+       FILE SECTION.                                                    00039103
+       FD ENTRADA                                                       00039203
+            BLOCK CONTAINS 0 RECORDS                                    00039303
+            RECORDING MODE IS F.                                        00039403
+                                                                        00039503
+       01 REG-ENTRADA    PIC X(80).                                     00039617
+                                                                        00039703
+       FD SALIDA                                                        00039803
+            BLOCK CONTAINS 0 RECORDS                                    00039903
+            RECORDING MODE IS F.                                        00040003
+                                                                        00040103
+       01 REG-SALIDA     PIC X(30).                                     00040204
+                                                                        00040303
+      **************************************                            00040408
+       WORKING-STORAGE SECTION.                                         00040503
+      **************************************                            00040608
+       77  FILLER        PIC X(26) VALUE '* INICIO WORKING-STORAGE *'.  00040703
+       77  FILLER        PIC X(26) VALUE '* CODIGOS RETORNO FILES  *'.  00040803
+       77  WS-ENT-CODE      PIC XX    VALUE SPACES.                     00040904
+       77  WS-SAL-CODE      PIC XX    VALUE SPACES.                     00041004
+       77  WS-SAL-CODES     PIC $*****,**** VALUE ZEROS.                00041228
+                                                                        00041318
+       01  WS-STATUS-FIN    PIC X.                                      00041403
+           88  WS-FIN-LECTURA         VALUE 'Y'.                        00041503
+           88  WS-NO-FIN-LECTURA      VALUE 'N'.                        00041603
+                                                                        00041703
+       77  FILLER       PIC X(26) VALUE '* LAYOUT ENTRADA MESES   *'.   00041811
+      **************************************                            00041912
+       01  WS-REG-ENTRADA.                                              00042004
+           03  WS-NRO-MES          PIC 9(2)    VALUE ZEROS.             00042111
+           03  WS-NOMBRE-MES       PIC X(10)   VALUE SPACES.            00042204
+           03  FILLER              PIC X(68)   VALUE SPACES.            00042317
+      **************************************                            00042406
+      *        COPY WSMESES.                                            00042504
+      **************************************                            00042606
+                                                                        00042704
+       01  WS-REG-SALIDA.                                               00042804
+           03  WS-SAL-NRO-MES          PIC 99      VALUE ZEROS.         00042907
+           03  WS-SAL-NOMBRE-MES       PIC X(10)   VALUE SPACES.        00043007
+           03  WS-SAL-NRO-DIA          PIC 99      VALUE ZEROS.         00043107
+           03  FILLER                  PIC X(16)   VALUE SPACES.        00043207
+                                                                        00043304
+                                                                        00043400
+       01  WS-DIAS.                                                     00044301
+             05  FILLER    PIC 99                VALUE 31.              00044401
+             05  FILLER    PIC 99                VALUE 28.              00044503
+             05  FILLER    PIC 99                VALUE 31.              00044603
+             05  FILLER    PIC 99                VALUE 30.              00044703
+             05  FILLER    PIC 99                VALUE 31.              00044806
+             05  FILLER    PIC 99                VALUE 30.              00044903
+             05  FILLER    PIC 99                VALUE 31.              00045003
+             05  FILLER    PIC 99                VALUE 31.              00045103
+             05  FILLER    PIC 99                VALUE 30.              00045206
+             05  FILLER    PIC 99                VALUE 31.              00045303
+             05  FILLER    PIC 99                VALUE 30.              00045403
+             05  FILLER    PIC 99                VALUE 31.              00045503
+       01 WS-TAB-DIAS     REDEFINES WS-DIAS.                            00045630
+          03 WS-ITEM-DIAS    PIC 99     OCCURS 12 TIMES.                00045730
+                                                                        00045800
+       77  WS-REMAINDER         PIC 9(2)        VALUE     ZEROS.        00045903
+       77  WS-RESULTADO         PIC 9(2)        VALUE     ZEROS.        00046003
+                                                                        00046103
+      ********     FECHA DE PROCESO ***************                     00046203
+       01  WS-FECHA.                                                    00046406
+           03  WS-FECHA-AAAA    PIC 9999          VALUE ZEROS.          00046506
+           03  WS-FECHA-MM      PIC 99            VALUE ZEROS.          00046606
+           03  WS-FECHA-DD      PIC 99            VALUE ZEROS.          00046706
+                                                                        00046829
+      *************************************************************     00046929
+      *        PROPUESTA DE SOLUCI‰N EN CLASE                           00047031
+      *        ------------------------------                           00047131
+      *        DEFINICIÏN DE TABLA (2 DIMENSIONES)                      00047231
+      *        PARA GUARDAR LOS 25 PRIMEROS N£MEROS CONSECUTIVOS        00047331
+      **************************************************************    00047431
+      *01 WS-TABLE.                                                     00047531
+      *                                                                 00047631
+      *   05 WS-FILA OCCURS 5 TIMES  INDEXED BY WS-I.                   00047731
+      *      10 WS-ITEM-FILA       PIC 9(2).                            00047831
+      *                                                                 00047931
+      *      10  WS-COLUMNA OCCURS 5 TIMES  INDEXED BY WS-J.            00048031
+      *          15  WS-ITEM-COLUMNA     PIC 9(2).                      00050831
+      *                                                                 00050931
+      *77  WS-NUMERO           PIC 9(2)   VALUE  ZEROS.                 00051031
+      *                                                                 00051131
+      ***************************************************************   00051229
+                                                                        00051329
+       77  FILLER              PIC X(26) VALUE                          00051429
+                                         '* FINAL  WORKING-STORAGE *'.  00051529
+                                                                        00051629
+      ***************************************************************.  00051729
+       PROCEDURE DIVISION.                                              00051829
+      **************************************                            00052000
+      *                                    *                            00053000
+      *  CUERPO PRINCIPAL DEL PROGRAMA     *                            00054000
+      *                                    *                            00056000
+      **************************************                            00057000
+       MAIN-PROGRAM.                                                    00060000
+                                                                        00060100
+           PERFORM 1000-INICIO  THRU   F-1000-INICIO.                   00060200
+                                                                        00060300
+           PERFORM 2000-PROCESO  THRU  F-2000-PROCESO                   00060404
+                   UNTIL WS-FIN-LECTURA.                                00060703
+                                                                        00060803
+           PERFORM 9999-FINAL    THRU  F-9999-FINAL.                    00060900
+                                                                        00061000
+       F-MAIN-PROGRAM. GOBACK.                                          00061100
+                                                                        00061200
+      **************************************                            00061300
+      *                                    *                            00061400
+      *  CUERPO INICIO APERTURA ARCHIVOS   *                            00061503
+      *                                    *                            00061600
+      **************************************                            00061700
+       1000-INICIO.                                                     00062000
+           ACCEPT WS-FECHA FROM DATE.                                   00063008
+                                                                        00063104
+      **************************************                            00063204
+      **   CALCULO A#O BISIESTO            *                            00063304
+      **************************************                            00063404
+           DIVIDE WS-FECHA-AAAA BY 4 GIVING WS-RESULTADO                00063508
+               REMAINDER   WS-REMAINDER                                 00063610
+                                                                        00063704
+           IF WS-REMAINDER = ZEROS                                      00063808
+               MOVE 29      TO WS-ITEM-DIAS(2)                          00063904
+           END-IF                                                       00064008
+                                                                        00065003
+      *    SET WS-STATUS-FIN TO 'N'.                                    00070008
+           SET WS-NO-FIN-LECTURA TO TRUE.                               00070208
+                                                                        00070304
+           OPEN INPUT  ENTRADA.                                         00071004
+           IF WS-ENT-CODE IS NOT EQUAL '00'                             00071104
+              DISPLAY '* ERROR EN OPEN ENTRADA = ' WS-ENT-CODE          00071204
+              MOVE 9999 TO RETURN-CODE                                  00071304
+              SET  WS-FIN-LECTURA TO TRUE                               00071404
+           END-IF.                                                      00071504
+                                                                        00071604
+           OPEN OUTPUT SALIDA.                                          00071904
+           IF WS-SAL-CODE IS NOT EQUAL '00'                             00072004
+              DISPLAY '* ERROR EN OPEN SALIDA  = ' WS-SAL-CODE          00072104
+              MOVE 9999 TO RETURN-CODE                                  00072204
+              SET  WS-FIN-LECTURA TO TRUE                               00072304
+           END-IF.                                                      00072404
+                                                                        00073204
+       F-1000-INICIO.   EXIT.                                           00073304
+                                                                        00073404
+      **************************************                            00073504
+      *                                    *                            00073604
+      *  CUERPO PRINCIPAL DE PROCESOS      *                            00073704
+      *  LECTURA FILE MESES CLASIFICADO    *                            00073804
+      *  GRABACION SALIDA CON LOS CAMPOS   *                            00073904
+      *            NUMERO       DE MES     *                            00074004
+      *            NOMBRE MES              *                            00074104
+      *            CANTIDAD DIAS           *                            00074204
+      *                                    *                            00074304
+      **************************************                            00074404
+       2000-PROCESO.                                                    00074504
+           READ ENTRADA INTO WS-REG-ENTRADA                             00074609
+                        AT END SET WS-FIN-LECTURA TO TRUE.              00074709
+                                                                        00074809
+           EVALUATE WS-ENT-CODE                                         00074909
+             WHEN '00'                                                  00075009
+           PERFORM 2200-SEGUIR-PROCESO THRU F-2200-SEGUIR-PROCESO       00075109
+                                                                        00075304
+              WHEN '10'                                                 00075404
+              SET WS-FIN-LECTURA TO TRUE                                00075513
+                                                                        00075604
+           WHEN OTHER                                                   00075704
+              DISPLAY '* ERROR EN LECTURA ENTRADA = ' WS-ENT-CODE       00075804
+              MOVE 9999 TO RETURN-CODE                                  00075904
+              SET WS-FIN-LECTURA TO TRUE                                00076011
+                                                                        00076104
+           END-EVALUATE.                                                00076204
+                                                                        00077004
+                                                                        00077204
+       F-2000-PROCESO. EXIT.                                            00077304
+                                                                        00077404
+       2200-SEGUIR-PROCESO.                                             00077504
+                                                                        00077604
+           MOVE SPACES          TO     WS-REG-SALIDA                    00077904
+                                                                        00078004
+           MOVE WS-NRO-MES      TO     WS-SAL-NRO-MES                   00078104
+           MOVE WS-NOMBRE-MES   TO     WS-SAL-NOMBRE-MES                00078204
+                                                                        00078304
+           MOVE WS-ITEM-DIAS (WS-NRO-MES)   TO WS-SAL-NRO-DIA           00078404
+                                                                        00078604
+           WRITE REG-SALIDA FROM WS-REG-SALIDA                          00078704
+           IF WS-SAL-CODE IS NOT EQUAL '00'                             00078804
+                DISPLAY '* ERROR EN WRITE SALIDA  = '                   00078914
+                                            WS-SAL-CODE                 00079004
+                MOVE 9999 TO RETURN-CODE                                00079104
+                SET WS-FIN-LECTURA TO TRUE                              00079215
+           END-IF.                                                      00079315
+                                                                        00079404
+       F-2200-SEGUIR-PROCESO. EXIT.                                     00079804
+                                                                        00079904
+      **************************************                            00081304
+      *                                    *                            00081404
+      *  CUERPO FINAL CIERRE DE FILES      *                            00081504
+      *                                    *                            00081604
+      **************************************                            00081704
+       9999-FINAL.                                                      00081804
+           CLOSE ENTRADA                                                00081904
+              IF WS-ENT-CODE IS NOT EQUAL '00'                          00082004
+                DISPLAY '* ERROR EN CLOSE ENTRADA = '                   00082104
+                                            WS-ENT-CODE                 00082204
+                MOVE 9999 TO RETURN-CODE                                00082304
+                SET WS-FIN-LECTURA TO TRUE                              00082411
+             END-IF.                                                    00082515
+                                                                        00082604
+           CLOSE  SALIDA                                                00082704
+              IF WS-SAL-CODE IS NOT EQUAL '00'                          00082804
+                DISPLAY '* ERROR EN CLOSE SALIDA   ='                   00082904
+                                            WS-SAL-CODE                 00083004
+                MOVE 9999 TO RETURN-CODE                                00083104
+                SET WS-FIN-LECTURA TO TRUE                              00083215
+           END-IF.                                                      00083315
+                                                                        00084004
+       F-9999-FINAL.                                                    00086004
+           EXIT.                                                        00086100
+      *                                                                 00200000

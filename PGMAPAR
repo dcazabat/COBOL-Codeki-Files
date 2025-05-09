@@ -1,31 +1,34 @@
        IDENTIFICATION DIVISION.                                         
-        PROGRAM-ID PGMAPAR.                                             
-      **********************************************************        
-      *                                                        *        
-      *  APAREO SIMPLE: UN MOVIMIENTO POR CUENTA               *        
-      *  PROGRAMA PARA IMPUTAR  DEPOSITOS EN CUENTAS CORRIENTES*        
-      *  APAREAR LA CUENTA DEL CLIENTE CON CUENTA DEL MOVIMIENT*        
-      *  AMBAS  ENTRADAS CLASIFICADAS X CLIENTE CUENTA         *        
-      *                                                        *        
-      *  TENER PRESENTE QUE; EN ESTE EJEMPLO SOLO HAY UN       *        
-      *  MOVIMIENTO  POR CUENTA                                *        
-      *                                                        *        
-      *  SI, COMO ES NORMAL, HUBIERA M�S DE UN MOV X CLIENTE   *        
-      *  CUANDO SE PRODUCE EL APAREO; HABR� QUE LEER OTRO MOV. *        
-      *                                                        *        
-      *  SE LEER� UN REGISTRO DEL MAESTRO CLIENTE; LUEGO QUE   *        
-      *  SE CONSIDERE QUE YA NO HAY M�S MOV PARA EL MISMO  :   *        
-      *                                                        *        
-      *  MOV-CLAVE > CLI-CLAVE                                 *        
-      *                                                        *        
-      **********************************************************        
-      *      MANTENIMIENTO DE PROGRAMA                         *        
-      **********************************************************        
-      *  FECHA   *    DETALLE        * COD *                            
-      **************************************                            
-      *          *                   *     *                            
-      *          *                   *     *                            
-      **************************************                            
+       PROGRAM-ID PGMAPAR.                                             
+       AUTHOR.        D. CAZABAT.                                       
+       INSTALLATION.  CURSO CODEKI.                                     
+       DATE-WRITTEN.  09/05/2025.                                       
+       DATE-COMPILED. 09/05/2025.                                       
+      **********************************************************
+      *                                                        *
+      *  OBJETIVO: PRACTICA CODIFICACION COBOL                 *
+      *  ASINCRONICA 8: VALIDACION                             *
+      *                                                        *
+      **********************************************************
+      ***********************************************************
+      *                                                         *
+      *  APAREO SIMPLE: UN MOVIMIENTO POR CUENTA                *
+      *  PROGRAMA PARA IMPUTAR  DEPOSITOS EN CUENTAS CORRIENTES *
+      *  APAREAR LA CUENTA DEL CLIENTE CON CUENTA DEL MOVIMIENT *
+      *  AMBAS  ENTRADAS CLASIFICADAS X CLIENTE CUENTA          *
+      *                                                         *
+      *  TENER PRESENTE QUE; EN ESTE EJEMPLO SOLO HAY UN        *
+      *  MOVIMIENTO  POR CUENTA                                 *
+      *                                                         *
+      *  SI, COMO ES NORMAL, HUBIERA M�S DE UN MOV X CLIENTE    *
+      *  CUANDO SE PRODUCE EL APAREO; HABR� QUE LEER OTRO MOV.  *
+      *                                                         *
+      *  SE LEER� UN REGISTRO DEL MAESTRO CLIENTE; LUEGO QUE    *
+      *  SE CONSIDERE QUE YA NO HAY M�S MOV PARA EL MISMO  :    *
+      *                                                         *
+      *  MOV-CLAVE > CLI-CLAVE                                  *
+      *                                                         *
+      ***********************************************************
        ENVIRONMENT DIVISION.                                            
        INPUT-OUTPUT SECTION.                                            
        FILE-CONTROL.                                                    
@@ -58,9 +61,7 @@
                                                                         
        01 REG-SALIDA     PIC X(30).                                     
                                                                         
-      **************************************                            
        WORKING-STORAGE SECTION.                                         
-      **************************************                            
        77  FILLER        PIC X(26) VALUE '* INICIO WORKING-STORAGE *'.  
        77  FILLER        PIC X(26) VALUE '* CODIGOS RETORNO FILES  *'.  
        77  WS-CLI-CODE      PIC XX    VALUE SPACES.                     
@@ -79,29 +80,30 @@
            88  WS-FIN-MOV             VALUE 'Y'.                        
            88  WS-NO-FIN-MOV          VALUE 'N'.                        
                                                                         
-      **************************************                            
-      *         LAYOUT CLIENTES            *                            
-      **************************************                            
-       01  WS-REG-CLIENTE.                                              
-           03  WS-CLI-CLAVE.                                            
-              05  WS-CLI-NRO       PIC 9(05)       VALUE ZEROS.         
-              05  WS-CLI-TIPO      PIC 9(02)       VALUE ZEROS.         
-              05  WS-CLI-CUENTA    PIC 9(08)       VALUE ZEROS.         
-           03  WS-CLI-SALDO        PIC S9(09)V99   VALUE ZEROS.         
-           03  FILLER              PIC X(04)       VALUE SPACES.        
-                                                                        
+      **************************************
+      *         LAYOUT CLIENTES            *
+      **************************************
+      *01  WS-REG-CLIENTE.                                              
+      *    03  WS-CLI-CLAVE.                                            
+      *       05  WS-CLI-NRO       PIC 9(05)       VALUE ZEROS.         
+      *       05  WS-CLI-TIPO      PIC 9(02)       VALUE ZEROS.         
+      *       05  WS-CLI-CUENTA    PIC 9(08)       VALUE ZEROS.         
+      *    03  WS-CLI-SALDO        PIC S9(09)V99   VALUE ZEROS.         
+      *    03  FILLER              PIC X(04)       VALUE SPACES.        
+       COPY CLIENTE.
+
       **************************************                            
       * LAY-OUT MOVIMIENTOS                                             
       **************************************                            
-       01  WS-REG-MOVIMI.                                               
-           03  WS-MOV-CLAVE.                                            
-               05  WS-MOV-NRO      PIC 9(05)       VALUE ZEROS.     
-               05  WS-MOV-TIPO     PIC 9(02)       VALUE ZEROS.     
-               05  WS-MOV-CUENTA   PIC 9(08)       VALUE ZEROS.     
-           03  WS-MOV-IMPORTE      PIC 9(09)V99    VALUE ZEROS.     
-           03  FILLER              PIC X(54)       VALUE SPACES.    
-                                                                        
-                                                                        
+      *01  WS-REG-MOVIMI.                                               
+      *    03  WS-MOV-CLAVE.                                            
+      *        05  WS-MOV-NRO      PIC 9(05)       VALUE ZEROS.     
+      *        05  WS-MOV-TIPO     PIC 9(02)       VALUE ZEROS.     
+      *        05  WS-MOV-CUENTA   PIC 9(08)       VALUE ZEROS.     
+      *    03  WS-MOV-IMPORTE      PIC 9(09)V99    VALUE ZEROS.     
+      *    03  FILLER              PIC X(54)       VALUE SPACES.    
+      *                                                                 
+       COPY MOVIMCC.
       **************************************                            
       *         LAYOUT SALIDA              *                            
       **************************************                            
@@ -142,11 +144,11 @@
                                                                         
       ***************************************************************.  
        PROCEDURE DIVISION.                                              
-      **************************************                            
-      *                                    *                            
-      *  CUERPO PRINCIPAL DEL PROGRAMA     *                            
-      *                                    *                            
-      **************************************                            
+      **************************************
+      *                                    *
+      *  CUERPO PRINCIPAL DEL PROGRAMA     *
+      *                                    *
+      **************************************
        MAIN-PROGRAM.                                                    
                                                                         
            PERFORM 1000-INICIO
@@ -161,11 +163,11 @@
                                                                         
        F-MAIN-PROGRAM. GOBACK.                                          
                                                                         
-      **************************************                            
-      *                                    *                            
-      *  CUERPO INICIO APERTURA ARCHIVOS   *                            
-      *                                    *                            
-      **************************************                            
+      **************************************
+      *                                    *
+      *  CUERPO INICIO APERTURA ARCHIVOS   *
+      *                                    *
+      **************************************
        1000-INICIO.                                                     
            ACCEPT WS-FECHA FROM DATE.                                   
                                                                         
@@ -199,13 +201,13 @@
                                                                         
        F-1000-INICIO.   EXIT.                                           
                                                                         
-      **************************************                            
-      *                                    *                            
-      *  CUERPO PRINCIPAL DE PROCESOS      *                            
-      *  LECTURA FILE INPUT CLASIFICADO    *                            
-      *  APAREO ARCHIVOS DE ENTRADA        *                            
-      *                                    *                            
-      **************************************                            
+      **************************************
+      *                                    *
+      *  CUERPO PRINCIPAL DE PROCESOS      *
+      *  LECTURA FILE INPUT CLASIFICADO    *
+      *  APAREO ARCHIVOS DE ENTRADA        *
+      *                                    *
+      **************************************
        2000-PROCESO.                                                    
            IF WS-CLI-CLAVE = WS-MOV-CLAVE                               
              PERFORM 5000-PROCESAR-CLIENTE                            
@@ -225,9 +227,9 @@
                   THRU F-4000-LEER-CLIE                      
              END-IF                                                     
            END-IF.                                                      
-      *************************************************************     
-      * CONTROL FIN DE ARCHIVOS DE ENTRADA, PARA FIN PROGRAMA           
-      *************************************************************     
+      *********************************************************     
+      * CONTROL FIN DE ARCHIVOS DE ENTRADA, PARA FIN PROGRAMA *
+      *********************************************************     
                                                                         
            IF WS-FIN-MOV AND WS-FIN-CLI                                 
               SET  WS-FIN-LECTURA TO TRUE                               
@@ -235,7 +237,7 @@
        F-2000-PROCESO. EXIT.                                            
                                                                         
       **************************************                            
-      * LECTURA MOVIMIENTOS                *                            
+      * LECTURA MOVIMIENTOS                *
       **************************************                            
        3000-LEER-MOVI.                                                  
            READ MOVIMI
@@ -256,7 +258,7 @@
        F-3000-LEER-MOVI. EXIT.                                          
                                                                         
       **************************************                            
-      * LECTURA CLIENTES                   *                            
+      * LECTURA CLIENTES                   *
       **************************************                            
        4000-LEER-CLIE.                                                  
            READ CLIENTE INTO WS-REG-CLIENTE                             
@@ -275,7 +277,7 @@
            END-EVALUATE.                                                
        F-4000-LEER-CLIE. EXIT.                                          
                                                                         
-      * VALIDAR QUE SEA CUENTA CORRIENTE   *                            
+      * VALIDAR QUE SEA CUENTA CORRIENTE   *
        5000-PROCESAR-CLIENTE.                                           
            IF WS-CLI-TIPO EQUAL 02                                  
               NEXT SENTENCE                                             
@@ -300,36 +302,35 @@
            IF WS-SAL-CODE =  ZEROS                                      
              ADD 1 TO WS-GRABADOS-SAL                              
            ELSE                                                         
-             DISPLAY '* ERROR EN WRITE SALIDA  = 'WS-SAL-CODE                 
+             DISPLAY '* ERROR EN WRITE SALIDA  = ' WS-SAL-CODE                 
              MOVE 9999 TO RETURN-CODE                                
              SET WS-FIN-LECTURA TO TRUE                              
            END-IF.                                                      
        F-6000-GRABAR-SALIDA. EXIT.                                      
                                                                         
-                                                                        
       **************************************                            
-      *                                    *                            
-      *  CUERPO FINAL CIERRE DE FILES      *                            
-      *                                    *                            
+      *                                    *
+      *  CUERPO FINAL CIERRE DE FILES      *
+      *                                    *
       **************************************                            
        9999-FINAL.                                                      
            CLOSE CLIENTE                                                
              IF WS-CLI-CODE IS NOT EQUAL '00'                          
-               DISPLAY '* ERROR EN CLOSE CLIENTE = 'WS-CLI-CODE                 
+               DISPLAY '* ERROR EN CLOSE CLIENTE = ' WS-CLI-CODE                 
                MOVE 9999 TO RETURN-CODE                                
                SET WS-FIN-LECTURA TO TRUE                              
             END-IF.                                                    
                                                                         
            CLOSE  MOVIMI                                                
              IF WS-MOV-CODE IS NOT EQUAL '00'                          
-               DISPLAY '* ERROR EN CLOSE MOVIMI ='WS-MOV-CODE                 
+               DISPLAY '* ERROR EN CLOSE MOVIMI =' WS-MOV-CODE                 
                MOVE 9999 TO RETURN-CODE                                
                SET WS-FIN-LECTURA TO TRUE                              
              END-IF.                                                      
                                                                         
            CLOSE SALIDA                                                 
              IF WS-SAL-CODE IS NOT EQUAL '00'                          
-               DISPLAY '* ERROR EN CLOSE SALIDA  = 'WS-SAL-CODE                 
+               DISPLAY '* ERROR EN CLOSE SALIDA = ' WS-SAL-CODE                 
                MOVE 9999 TO RETURN-CODE                                
                SET WS-FIN-LECTURA TO TRUE                              
              END-IF.                                                    

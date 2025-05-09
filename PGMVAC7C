@@ -145,215 +145,215 @@
            DISPLAY 'FECHA DE PROCESO: 
               WS-FECHA-DD '/' WS-FECHA-MM '/' WS-FECHA-AAAA
            DISPLAY WS-LINEA-SEPARACION 
-                                                                        01480009
-           OPEN INPUT  NOVCLI                                           01490009
-                                                                        01500009
-           IF FS-NOVCLI IS NOT EQUAL '00'                               01510009
-              DISPLAY '* ERROR EN OPEN SUCURSAL= '  FS-NOVCLI           01520009
-              MOVE 9999 TO RETURN-CODE                                  01530009
-              SET  FS-NOVCLI-FIN TO TRUE                                01540009
-           ELSE                                                         01550009
-              PERFORM 2100-LEER                                         01560009
-                 THRU 2100-LEER-F                                       01570009
-           END-IF                                                       01580009
-                                                                        01590009
-           OPEN OUTPUT S1GRAB                                           01600009
-           IF FS-S1GRAB IS NOT EQUAL '00'                               01610009
-              DISPLAY '* ERROR EN OPEN SALIDA = '  FS-S1GRAB            01620009
-              MOVE 9999 TO RETURN-CODE                                  01630009
-              SET  FS-NOVCLI-FIN TO TRUE                                01640009
-           END-IF                                                       01650009
-      *                                                                 01660009
-           OPEN OUTPUT S2ERRR                                           01670009
-           IF FS-S2ERRR IS NOT EQUAL '00'                               01680009
-              DISPLAY '* ERROR EN OPEN SALIDA = '  FS-S2ERRR            01690009
-              MOVE 9999 TO RETURN-CODE                                  01700009
-              SET  FS-NOVCLI-FIN TO TRUE                                01710009
-           END-IF                                                       01720009
-           .                                                            01730009
-       1000-INICIO-F. EXIT.                                             01740009
-                                                                        01750009
-      **************************************                            01760009
-      *                                    *                            01770009
-      *  CUERPO PRINCIPAL DE PROCESOS      *                            01780009
-      *                                    *                            01790009
-      **************************************                            01800009
-       2000-PROCESO.                                                    01810009
-      *                                                                 01820009
-           IF WS-PROCESAR-SI                                            01830009
-              ADD 1 TO WS-CANT-GRAB                                     01840009
-              PERFORM 2200-GRABAR-GRAB                                  01850009
-                 THRU 2200-GRABAR-GRAB-F                                01860009
-           ELSE                                                         01870009
-             ADD 1 TO WS-CANT-ERRR                                      01880009
-             PERFORM 2300-GRABAR-ERRR                                   01890009
-                THRU 2300-GRABAR-ERRR-F                                 01900009
-           END-IF                                                       01910009
-                                                                        01920009
-           PERFORM 2100-LEER                                            01930009
-              THRU 2100-LEER-F                                          01940009
-           .                                                            01950009
-       2000-PROCESO-F. EXIT.                                            01960009
-                                                                        01970009
-      **************************************                            01980009
-      *  LEER REGISTROS                    *                            01990009
-      **************************************                            02000009
-       2100-LEER.                                                       02010009
-           READ NOVCLI INTO WS-REG-NOVCLIE                              02020009
-           MOVE SPACES TO WS-ERROR-FECHA                                02030009
-           MOVE SPACES TO WS-ERROR-TPDOC                                02040009
-           MOVE SPACES TO WS-ERROR-SUCUR                                02050009
-           MOVE SPACES TO WS-ERROR-TPCTA                                02060009
-                                                                        02070009
-           EVALUATE FS-NOVCLI                                           02080009
-             WHEN '00'                                                  02090009
-               ADD 1 TO WS-CANT-LEIDOS                                  02100009
-               MOVE 'S' TO WS-PROCESAR-REG                              02110009
-                                                                        02120009
-               *> Asigno el campo de fecha de la copylib a la           02130009
-               *> variable de trabajo WS-FECHA-AAAAMMDD                 02140009
-               MOVE NOV-CLI-FECHA(1:8) TO WS-FECHA-AAAAMMDD             02150009
-               PERFORM 4000-VALIDAR-FECHA                               02160009
-                  THRU 4000-VALIDAR-FECHA-F                             02170009
-               IF NOT FECHA-VALIDA                                      02180009
-                  MOVE 'N' TO WS-PROCESAR-REG                           02190009
-                  MOVE 'LA FECHA INVALIDA ' TO WS-ERROR-FECHA           02200009
-               END-IF                                                   02210009
-                                                                        02220009
-               *> Se verifica si el tipo de documento es correcto       02230009
-               IF NOT (NOV-TIP-DOC = 'DU' OR                            02240009
-                  NOV-TIP-DOC = 'PA' OR                                 02250009
-                  NOV-TIP-DOC = 'PE' OR                                 02260009
-                  NOV-TIP-DOC = 'CI')                                   02270009
-                  MOVE 'N' TO WS-PROCESAR-REG                           02280009
-                  MOVE 'TIPO DE DOCUMENTO INCORRECTO' TO WS-ERROR-TPDOC 02290009
-               END-IF                                                   02300009
-                                                                        02310009
-                *> Se verifica si la sucursal es correcta               02320009
-               IF NOT (NOV-SUC >= 1 AND NOV-SUC <= 99)                  02330009
-                  MOVE 'N' TO WS-PROCESAR-REG                           02340009
-                  MOVE 'SUCURSAL INCORRECTA' TO WS-ERROR-SUCUR          02350009
-               END-IF                                                   02360009
-                                                                        02370009
-                *> Se verifica el tipo de cuenta es correcto            02380009
-               IF NOT (NOV-CLI-TIPO = 1 OR                              02390009
-                  NOV-CLI-TIPO = 2 OR                                   02400009
-                  NOV-CLI-TIPO = 3)                                     02410009
-                  MOVE 'N' TO WS-PROCESAR-REG                           02420009
-                  MOVE 'TIPO DE CUENTA INCORRECTA' TO WS-ERROR-TPCTA    02430009
-               END-IF                                                   02440009
-                                                                        02450009
-             WHEN '10'                                                  02460009
-               CONTINUE                                                 02470009
-                                                                        02480009
-             WHEN OTHER                                                 02490009
-               DISPLAY '* ERROR EN LECTURA SUCURSAL= ' FS-NOVCLI        02500009
-               MOVE 9999 TO RETURN-CODE                                 02510009
-               SET FS-NOVCLI-FIN  TO TRUE                               02520009
-           END-EVALUATE                                                 02530009
-           .                                                            02540009
-       2100-LEER-F. EXIT.                                               02550009
-                                                                        02560009
-      **************************************                            02570009
-      *  GRABAR LOS REGISTROS OK           *                            02580009
-      **************************************                            02590009
-       2200-GRABAR-GRAB.                                                02600009
-           MOVE WS-CANT-GRAB TO NOV-SECUEN                              02610009
-           MOVE WS-REG-NOVCLIE TO NOV-RESTO                             02620009
-           WRITE REG-S1GRAB FROM REG-NOVCLIE-VAL                        02630009
-                                                                        02640009
-           IF FS-S1GRAB IS NOT EQUAL '00'                               02650009
-              DISPLAY '* ERROR EN GRABAR REGISTRO= ' FS-S1GRAB          02660009
-              MOVE 9999 TO RETURN-CODE                                  02670009
-              SET FS-NOVCLI-FIN  TO TRUE                                02680009
-           END-IF.                                                      02690009
-       2200-GRABAR-GRAB-F. EXIT.                                        02700009
-      **************************************                            02710009
-      *  GRABAR ERRRULINO                  *                            02720009
-      **************************************                            02730009
-       2300-GRABAR-ERRR.                                                02740009
-           MOVE WS-CANT-ERRR TO NOV-SECUEN                              02750009
-           MOVE WS-REG-NOVCLIE TO NOV-RESTO                             02760009
-           *> Display de los registros con error                        02770009
-           DISPLAY " TIPO DOC " NOV-TIP-DOC " NRO DOC " NOV-NRO-DOC     02780009
-           DISPLAY "   CONTINENE ESTOS ERRORES: "                       02790009
-           IF WS-ERROR-FECHA NOT = SPACES                               02800009
-              DISPLAY "    - " WS-ERROR-FECHA                           02810009
-           END-IF                                                       02820009
-           IF WS-ERROR-TPDOC NOT = SPACES                               02830009
-              DISPLAY "    - " WS-ERROR-TPDOC                           02840009
-           END-IF                                                       02850009
-           IF WS-ERROR-SUCUR NOT = SPACES                               02860009
-              DISPLAY "    - " WS-ERROR-SUCUR                           02870009
-           END-IF                                                       02880009
-           IF WS-ERROR-TPCTA NOT = SPACES                               02890009
-              DISPLAY "    - " WS-ERROR-TPCTA                           02900009
-           END-IF                                                       02910009
+                                                                        
+           OPEN INPUT  NOVCLI                                           
+                                                                        
+           IF FS-NOVCLI IS NOT EQUAL '00'                               
+              DISPLAY '* ERROR EN OPEN SUCURSAL= '  FS-NOVCLI           
+              MOVE 9999 TO RETURN-CODE                                  
+              SET  FS-NOVCLI-FIN TO TRUE                                
+           ELSE                                                         
+              PERFORM 2100-LEER                                         
+                 THRU 2100-LEER-F                                       
+           END-IF                                                       
+                                                                        
+           OPEN OUTPUT S1GRAB                                           
+           IF FS-S1GRAB IS NOT EQUAL '00'                               
+              DISPLAY '* ERROR EN OPEN SALIDA = '  FS-S1GRAB            
+              MOVE 9999 TO RETURN-CODE                                  
+              SET  FS-NOVCLI-FIN TO TRUE                                
+           END-IF                                                       
+      *                                                                 
+           OPEN OUTPUT S2ERRR                                           
+           IF FS-S2ERRR IS NOT EQUAL '00'                               
+              DISPLAY '* ERROR EN OPEN SALIDA = '  FS-S2ERRR            
+              MOVE 9999 TO RETURN-CODE                                  
+              SET  FS-NOVCLI-FIN TO TRUE                                
+           END-IF                                                       
+           .                                                            
+       1000-INICIO-F. EXIT.                                             
+                                                                        
+      **************************************                            
+      *                                    *                            
+      *  CUERPO PRINCIPAL DE PROCESOS      *                            
+      *                                    *                            
+      **************************************                            
+       2000-PROCESO.                                                    
+      *                                                                 
+           IF WS-PROCESAR-SI                                            
+              ADD 1 TO WS-CANT-GRAB                                     
+              PERFORM 2200-GRABAR-GRAB                                  
+                 THRU 2200-GRABAR-GRAB-F                                
+           ELSE                                                         
+             ADD 1 TO WS-CANT-ERRR                                      
+             PERFORM 2300-GRABAR-ERRR                                   
+                THRU 2300-GRABAR-ERRR-F                                 
+           END-IF                                                       
+                                                                        
+           PERFORM 2100-LEER                                            
+              THRU 2100-LEER-F                                          
+           .                                                            
+       2000-PROCESO-F. EXIT.                                            
+                                                                        
+      **************************************                            
+      *  LEER REGISTROS                    *                            
+      **************************************                            
+       2100-LEER.                                                       
+           READ NOVCLI INTO WS-REG-NOVCLIE                              
+           MOVE SPACES TO WS-ERROR-FECHA                                
+           MOVE SPACES TO WS-ERROR-TPDOC                                
+           MOVE SPACES TO WS-ERROR-SUCUR                                
+           MOVE SPACES TO WS-ERROR-TPCTA                                
+                                                                        
+           EVALUATE FS-NOVCLI                                           
+             WHEN '00'                                                  
+               ADD 1 TO WS-CANT-LEIDOS                                  
+               MOVE 'S' TO WS-PROCESAR-REG                              
+                                                                        
+               *> Asigno el campo de fecha de la copylib a la           
+               *> variable de trabajo WS-FECHA-AAAAMMDD                 
+               MOVE NOV-CLI-FECHA(1:8) TO WS-FECHA-AAAAMMDD             
+               PERFORM 4000-VALIDAR-FECHA                               
+                  THRU 4000-VALIDAR-FECHA-F                             
+               IF NOT FECHA-VALIDA                                      
+                  MOVE 'N' TO WS-PROCESAR-REG                           
+                  MOVE 'LA FECHA INVALIDA ' TO WS-ERROR-FECHA           
+               END-IF                                                   
+                                                                        
+               *> Se verifica si el tipo de documento es correcto       
+               IF NOT (NOV-TIP-DOC = 'DU' OR                            
+                  NOV-TIP-DOC = 'PA' OR                                 
+                  NOV-TIP-DOC = 'PE' OR                                 
+                  NOV-TIP-DOC = 'CI')                                   
+                  MOVE 'N' TO WS-PROCESAR-REG                           
+                  MOVE 'TIPO DE DOCUMENTO INCORRECTO' TO WS-ERROR-TPDOC 
+               END-IF                                                   
+                                                                        
+                *> Se verifica si la sucursal es correcta               
+               IF NOT (NOV-SUC >= 1 AND NOV-SUC <= 99)                  
+                  MOVE 'N' TO WS-PROCESAR-REG                           
+                  MOVE 'SUCURSAL INCORRECTA' TO WS-ERROR-SUCUR          
+               END-IF                                                   
+                                                                        
+                *> Se verifica el tipo de cuenta es correcto            
+               IF NOT (NOV-CLI-TIPO = 1 OR                              
+                  NOV-CLI-TIPO = 2 OR                                   
+                  NOV-CLI-TIPO = 3)                                     
+                  MOVE 'N' TO WS-PROCESAR-REG                           
+                  MOVE 'TIPO DE CUENTA INCORRECTA' TO WS-ERROR-TPCTA    
+               END-IF                                                   
+                                                                        
+             WHEN '10'                                                  
+               CONTINUE                                                 
+                                                                        
+             WHEN OTHER                                                 
+               DISPLAY '* ERROR EN LECTURA SUCURSAL= ' FS-NOVCLI        
+               MOVE 9999 TO RETURN-CODE                                 
+               SET FS-NOVCLI-FIN  TO TRUE                               
+           END-EVALUATE                                                 
+           .                                                            
+       2100-LEER-F. EXIT.                                               
+                                                                        
+      **************************************                            
+      *  GRABAR LOS REGISTROS OK           *                            
+      **************************************                            
+       2200-GRABAR-GRAB.                                                
+           MOVE WS-CANT-GRAB TO NOV-SECUEN                              
+           MOVE WS-REG-NOVCLIE TO NOV-RESTO                             
+           WRITE REG-S1GRAB FROM REG-NOVCLIE-VAL                        
+                                                                        
+           IF FS-S1GRAB IS NOT EQUAL '00'                               
+              DISPLAY '* ERROR EN GRABAR REGISTRO= ' FS-S1GRAB          
+              MOVE 9999 TO RETURN-CODE                                  
+              SET FS-NOVCLI-FIN  TO TRUE                                
+           END-IF.                                                      
+       2200-GRABAR-GRAB-F. EXIT.                                        
+      **************************************                            
+      *  GRABAR ERRRULINO                  *                            
+      **************************************                            
+       2300-GRABAR-ERRR.                                                
+           MOVE WS-CANT-ERRR TO NOV-SECUEN                              
+           MOVE WS-REG-NOVCLIE TO NOV-RESTO                             
+           *> Display de los registros con error                        
+           DISPLAY " TIPO DOC " NOV-TIP-DOC " NRO DOC " NOV-NRO-DOC     
+           DISPLAY "   CONTINENE ESTOS ERRORES: "                       
+           IF WS-ERROR-FECHA NOT = SPACES                               
+              DISPLAY "    - " WS-ERROR-FECHA                           
+           END-IF                                                       
+           IF WS-ERROR-TPDOC NOT = SPACES                               
+              DISPLAY "    - " WS-ERROR-TPDOC                           
+           END-IF                                                       
+           IF WS-ERROR-SUCUR NOT = SPACES                               
+              DISPLAY "    - " WS-ERROR-SUCUR                           
+           END-IF                                                       
+           IF WS-ERROR-TPCTA NOT = SPACES                               
+              DISPLAY "    - " WS-ERROR-TPCTA                           
+           END-IF                                                       
            DISPLAY WS-LINEA-SEPARACION 
-           WRITE REG-S2ERRR FROM REG-NOVCLIE-VAL                        02920009
-                                                                        02930009
-           IF FS-S2ERRR IS NOT EQUAL '00'                               02940009
-              DISPLAY '* ERROR EN GRABAR REGISTRO= ' FS-S2ERRR          02950009
-              MOVE 9999 TO RETURN-CODE                                  02960009
-              SET FS-NOVCLI-FIN  TO TRUE                                02970009
-           END-IF.                                                      02980009
-       2300-GRABAR-ERRR-F. EXIT.                                        02990009
-                                                                        03000009
-                                                                        03010009
-      **************************************                            03020009
-      *                                    *                            03030009
-      *  CUERPO FINAL                      *                            03040009
-      *                                    *                            03050009
-      **************************************                            03060009
-       3000-FINAL.                                                      03070009
-           IF RETURN-CODE NOT EQUAL 9999                                03080009
-             PERFORM 3010-CLOSE-FILES                                   03090009
-                THRU 3010-CLOSE-FILES-F                                 03100009
-             PERFORM 3020-MOSTRAR-TOTALES                               03110009
-                THRU 3020-MOSTRAR-TOTALES-F                             03120009
-           END-IF.                                                      03130009
-       3000-FINAL-F. EXIT.                                              03140009
-      **************************************                            03150009
-      *   CERRAR ARCHIVOS                  *                            03160009
-      **************************************                            03170009
-       3010-CLOSE-FILES.                                                03180009
-           CLOSE NOVCLI                                                 03190009
-              IF FS-NOVCLI  IS NOT EQUAL '00'                           03200009
-                DISPLAY '* ERROR EN CLOSE SUCURSAL= ' FS-NOVCLI         03210009
-                MOVE 9999 TO RETURN-CODE                                03220009
-             END-IF                                                     03230009
-                                                                        03240009
-           CLOSE S1GRAB                                                 03250009
-              IF FS-S1GRAB   IS NOT EQUAL '00'                          03260009
-                DISPLAY '* ERROR EN CLOSE GRABNINO= ' FS-S1GRAB         03270009
-                MOVE 9999 TO RETURN-CODE                                03280009
-             END-IF                                                     03290009
-                                                                        03300009
-           CLOSE S2ERRR                                                 03310009
-              IF FS-S2ERRR   IS NOT EQUAL '00'                          03320009
-                DISPLAY '* ERROR EN CLOSE GRABNINO= ' FS-S2ERRR         03330009
-                MOVE 9999 TO RETURN-CODE                                03340009
-             END-IF                                                     03350009
-           .                                                            03360009
-       3010-CLOSE-FILES-F. EXIT.                                        03370009
-                                                                        03380009
-      **************************************                            03390009
-      *  MOSTRAR TOTALES                   *                            03400009
-      **************************************                            03410009
-       3020-MOSTRAR-TOTALES.                                            03420009
-           MOVE WS-CANT-LEIDOS TO WS-EDIT-LEIDOS                        03430009
-           MOVE WS-CANT-GRAB   TO WS-EDIT-GRAB                          03440009
-           MOVE WS-CANT-ERRR   TO WS-EDIT-ERRR                          03450009
+           WRITE REG-S2ERRR FROM REG-NOVCLIE-VAL                        
+                                                                        
+           IF FS-S2ERRR IS NOT EQUAL '00'                               
+              DISPLAY '* ERROR EN GRABAR REGISTRO= ' FS-S2ERRR          
+              MOVE 9999 TO RETURN-CODE                                  
+              SET FS-NOVCLI-FIN  TO TRUE                                
+           END-IF.                                                      
+       2300-GRABAR-ERRR-F. EXIT.                                        
+                                                                        
+                                                                        
+      **************************************                            
+      *                                    *                            
+      *  CUERPO FINAL                      *                            
+      *                                    *                            
+      **************************************                            
+       3000-FINAL.                                                      
+           IF RETURN-CODE NOT EQUAL 9999                                
+             PERFORM 3010-CLOSE-FILES                                   
+                THRU 3010-CLOSE-FILES-F                                 
+             PERFORM 3020-MOSTRAR-TOTALES                               
+                THRU 3020-MOSTRAR-TOTALES-F                             
+           END-IF.                                                      
+       3000-FINAL-F. EXIT.                                              
+      **************************************                            
+      *   CERRAR ARCHIVOS                  *                            
+      **************************************                            
+       3010-CLOSE-FILES.                                                
+           CLOSE NOVCLI                                                 
+              IF FS-NOVCLI  IS NOT EQUAL '00'                           
+                DISPLAY '* ERROR EN CLOSE SUCURSAL= ' FS-NOVCLI         
+                MOVE 9999 TO RETURN-CODE                                
+             END-IF                                                     
+                                                                        
+           CLOSE S1GRAB                                                 
+              IF FS-S1GRAB   IS NOT EQUAL '00'                          
+                DISPLAY '* ERROR EN CLOSE GRABNINO= ' FS-S1GRAB         
+                MOVE 9999 TO RETURN-CODE                                
+             END-IF                                                     
+                                                                        
+           CLOSE S2ERRR                                                 
+              IF FS-S2ERRR   IS NOT EQUAL '00'                          
+                DISPLAY '* ERROR EN CLOSE GRABNINO= ' FS-S2ERRR         
+                MOVE 9999 TO RETURN-CODE                                
+             END-IF                                                     
+           .                                                            
+       3010-CLOSE-FILES-F. EXIT.                                        
+                                                                        
+      **************************************                            
+      *  MOSTRAR TOTALES                   *                            
+      **************************************                            
+       3020-MOSTRAR-TOTALES.                                            
+           MOVE WS-CANT-LEIDOS TO WS-EDIT-LEIDOS                        
+           MOVE WS-CANT-GRAB   TO WS-EDIT-GRAB                          
+           MOVE WS-CANT-ERRR   TO WS-EDIT-ERRR                          
            DISPLAY WS-LINEA-SEPARACION 
-           DISPLAY ' TOTAL DE ENTRADAS LEIDAS '  WS-EDIT-LEIDOS         03470009
-           DISPLAY ' TOTAL DE GRABADOS OK     '  WS-EDIT-GRAB           03480009
-           DISPLAY ' TOTAL DE GRABADOS NO OK  '  WS-EDIT-ERRR           03490009
+           DISPLAY ' TOTAL DE ENTRADAS LEIDAS '  WS-EDIT-LEIDOS         
+           DISPLAY ' TOTAL DE GRABADOS OK     '  WS-EDIT-GRAB           
+           DISPLAY ' TOTAL DE GRABADOS NO OK  '  WS-EDIT-ERRR           
            DISPLAY WS-LINEA-SEPARACION.
-       3020-MOSTRAR-TOTALES-F. EXIT.                                    03510009
-                                                                        03520009
-      *----------------------------------------------------------------*03530009
-      * VALIDAR FECHA EN FORMATO AAAAMMDD                              *03540009
-      *----------------------------------------------------------------*03550009
+       3020-MOSTRAR-TOTALES-F. EXIT.                                    
+                                                                        
+      *----------------------------------------------------------------*
+      * VALIDAR FECHA EN FORMATO AAAAMMDD                              *
+      *----------------------------------------------------------------*
        4000-VALIDAR-FECHA.
            *> Se asigna la fecha de proceso a la variable de trabajo
            MOVE WS-FECHA-AAAAMMDD TO WS-FECHA-NUMERO
@@ -371,9 +371,9 @@
              ELSE
                 MOVE 'N' TO WS-FECHA-VALIDA
              END-IF
-           ELSE                                                         03590009
-              MOVE 'N' TO WS-FECHA-VALIDA                               03600009
-           END-IF                                                       03610009
-           .                                                            03620009
-       4000-VALIDAR-FECHA-F. EXIT.                                      03630009
+           ELSE                                                         
+              MOVE 'N' TO WS-FECHA-VALIDA                               
+           END-IF                                                       
+           .                                                            
+       4000-VALIDAR-FECHA-F. EXIT.                                      
 

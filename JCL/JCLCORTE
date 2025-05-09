@@ -1,0 +1,41 @@
+//KC03C7CE JOB CLASS=A,MSGCLASS=O,MSGLEVEL=(1,1),NOTIFY=&SYSUID,
+//             TIME=(,5)
+//************************************
+//* EJEMPLO EJECUCION JOB BATCH      *
+//************************************
+//*
+//STEP1    EXEC PGM=IDCAMS,COND=(8,LT)
+//SYSPRINT DD SYSOUT=*
+//SYSIN    DD *
+     DELETE   KC03C7C.CLICOB.CLAS
+     DELETE   KC03C7C.SALSUCUR
+     SET MAXCC=0
+//*
+//*********************************
+//*     SORT POR SUC, CUENTA      *
+//*********************************
+//STEP2     EXEC PGM=SORT,COND=EVEN
+//SYSOUT    DD SYSOUT=*
+//SORTIN    DD DSN=KC02788.ALU9999.CLICOB,DISP=SHR
+//SORTOUT   DD DSN=KC03C7C.CLICOB.CLAS,DISP=(,CATLG),
+//          UNIT=SYSDA,VOL=SER=ZASWO1,
+//          DCB=(LRECL=93,BLKSIZE=3000,RECFM=FB),
+//          SPACE=(TRK,(1,1),RLSE)
+//SYSIN     DD *
+ SORT       FORMAT=CH,FIELDS=(1,2,A,54,1,A)
+//*
+//************************************
+//* EJECUCION PROGRAMA PGMCORTE      *
+//************************************
+//STEP4    EXEC PGM=PGMCORT2
+//STEPLIB  DD DSN=KC03C7C.CURSOS.PGMLIB,DISP=SHR
+//DDENTRA  DD DSN=KC03C7C.CLICOB.CLAS,DISP=SHR
+//DDSALID  DD DSN=KC02C7C.SALSUCUR,DISP=(NEW,CATLG,DELETE),
+//            UNIT=SYSDA,VOL=SER=ZASWO1,
+//            DCB=(LRECL=93,BLKSIZE=8000,RECFM=FB),
+//            SPACE=(TRK,(1,1),RLSE)
+//SYSOUT   DD SYSOUT=*
+//SYSUDUMP DD SYSOUT=*
+//SYSIN    DD SYSOUT=*
+//*
+//

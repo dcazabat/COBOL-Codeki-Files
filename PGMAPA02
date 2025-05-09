@@ -1,0 +1,294 @@
+       CBL TEST                                                         
+       IDENTIFICATION DIVISION.                                         
+      *                                                        *        
+        PROGRAM-ID PGMAPA02.                                            
+      **********************************************************        
+      *                                                        *        
+      *  PROGRAMA PARA VSAM KSDS                               *        
+      **********************************************************        
+      *      MANTENIMIENTO DE PROGRAMA                         *        
+      **********************************************************        
+      *  FECHA   *    DETALLE        * COD *                            
+      **************************************                            
+      *          *                   *     *                            
+      *          *                   *     *                            
+      **************************************                            
+       ENVIRONMENT DIVISION.                                            
+       CONFIGURATION SECTION.                                           
+       SPECIAL-NAMES.                                                   
+           DECIMAL-POINT IS COMMA.                                      
+                                                                        
+       INPUT-OUTPUT SECTION.                                            
+       FILE-CONTROL.                                                    
+             SELECT FILE1   ASSIGN DDFILE1                              
+             ORGANIZATION   IS INDEXED                                  
+             ACCESS IS SEQUENTIAL                                       
+             RECORD KEY IS    KEY-CLAVE                                 
+             FILE STATUS IS WS-FIL1-CODE.                               
+                                                                        
+             SELECT FILE2   ASSIGN DDFILE2                              
+             ACCESS IS SEQUENTIAL                                       
+             FILE STATUS IS WS-FIL2-CODE.                               
+                                                                        
+                                                                        
+       DATA DIVISION.                                                   
+       FILE SECTION.                                                    
+       FD FILE1.                                                        
+                                                                        
+       01 REG-FILE1.                                                    
+          03 KEY-CLAVE    PIC X(13).                                    
+          03 FILLER       PIC X(05).                                    
+          03 CLI-CLAVE    PIC 9(03).                                    
+          03 FILLER       PIC X(29).                                    
+                                                                        
+       FD FILE2                                                         
+            BLOCK CONTAINS 0 RECORDS                                    
+            RECORDING MODE IS F.                                        
+                                                                        
+       01 REG-FILE2      PIC X(50).                                     
+                                                                        
+                                                                        
+      **************************************                            
+       WORKING-STORAGE SECTION.                                         
+      **************************************                            
+       77  FILLER        PIC X(26) VALUE '* INICIO WORKING-STORAGE *'.  
+       77  FILLER        PIC X(26) VALUE '* CODIGOS RETORNO FILES  *'.  
+       77  WS-FIL1-CODE      PIC XX    VALUE SPACES.                    
+       77  WS-FIL2-CODE      PIC XX    VALUE SPACES.                    
+                                                                        
+       01  WS-STATUS-FIN    PIC X.                                      
+           88  WS-FIN-LECTURA         VALUE 'Y'.                        
+           88  WS-NO-FIN-LECTURA      VALUE 'N'.                        
+                                                                        
+       01  WS-STA-FILE1     PIC X.                                      
+           88  WS-FIN-FILE1           VALUE 'Y'.                        
+           88  WS-NO-FIN-FILE1        VALUE 'N'.                        
+                                                                        
+       01  WS-STA-FILE2     PIC X.                                      
+           88  WS-FIN-FILE2           VALUE 'Y'.                        
+           88  WS-NO-FIN-FILE2        VALUE 'N'.                        
+                                                                        
+                                                                        
+         COPY CLIENTE.                                                  
+         COPY MOVIMCC.                                                  
+                                                                        
+       01  WS-CLAVE1.                                                   
+           03  WS-TIP-DOC1      PIC X(02)       VALUE ZEROS.            
+           03  WS-NRO-DOC1      PIC 9(11)       VALUE ZEROS.            
+                                                                        
+       01  WS-CLAVE2.                                                   
+           03  WS-TIP-DOC2      PIC X(02)       VALUE ZEROS.            
+           03  WS-NRO-DOC2      PIC 9(11)       VALUE ZEROS.            
+                                                                        
+      ********     CONTADOR DE LEIDOS Y GRABADOS  *                     
+                                                                        
+       77  WS-LEIDOS-FILE1      PIC 9(05)        VALUE ZEROS.           
+       77  WS-LEIDOS-FILE2      PIC 9(05)        VALUE ZEROS.           
+       77  WS-ENCONTRADOS       PIC 9(05)        VALUE ZEROS.           
+       77  WS-NO-ENCONTRADO     PIC 9(05)        VALUE ZEROS.           
+                                                                        
+       77  WS-LEYEN-FILE1       PIC X(35) VALUE                         
+                        'CANTIDAD DE LEIDOS CLIENTES  :   '.            
+                                                                        
+       77  WS-LEYEN-FILE2       PIC X(35) VALUE                         
+                        'CANTIDAD DE LEIDOS NOVEDADES :   '.            
+                                                                        
+                                                                        
+       77  WS-LEYEN-ENCONTRADOS PIC X(35) VALUE                         
+                        'CANTIDAD ENCONTRADOS          :  '.            
+                                                                        
+       77  WS-LEYEN-NO-ENCONTRADO PIC X(35) VALUE                       
+                        'CANTIDAD DE NO ENCONTRADOS    :  '.            
+                                                                        
+      ********     FECHA DE PROCESO ***************                     
+       01  WS-FECHA.                                                    
+           03  WS-FECHA-AA      PIC 99            VALUE ZEROS.          
+           03  WS-FECHA-MM      PIC 99            VALUE ZEROS.          
+           03  WS-FECHA-DD      PIC 99            VALUE ZEROS.          
+                                                                        
+       77  FILLER        PIC X(26) VALUE '* FINAL  WORKING-STORAGE *'.  
+                                                                        
+      ***************************************************************.  
+       PROCEDURE DIVISION.                                              
+      **************************************                            
+      *                                    *                            
+      *  CUERPO PRINCIPAL DEL PROGRAMA     *                            
+      *                                    *                            
+      **************************************                            
+       MAIN-PROGRAM.                                                    
+                                                                        
+           PERFORM 1000-INICIO  THRU   F-1000-INICIO.                   
+                                                                        
+           PERFORM 2000-PROCESO  THRU  F-2000-PROCESO                   
+                   UNTIL WS-FIN-LECTURA.                                
+                                                                        
+           PERFORM 9999-FINAL    THRU  F-9999-FINAL.                    
+                                                                        
+       F-MAIN-PROGRAM. GOBACK.                                          
+                                                                        
+      **************************************                            
+      *                                    *                            
+      *  CUERPO INICIO APERTURA ARCHIVOS   *                            
+      *                                    *                            
+      **************************************                            
+       1000-INICIO.                                                     
+           ACCEPT WS-FECHA FROM DATE.                                   
+                                                                        
+                                                                        
+           SET WS-NO-FIN-LECTURA TO TRUE.                               
+           MOVE 'NO' TO WS-STATUS-FIN                                   
+                                                                        
+           OPEN INPUT  FILE1.                                           
+           IF WS-FIL1-CODE IS NOT EQUAL '00'                            
+              DISPLAY '* ERROR EN OPEN FILE1   = ' WS-FIL1-CODE         
+              MOVE 9999 TO RETURN-CODE                                  
+              SET  WS-FIN-LECTURA TO TRUE                               
+           END-IF.                                                      
+                                                                        
+           OPEN INPUT  FILE2.                                           
+           IF WS-FIL2-CODE IS NOT EQUAL '00'                            
+              DISPLAY '* ERROR EN OPEN MOVIMI  = ' WS-FIL2-CODE         
+              MOVE 9999 TO RETURN-CODE                                  
+              SET  WS-FIN-LECTURA TO TRUE                               
+           END-IF.                                                      
+                                                                        
+            PERFORM 3000-LEER-FILE1  THRU F-3000-LEER-FILE1.            
+            PERFORM 4000-LEER-FILE2  THRU F-4000-LEER-FILE2.            
+                                                                        
+       F-1000-INICIO.   EXIT.                                           
+                                                                        
+      **************************************                            
+      *                                    *                            
+      *  CUERPO PRINCIPAL DE PROCESOS      *                            
+      *  LECTURA FILE INPUT CLASIFICADO    *                            
+      *  APAREO ARCHIVOS DE ENTRADA        *                            
+      *                                    *                            
+      **************************************                            
+       2000-PROCESO.                                                    
+                                                                        
+      *    SON IGUALES; SUMAR APAREADOS      *                          
+           IF WS-CLAVE1   = WS-CLAVE2                                   
+               ADD 1 TO WS-ENCONTRADOS                                  
+               DISPLAY 'NOVEDAD: '   WS-CLAVE2                          
+                                                                        
+                PERFORM 4000-LEER-FILE2                                 
+                            THRU  F-4000-LEER-FILE2                     
+           ELSE                                                         
+                                                                        
+      *    CLAVE1 ES MAYOR QUE CLAVE2 ENTONCES ARMO SALIDA DESDE FILE2  
+      *    NO ENCONTRO CUENTA PARA ACTUALIZAR                           
+             IF WS-CLAVE1   > WS-CLAVE2                                 
+               ADD 1 TO WS-NO-ENCONTRADO                                
+               DISPLAY 'NO ENCONTRADO:'  WS-CLAVE2                      
+                                                                        
+                 PERFORM 4000-LEER-FILE2                                
+                         THRU   F-4000-LEER-FILE2                       
+             ELSE                                                       
+      *    CLAVE1 ES MENOR QUE CLAVE2 ENTONCES ARMO SALIDA DESDE FILE1  
+      *    CUENTA SIN MOVIMIENTOS                                       
+                                                                        
+                PERFORM 3000-LEER-FILE1                                 
+                            THRU  F-3000-LEER-FILE1                     
+                                                                        
+             END-IF                                                     
+           END-IF.                                                      
+      *************************************************************     
+      * CONTROL FIN DE ARCHIVOS DE ENTRADA, PARA FIN PROGRAMA           
+      *************************************************************     
+                                                                        
+           IF WS-FIN-FILE1 AND WS-FIN-FILE2                             
+              SET  WS-FIN-LECTURA TO TRUE                               
+           END-IF.                                                      
+                                                                        
+       F-2000-PROCESO. EXIT.                                            
+                                                                        
+      **************************************                            
+      * LECTURA FILE1                      *                            
+      **************************************                            
+       3000-LEER-FILE1.                                                 
+                                                                        
+           READ FILE1   INTO REG-CLIENTE                                
+                                                                        
+           EVALUATE WS-FIL1-CODE                                        
+             WHEN '00'                                                  
+                         ADD 1 TO WS-LEIDOS-FILE1                       
+                         MOVE CLI-TIP-DOC    TO WS-TIP-DOC1             
+                         MOVE CLI-NRO-DOC    TO WS-NRO-DOC1             
+                                                                        
+              WHEN '10'                                                 
+              SET WS-FIN-FILE1   TO TRUE                                
+              MOVE HIGH-VALUE   TO WS-CLAVE1                            
+                                                                        
+           WHEN OTHER                                                   
+              DISPLAY '* ERROR EN LECTURA FILE1   = ' WS-FIL1-CODE      
+              MOVE 9999 TO RETURN-CODE                                  
+              SET WS-FIN-FILE1   TO TRUE                                
+                                                                        
+           END-EVALUATE.                                                
+                                                                        
+                                                                        
+       F-3000-LEER-FILE1. EXIT.                                         
+                                                                        
+      **************************************                            
+      * LECTURA FILE2                      *                            
+      **************************************                            
+       4000-LEER-FILE2.                                                 
+                                                                        
+           READ FILE2   INTO WS-REG-NOVCLIE                             
+                                                                        
+           EVALUATE WS-FIL2-CODE                                        
+             WHEN '00'                                                  
+                         ADD 1 TO WS-LEIDOS-FILE2                       
+                         MOVE NOV-TIP-DOC    TO WS-TIP-DOC2             
+                         MOVE NOV-NRO-DOC    TO WS-NRO-DOC2             
+                                                                        
+              WHEN '10'                                                 
+              SET WS-FIN-FILE2   TO TRUE                                
+              MOVE HIGH-VALUE   TO WS-CLAVE2                            
+                                                                        
+           WHEN OTHER                                                   
+              DISPLAY '* ERROR EN LECTURA FILE2   = ' WS-FIL2-CODE      
+              MOVE 9999 TO RETURN-CODE                                  
+              SET WS-FIN-FILE2   TO TRUE                                
+                                                                        
+           END-EVALUATE.                                                
+                                                                        
+       F-4000-LEER-FILE2. EXIT.                                         
+                                                                        
+                                                                        
+      **************************************                            
+      *                                    *                            
+      *  CUERPO FINAL CIERRE DE FILES      *                            
+      *                                    *                            
+      **************************************                            
+       9999-FINAL.                                                      
+                                                                        
+           CLOSE FILE1.                                                 
+              IF WS-FIL1-CODE IS NOT EQUAL '00'                         
+                DISPLAY '* ERROR EN CLOSE FILE1   = '                   
+                                            WS-FIL1-CODE                
+                MOVE 9999 TO RETURN-CODE                                
+                SET WS-FIN-LECTURA TO TRUE                              
+             END-IF.                                                    
+                                                                        
+           CLOSE  FILE2                                                 
+              IF WS-FIL2-CODE IS NOT EQUAL '00'                         
+                DISPLAY '* ERROR EN CLOSE FILE2    ='                   
+                                            WS-FIL2-CODE                
+                MOVE 9999 TO RETURN-CODE                                
+                SET WS-FIN-LECTURA TO TRUE                              
+           END-IF.                                                      
+                                                                        
+                                                                        
+      **************************************                            
+      *   MOSTRAR TOTALES DE CONTROL                                    
+      **************************************                            
+                                                                        
+           DISPLAY WS-LEYEN-FILE1 WS-LEIDOS-FILE1.                      
+           DISPLAY WS-LEYEN-FILE2 WS-LEIDOS-FILE2.                      
+           DISPLAY WS-LEYEN-ENCONTRADOS WS-ENCONTRADOS.                 
+           DISPLAY WS-LEYEN-NO-ENCONTRADO  WS-NO-ENCONTRADO.            
+                                                                        
+       F-9999-FINAL.                                                    
+           EXIT.                                                        
+      *                                                                 

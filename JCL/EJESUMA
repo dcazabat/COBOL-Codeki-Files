@@ -1,0 +1,14 @@
+//KC03C7CH JOB CLASS=A,MSGCLASS=O,MSGLEVEL=(1,1),NOTIFY=&SYSUID,        00010000
+//             TIME=(,5)    ,RESTART=STEP2                              00011000
+//JCLLIB       JCLLIB ORDER=KC02787.CURSOS.PROCLIB
+//************************************
+//*        EJECUCION PROGRA PGMSUMA  *
+//*        XX= ULT 2 N£MEROS USER    *
+//************************************
+//STEP2    EXEC PGM=PGMSUMA
+//STEPLIB  DD DSN=KC03C7C.CURSOS.PGMLIB,DISP=SHR
+//*
+//SYSOUT   DD SYSOUT=*
+//SYSUDUMP DD SYSOUT=*
+//*
+//
