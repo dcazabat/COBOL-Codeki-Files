@@ -3,7 +3,7 @@
        AUTHOR.        D. CAZABAT.                                       
        INSTALLATION.  CURSO CODEKI.                                     
        DATE-WRITTEN.  09/05/2025.                                       
-       DATE-COMPILED. 09/05/2025.                                       
+       DATE-COMPILED. 10/05/2025.                                       
       **********************************************************
       *                                                        *
       *  OBJETIVO: PRACTICA CODIFICACION COBOL                 *
@@ -121,6 +121,7 @@
        77  WS-LEIDOS-CLI           PIC 9(05)        VALUE ZEROS.           
        77  WS-ERRONEOS-MOV         PIC 9(05)        VALUE ZEROS.           
        77  WS-GRABADOS-SAL         PIC 9(05)        VALUE ZEROS.           
+       77  WS-RECH-CLI-NOEXIST    PIC 9(05)        VALUE ZEROS.           
                                                                         
        77  WS-LEYEN-MOVR        PIC X(35) VALUE                         
                         'CANTIDAD DE MOVIMIENTOS LEIDOS:  '.            
@@ -133,6 +134,9 @@
                                                                         
        77  WS-LEYEN-CLIW        PIC X(35) VALUE                         
                         'CANTIDAD DE CLIENTES  GRABADOS: '.             
+                                                                        
+       77  WS-LEYEN-RECH        PIC X(35) VALUE                         
+                        'MOVIMIENTOS RECHAZ. CLI INEXIST: '.            
                                                                         
       ********     FECHA DE PROCESO ***************                     
        01  WS-FECHA.                                                    
@@ -209,20 +213,25 @@
       *                                    *
       **************************************
        2000-PROCESO.                                                    
-           IF WS-CLI-CLAVE = WS-MOV-CLAVE                               
+           IF WS-CLI-CLAVE = WS-MOV-CLAVE
+             *> ENCONTRADO MOVIMIENTO Y CLIENTE                               
              PERFORM 5000-PROCESAR-CLIENTE                            
                 THRU F-5000-PROCESAR-CLIENTE              
 
              PERFORM 3000-LEER-MOVI                                   
                 THRU F-3000-LEER-MOVI                        
-
-             PERFORM 4000-LEER-CLIE                                  
-                THRU F-4000-LEER-CLIE                      
            ELSE                                                         
-             IF WS-CLI-CLAVE > WS-MOV-CLAVE                             
+             IF WS-CLI-CLAVE > WS-MOV-CLAVE
+               *> LA CLAVE DEL CLIENTE EN EL MOVIMIENTO NO EXISTE                             
+               DISPLAY 'CLAVE CLIENTE = ' WS-MOV-CLAVE ' NO ENCONTRADA'
+               ADD 1 TO WS-RECH-CLI-NOEXIST
                PERFORM 3000-LEER-MOVI                                 
                   THRU F-3000-LEER-MOVI                        
-             ELSE                                                       
+             ELSE
+               *> GRABAR CLIENTE SIN MOVIMIENTOS
+               MOVE WS-REG-CLIENTE TO WS-REG-SALIDA
+               PERFORM 6000-GRABAR-SALIDA
+                  THRU F-6000-GRABAR-SALIDA
                PERFORM 4000-LEER-CLIE                                
                   THRU F-4000-LEER-CLIE                      
              END-IF                                                     
@@ -240,8 +249,7 @@
       * LECTURA MOVIMIENTOS                *
       **************************************                            
        3000-LEER-MOVI.                                                  
-           READ MOVIMI
-             INTO WS-REG-MOVIMI                              
+           READ MOVIMI INTO WS-REG-MOVIMI                              
              AT END SET WS-FIN-MOV TO TRUE                  
              MOVE HIGH-VALUE TO WS-MOV-CLAVE.        
                                                                         
@@ -279,16 +287,19 @@
                                                                         
       * VALIDAR QUE SEA CUENTA CORRIENTE   *
        5000-PROCESAR-CLIENTE.                                           
-           IF WS-CLI-TIPO EQUAL 02                                  
-              NEXT SENTENCE                                             
-           ELSE                                                         
+           IF WS-CLI-TIPO NOT EQUAL 02                                  
              DISPLAY 'ERROR TIPO CUENTA:' WS-MOV-CLAVE                                     
-             ADD 1 TO WS-ERRONEOS-MOV                               
-             GO TO F-5000-PROCESAR-CLIENTE  *> QUEEE EEEEE?
+             ADD 1 TO WS-ERRONEOS-MOV
+             GO TO F-5000-PROCESAR-CLIENTE
            END-IF.                                                      
                                                                         
-           MOVE WS-REG-CLIENTE  TO WS-REG-SALIDA                        
-           COMPUTE  WS-SAL-SALDO = WS-SAL-SALDO + WS-MOV-IMPORTE        
+           *> Actualizar saldo considerando el tipo de movimiento
+           MOVE WS-REG-CLIENTE  TO WS-REG-SALIDA
+           
+           *> Aquí se podría agregar una validación del tipo de movimiento
+           *> Por ejemplo, si es débito o crédito
+           COMPUTE WS-SAL-SALDO = WS-CLI-SALDO + WS-MOV-IMPORTE        
+
            PERFORM 6000-GRABAR-SALIDA                                   
               THRU F-6000-GRABAR-SALIDA.                       
        F-5000-PROCESAR-CLIENTE. EXIT.                                   
@@ -339,8 +350,9 @@
       *   MOSTRAR TOTALES DE CONTROL                                    
       **************************************                            
            DISPLAY WS-LEYEN-MOVR  WS-LEIDOS-MOV.                        
-           DISPLAY WS-LEYEN-CLIR  WS-LEIDOS-CLI.                        
-           DISPLAY WS-LEYEN-CLIW  WS-GRABADOS-SAL .                     
-           DISPLAY WS-LEYEN-MOVE  WS-ERRONEOS-MOV.                      
+           DISPLAY WS-LEYEN-CLIR  WS-LEIDOS-CLI.                      
+           DISPLAY WS-LEYEN-CLIW  WS-GRABADOS-SAL.
+           DISPLAY WS-LEYEN-MOVE  WS-ERRONEOS-MOV.
+           DISPLAY WS-LEYEN-RECH  WS-RECH-CLI-NOEXIST.
        F-9999-FINAL. EXIT.                                                        
-      *                                                                 
+      *

@@ -1,0 +1,17 @@
+graph TD
+    A[INICIO] --> B[Abrir archivos]
+    B --> C[Leer primer cliente]
+    B --> D[Leer primer movimiento]
+    C --> E{Comparar claves}
+    D --> E
+    E -->|Iguales| F[Procesar coincidencia]
+    F --> G[Leer próximo movimiento]
+    F --> H[Leer próximo cliente]
+    E -->|Cliente > Mov| I[Leer próximo movimiento]
+    E -->|Cliente < Mov| J[Leer próximo cliente]
+    G --> K{¿Fin de ambos archivos?}
+    H --> K
+    I --> K
+    J --> K
+    K -->|No| E
+    K -->|Sí| L[FIN]

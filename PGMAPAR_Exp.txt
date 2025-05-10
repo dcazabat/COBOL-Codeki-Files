@@ -1,0 +1,33 @@
+INICIO
+  │
+  ├─ [1000-INICIO] ABRIR ARCHIVOS (CLIENTES, MOVIMIENTOS, SALIDA)
+  │
+  ├─ [3000-LEER-MOVI] LEER PRIMER REGISTRO DE MOVIMIENTOS
+  │
+  ├─ [4000-LEER-CLIE] LEER PRIMER REGISTRO DE CLIENTES
+  │
+  └─ [2000-PROCESO] ENTRAR AL CICLO PRINCIPAL (HASTA QUE AMBOS ARCHIVOS TERMINEN)
+       │
+       ├─ COMPARAR CLAVES (CLIENTE vs MOVIMIENTO)
+       │   │
+       │   ├─ SI CLAVES IGUALES: [5000-PROCESAR-CLIENTE] PROCESAR COINCIDENCIA
+       │   │     │
+       │   │     ├─ ACTUALIZAR SALDO DEL CLIENTE (parte de 5000)
+       │   │     │
+       │   │     ├─ [6000-GRABAR-SALIDA] GRABAR REGISTRO ACTUALIZADO
+       │   │     │
+       │   │     ├─ [3000-LEER-MOVI] LEER SIGUIENTE MOVIMIENTO
+       │   │     │
+       │   │     └─ [4000-LEER-CLIE] LEER SIGUIENTE CLIENTE
+       │   │
+       │   ├─ SI CLAVE CLIENTE > CLAVE MOVIMIENTO:
+       │   │     │
+       │   │     └─ [3000-LEER-MOVI] LEER SIGUIENTE MOVIMIENTO
+       │   │
+       │   └─ SI CLAVE CLIENTE < CLAVE MOVIMIENTO:
+       │         │
+       │         └─ [4000-LEER-CLIE] LEER SIGUIENTE CLIENTE
+       │
+       └─ VERIFICAR FIN DE ARCHIVOS (parte de 2000-PROCESO)
+            │
+            └─ SI AMBOS TERMINARON: SALIR DEL CICLO
