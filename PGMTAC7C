@@ -1,0 +1,164 @@
+       IDENTIFICATION DIVISION.                                         
+       PROGRAM-ID PGMTAC7C.                                             
+       AUTHOR.        D. CAZABAT.                                       
+       INSTALLATION.  CURSO CODEKI.                                     
+       DATE-WRITTEN.  10/05/2025.                                       
+       DATE-COMPILED. 10/05/2025.                                       
+      **********************************************************
+      *                                                        *
+      *  TAREA ASINCRONICA 9                                   *
+      *  OBJETIVO: CARGA DE PRODUCTOS EN VECTOR Y              *
+      *           ACTUALIZACION DE PRECIOS                     *
+      *                                                        *
+      **********************************************************
+       ENVIRONMENT DIVISION.                                            
+       CONFIGURATION SECTION.
+       SPECIAL-NAMES.
+           DECIMAL-POINT IS COMMA.
+       INPUT-OUTPUT SECTION.                                            
+       FILE-CONTROL.                                                    
+           SELECT PRODUCTO ASSIGN DDPRODU                              
+                  FILE STATUS IS WS-PROD-CODE.                         
+                                                                        
+           SELECT PRECIO  ASSIGN DDPRECI                              
+                  FILE STATUS IS WS-PREC-CODE.                         
+                                                                        
+       DATA DIVISION.                                                   
+       FILE SECTION.                                                    
+       FD PRODUCTO                                                       
+           BLOCK CONTAINS 0 RECORDS                                    
+           RECORDING MODE IS F.                                        
+                                                                        
+       01 REG-PRODUCTO.                                     
+          03 COD-PRODUCTO        PIC 99        VALUE ZEROS.
+          03 DENOMINACION        PIC X(30)     VALUE SPACES.
+                                                                        
+       FD PRECIO                                                        
+           BLOCK CONTAINS 0 RECORDS                                    
+           RECORDING MODE IS F.                                        
+                                                                        
+       01 REG-PRECIOS.                                     
+           03 PRE-COD-PRODUCTO    PIC 99        VALUE ZEROS.
+           03 PRE-PRECIO          PIC 9(3)V99   VALUE ZEROS.
+                                                                        
+       WORKING-STORAGE SECTION.                                         
+       77  WS-PROD-CODE          PIC XX        VALUE SPACES.                     
+       77  WS-PREC-CODE          PIC XX        VALUE SPACES.                     
+       77  WS-INDICE             PIC 99        VALUE ZEROS.
+       77  WS-I                  PIC 99        VALUE ZEROS.
+       77  WS-PRECIO-ED          PIC $ZZ.ZZ9,99 VALUE ZEROS.
+                                                                        
+       01  WS-STATUS-FIN         PIC X.                                      
+           88  WS-FIN-LECTURA             VALUE 'Y'.                        
+           88  WS-NO-FIN-LECTURA          VALUE 'N'.                        
+
+      * Vector para almacenar los 10 productos
+       01  WS-TABLA-PRODUCTOS.
+           05  WS-PRODUCTO OCCURS 10 TIMES.
+               10 WS-COD-PRODUCTO    PIC 99        VALUE ZEROS.
+               10 WS-DENOMINACION    PIC X(30)     VALUE SPACES.
+               10 WS-PRECIO          PIC 9(3)V99   VALUE ZEROS.
+                                                                        
+       PROCEDURE DIVISION.                                              
+       MAIN-PROGRAM.                                                    
+           PERFORM 1000-INICIO
+              THRU F-1000-INICIO
+           
+           IF WS-NO-FIN-LECTURA
+              PERFORM 2000-CARGAR-PRODUCTOS
+                 THRU F-2000-CARGAR-PRODUCTOS
+              
+              PERFORM 3000-PROCESAR-PRECIOS
+                 THRU F-3000-PROCESAR-PRECIOS
+              
+              PERFORM 4000-MOSTRAR-PRODUCTOS
+                 THRU F-4000-MOSTRAR-PRODUCTOS
+           END-IF
+           
+           PERFORM 9999-FINAL
+              THRU F-9999-FINAL
+           
+           GOBACK.
+                                                                        
+       1000-INICIO.
+           SET WS-NO-FIN-LECTURA TO TRUE
+
+           OPEN INPUT PRODUCTO
+           IF WS-PROD-CODE NOT = "00"
+              DISPLAY "ERROR EN OPEN PRODUCTO: " WS-PROD-CODE
+              MOVE 9999 TO RETURN-CODE
+              SET WS-FIN-LECTURA TO TRUE
+           END-IF
+
+           OPEN INPUT PRECIO
+           IF WS-PREC-CODE NOT = "00"
+              DISPLAY "ERROR EN OPEN PRECIO: " WS-PREC-CODE
+              MOVE 9999 TO RETURN-CODE
+              SET WS-FIN-LECTURA TO TRUE
+           END-IF.
+       F-1000-INICIO. EXIT.
+
+       2000-CARGAR-PRODUCTOS.
+           MOVE 1 TO WS-INDICE
+           PERFORM UNTIL WS-INDICE > 10 OR WS-FIN-LECTURA
+              READ PRODUCTO
+                 AT END 
+                    DISPLAY "ERROR: NO HAY SUFICIENTES PRODUCTOS"
+                    MOVE 9999 TO RETURN-CODE
+                    SET WS-FIN-LECTURA TO TRUE
+                 NOT AT END
+                    MOVE COD-PRODUCTO TO 
+                         WS-COD-PRODUCTO(WS-INDICE)
+                    MOVE DENOMINACION(1:21) TO 
+                         WS-DENOMINACION(WS-INDICE)
+                    ADD 1 TO WS-INDICE
+              END-READ
+           END-PERFORM.
+       F-2000-CARGAR-PRODUCTOS. EXIT.
+
+       3000-PROCESAR-PRECIOS.
+           IF NOT WS-FIN-LECTURA
+              READ PRECIO
+                 AT END GO TO F-3000-PROCESAR-PRECIOS
+              END-READ
+
+              MOVE 0 TO WS-I
+              PERFORM VARYING WS-I FROM 1 BY 1 UNTIL WS-I > 10
+                 IF PRE-COD-PRODUCTO = WS-COD-PRODUCTO(WS-I)
+                    MOVE PRE-PRECIO TO WS-PRECIO(WS-I)
+                    GO TO 3000-PROCESAR-PRECIOS
+                 END-IF
+              END-PERFORM
+           
+              DISPLAY "PRODUCTO NO ENCONTRADO: " PRE-COD-PRODUCTO
+              GO TO 3000-PROCESAR-PRECIOS
+           END-IF.
+       F-3000-PROCESAR-PRECIOS. EXIT.
+
+       4000-MOSTRAR-PRODUCTOS.
+           IF NOT WS-FIN-LECTURA
+              DISPLAY "Denominacion                   Precio"
+              DISPLAY "------------------------------ ----------"
+              PERFORM VARYING WS-I FROM 1 BY 1 UNTIL WS-I > 10
+                 MOVE WS-PRECIO(WS-I) TO WS-PRECIO-ED
+                 DISPLAY WS-DENOMINACION(WS-I) 
+                         SPACE WS-PRECIO-ED
+              END-PERFORM
+           END-IF.
+       F-4000-MOSTRAR-PRODUCTOS. EXIT.
+
+       9999-FINAL.
+           CLOSE PRODUCTO
+           IF WS-PROD-CODE NOT = "00"
+              DISPLAY "ERROR EN CLOSE PRODUCTO: " WS-PROD-CODE
+              MOVE 9999 TO RETURN-CODE
+              SET WS-FIN-LECTURA TO TRUE
+           END-IF
+
+           CLOSE PRECIO
+           IF WS-PREC-CODE NOT = "00"
+              DISPLAY "ERROR EN CLOSE PRECIO: " WS-PREC-CODE
+              MOVE 9999 TO RETURN-CODE
+              SET WS-FIN-LECTURA TO TRUE
+           END-IF.
+       F-9999-FINAL. EXIT.
