@@ -1,0 +1,220 @@
+       IDENTIFICATION DIVISION.                                         00010000
+      *                                                        *        00020000
+        PROGRAM-ID PGM1CORT.                                            00030001
+      *                                                        *        00040000
+       ENVIRONMENT DIVISION.                                            00050000
+      *                                                        *        00060000
+       CONFIGURATION SECTION.                                           00070000
+                                                                        00080000
+       SPECIAL-NAMES.                                                   00090000
+           DECIMAL-POINT IS COMMA.                                      00100000
+                                                                        00110000
+       INPUT-OUTPUT SECTION.                                            00120000
+       FILE-CONTROL.                                                    00130000
+             SELECT CLIENTE  ASSIGN DDCLIEN                             00140001
+                    FILE STATUS IS WS-FILE-CLI.                         00150001
+                                                                        00160000
+       DATA DIVISION.                                                   00170000
+       FILE SECTION.                                                    00180000
+       FD CLIENTE                                                       00190001
+            BLOCK CONTAINS 0 RECORDS                                    00200000
+            RECORDING MODE IS F.                                        00210000
+                                                                        00220000
+       01 REG-CLIENTE    PIC X(93).                                     00230001
+                                                                        00240000
+      **************************************                            00250000
+       WORKING-STORAGE SECTION.                                         00260000
+      **************************************                            00270000
+       77  FILLER        PIC X(26) VALUE '* INICIO WORKING-STORAGE *'.  00280000
+                                                                        00290000
+       77  FILLER        PIC X(26) VALUE '* CODIGOS RETORNO FILES  *'.  00300000
+      **************************************                            00310000
+      *         FILE STATUS                *                            00320000
+      **************************************                            00330000
+       77  WS-FILE-CLI      PIC XX    VALUE SPACES.                     00340001
+      **************************************                            00350000
+                                                                        00360000
+       77  WS-STATUS-CLI    PIC X.                                      00370001
+           88  WS-FIN-CLI             VALUE 'Y'.                        00380001
+           88  WS-NO-FIN-CLI          VALUE 'N'.                        00390001
+                                                                        00400000
+       77  WS-LECTURA-OK    PIC X.                                      00410000
+           88  WS-OK                  VALUE 'Y'.                        00420000
+           88  WS-NO-OK               VALUE 'N'.                        00430000
+                                                                        00440000
+      **************************************                            00450000
+      *         LAYOUT SUCURSAL            *                            00460000
+      **************************************                            00470000
+           COPY CLICOB.                                                 00480001
+                                                                        00490000
+      * CONTADOR DE LEIDOS                                              00500000
+       77  WS-CANT-LEIDOS          PIC 9(3)            VALUE ZEROS.     00510000
+       77  WS-SUC-EDIT             PIC ZZ9             VALUE ZEROS.     00520000
+       77  WS-SUC-TIPDOC-ANT       PIC XX              VALUE SPACES.    00530001
+       77  WS-TOTAL-TIP-DOC        PIC 9(3)            VALUE ZEROS.     00540001
+                                                                        00550001
+       77  FILLER        PIC X(26) VALUE '* FINAL  WORKING-STORAGE *'.  00560001
+                                                                        00570001
+      ***************************************************************.  00580001
+       PROCEDURE DIVISION.                                              00590001
+      **************************************                            00600001
+      *                                    *                            00610000
+      *  CUERPO PRINCIPAL DEL PROGRAMA     *                            00620000
+      *                                    *                            00630000
+      **************************************                            00640000
+       MAIN-PROGRAM.                                                    00650000
+                                                                        00660000
+           PERFORM 1000-INICIO  THRU   F-1000-INICIO.                   00670000
+                                                                        00680000
+           PERFORM 2000-PROCESO  THRU  F-2000-PROCESO                   00690000
+                   UNTIL WS-FIN-CLI.                                    00700000
+                                                                        00710000
+           PERFORM 9999-FINAL    THRU  F-9999-FINAL.                    00720000
+                                                                        00730000
+       F-MAIN-PROGRAM. GOBACK.                                          00740000
+                                                                        00750000
+      **************************************                            00760000
+      *                                    *                            00770000
+      *  CUERPO INICIO APERTURA ARCHIVOS   *                            00780000
+      *                                    *                            00790000
+      **************************************                            00800000
+       1000-INICIO.                                                     00810000
+                                                                        00820001
+           SET WS-NO-FIN-CLI TO TRUE                                    00830000
+                                                                        00840000
+           OPEN INPUT  CLIENTE                                          00850000
+                                                                        00860000
+           IF WS-FILE-CLI IS NOT EQUAL '00'                             00870000
+              DISPLAY '* ERROR EN OPEN CLIENTE = ' WS-FILE-CLI          00880000
+              MOVE 9999 TO RETURN-CODE                                  00890000
+              SET  WS-FIN-CLI     TO TRUE                               00900000
+           END-IF                                                       00910000
+                                                                        00920000
+           IF WS-NO-FIN-CLI                                             00930000
+              PERFORM 2500-LEER     THRU F-2500-LEER                    00940000
+           END-IF                                                       00950000
+                                                                        00960000
+           IF WS-FIN-CLI                                                00970000
+              DISPLAY 'EL ARCHIVO ESTA VACIO'                           00980000
+           ELSE                                                         00990000
+              MOVE WS-SUC-TIP-DOC TO WS-SUC-TIPDOC-ANT                  01000000
+              EVALUATE WS-SUC-TIPDOC-ANT                                01010000
+                 WHEN 'DU'                                              01020003
+                     DISPLAY 'DU'                                       01030000
+                 WHEN 'PA'                                              01040000
+                     DISPLAY 'PA'                                       01050000
+                 WHEN 'PE'                                              01060000
+                     DISPLAY 'PE'                                       01070000
+                 WHEN 'CI'                                              01080000
+                     DISPLAY 'OTROS'                                    01090000
+                 WHEN OTHER                                             01100000
+                     DISPLAY 'ERROR EN TIPO DE TIP-DOC'                 01110000
+              END-EVALUATE                                              01120000
+            END-IF                                                      01130000
+            .                                                           01140000
+                                                                        01150000
+       F-1000-INICIO.   EXIT.                                           01160000
+                                                                        01170000
+      **************************************                            01180000
+      *                                    *                            01190000
+      *  CUERPO PRINCIPAL DE PROCESOS      *                            01200000
+      *                                    *                            01210000
+      **************************************                            01220000
+       2000-PROCESO.                                                    01230000
+      *                                                                 01240000
+           IF WS-SUC-TIP-DOC = WS-SUC-TIPDOC-ANT                        01250000
+                 ADD 1  TO WS-TOTAL-TIP-DOC                             01260000
+           ELSE                                                         01270000
+              PERFORM 2600-CORTE-TIP-DOC THRU F-2600-CORTE-TIP-DOC      01280000
+           END-IF                                                       01290000
+                                                                        01300000
+           PERFORM 2500-LEER     THRU F-2500-LEER                       01310000
+           .                                                            01320000
+                                                                        01330000
+       F-2000-PROCESO. EXIT.                                            01340000
+                                                                        01350000
+      **************************************                            01360000
+      *  LEER REGISTROS                    *                            01370000
+      **************************************                            01380000
+       2500-LEER.                                                       01390000
+                                                                        01400000
+           READ CLIENTE   INTO  WS-REG-CLICOB                           01410000
+                                                                        01420000
+           EVALUATE WS-FILE-CLI                                         01430000
+              WHEN '00'                                                 01440000
+                           ADD 1 TO WS-CANT-LEIDOS                      01450000
+              WHEN '10'                                                 01460000
+                       SET WS-FIN-CLI  TO TRUE                          01470000
+                       PERFORM 2600-CORTE-TIP-DOC                       01480002
+                          THRU F-2600-CORTE-TIP-DOC                     01490000
+              WHEN OTHER                                                01500000
+                  DISPLAY '* ERROR EN LECTURA CLIENTE  = ' WS-FILE-CLI  01510000
+                  MOVE 9999 TO RETURN-CODE                              01520000
+                  SET WS-FIN-CLI  TO TRUE                               01530000
+           END-EVALUATE                                                 01540000
+           .                                                            01550000
+                                                                        01560000
+       F-2500-LEER. EXIT.                                               01570000
+                                                                        01580000
+       2600-CORTE-TIP-DOC.                                              01590000
+                                                                        01600002
+           MOVE WS-TOTAL-TIP-DOC TO WS-SUC-EDIT                         01610002
+           DISPLAY 'EL TOTAL SON: '  WS-SUC-EDIT                        01620002
+           MOVE WS-SUC-TIP-DOC TO WS-SUC-TIPDOC-ANT                     01630002
+           MOVE 1 TO WS-TOTAL-TIP-DOC                                   01640002
+                                                                        01650002
+           IF WS-FIN-CLI                                                01660002
+              NEXT SENTENCE                                             01670002
+           ELSE                                                         01680000
+              EVALUATE WS-SUC-TIPDOC-ANT                                01690000
+                 WHEN 'DU'                                              01700003
+                     DISPLAY 'DU'                                       01710000
+                 WHEN 'PA'                                              01720000
+                     DISPLAY 'PA'                                       01730000
+                 WHEN 'PE'                                              01740000
+                     DISPLAY 'PE'                                       01750000
+                 WHEN 'CI'                                              01760000
+                     DISPLAY 'OTROS'                                    01770000
+                 WHEN OTHER                                             01780000
+                     DISPLAY 'ERROR EN TIPO DE TIP-DOC'                 01790000
+              END-EVALUATE                                              01800000
+           END-IF                                                       01810002
+           .                                                            01820002
+                                                                        01830002
+       F-2600-CORTE-TIP-DOC. EXIT.                                      01840000
+                                                                        01850000
+      **************************************                            01860000
+      *                                    *                            01870000
+      *  CUERPO FINAL CIERRE DE FILES      *                            01880000
+      *                                    *                            01890000
+      **************************************                            01900000
+       9999-FINAL.                                                      01910000
+      *                                                                 01920000
+           IF RETURN-CODE = 9999                                        01930000
+              NEXT SENTENCE                                             01940000
+           ELSE                                                         01950000
+                                                                        01960000
+              CLOSE CLIENTE                                             01970000
+                IF WS-FILE-CLI IS NOT EQUAL '00'                        01980000
+                    DISPLAY '* ERROR EN CLOSE CLIENTE = ' WS-FILE-CLI   01990000
+                    MOVE 9999 TO RETURN-CODE                            02000000
+                    SET WS-FIN-CLI     TO TRUE                          02010000
+                END-IF                                                  02020000
+                                                                        02030000
+      **************************************                            02040000
+      *   MOSTRAR TOTALES DE CONTROL                                    02050000
+      **************************************                            02060000
+                                                                        02070000
+              IF RETURN-CODE = 9999                                     02080000
+                NEXT SENTENCE                                           02090000
+              ELSE                                                      02100000
+                DISPLAY '                           '                   02110000
+                MOVE WS-CANT-LEIDOS TO  WS-SUC-EDIT                     02120000
+                DISPLAY 'CANTIDAD REGISTROS LEIDOS  '   WS-SUC-EDIT     02130000
+              END-IF                                                    02140000
+           END-IF                                                       02150000
+           .                                                            02160000
+                                                                        02170000
+       F-9999-FINAL.                                                    02180000
+           EXIT.                                                        02190000
+      *                                                                 02200000
