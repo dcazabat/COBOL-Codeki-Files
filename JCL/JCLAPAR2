@@ -30,7 +30,7 @@
 //          DCB=(LRECL=30,BLKSIZE=3000,RECFM=FB),
 //          SPACE=(TRK,(1,1),RLSE)
 //SYSIN     DD *
- SORT       FORMAT=BI,FIELDS=(10,5,A)
+    SORT    FORMAT=BI,FIELDS=(10,5,A)
 //*
 //*********************************
 //*     SORT POR CLIENTE          *
@@ -57,7 +57,8 @@
 //            DCB=(LRECL=30,BLKSIZE=3000,RECFM=FB),
 //            SPACE=(TRK,(1,1),RLSE)
 //*SYSOUT   DD SYSOUT=*,OUTLIM=1000
-//SYSOUT   DD DSN=&USERID..&USERIDF..SPOOL.&PROGRAID.,OUTLIM=1000,                          
+//SYSOUT   DD DSN=&USERID..&USERIDF..SPOOL.&PROGRAID.,                 X
+//            OUTLIM=1000,                                              
 //            UNIT=SYSDA,VOL=SER=ZASWO1,                                
 //            DCB=(RECFM=FBA,LRECL=133,BLKSIZE=27930),                  
 //            SPACE=(CYL,(1,1),RLSE),                                   
