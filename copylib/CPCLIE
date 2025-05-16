@@ -1,0 +1,29 @@
+      **************************************                            00043300
+      *         LAYOUT MAESTRO CLIENTES         *                       00043400
+      *                                         *                       00043500
+      *KC02788.ALU9999.CURSOS.CLIENT1.KSDS.VSAM *                       00043600
+      *                                         *                       00043700
+      *         LARGO 50 BYTES                  *                       00043800
+      *        VSAM KSDS KEY (1,13)             *                       00043900
+      *                                         *                       00044000
+      *        ALT KEY NRO-CLI  (18,3)          *                       00044100
+      *******************************************                       00044200
+                                                                        00044300
+       01  REG-CLIENTE.                                                 00044400
+      *TIPO DOCUMENTO: DU, PA; PE                                       00044500
+           03  CLI-TIP-DOC        PIC X(02)    VALUE SPACES.            00044600
+           03  CLI-NRO-DOC        PIC 9(11)    VALUE ZEROS.             00044900
+      *NRO SUCURSAL                                                     00045000
+           03  CLI-NRO-SUC        PIC 9(02)    VALUE ZEROS.             00045100
+      *TIPO CUENTA CC; CA; PF                                           00045200
+           03  CLI-TIP-CUE        PIC XX       VALUE SPACES.            00045300
+           03  CLI-NRO            PIC 9(03)    VALUE ZEROS.             00046000
+      *SALDO DE LA CUENTA                                               00046101
+           03  CLI-SALDO          PIC S9(09)V99 COMP-3 VALUE ZEROS.     00046200
+      *FORMATO DE LA FECHA AAAAMMDD                                     00046300
+           03  CLI-AAAAMMDD       PIC 9(08)            VALUE ZEROS.     00046400
+      *SEXO F; M; O                                                     00046500
+           03  CLI-SEXO           PIC X        VALUE SPACES.            00046600
+      *NOMBRE Y APELLIDO                                                00046700
+           03  CLI-NOMAPE         PIC X(15)    VALUE SPACES.            00046800
+                                                                        00047000

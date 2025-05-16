@@ -1,0 +1,93 @@
+//KC03XXXV JOB CLASS=A,MSGCLASS=O,MSGLEVEL=(1,1),NOTIFY=&SYSUID,
+//             TIME=(,5)  ,RESTART=DEFAIX
+//********************************
+//*          EJEMPLO             *
+//* IDCAMS ALOCAR VSAM KSDS Y AIX*
+//********************************
+//********************************
+//*          EJEMPLO             *
+//*   IDCAMS DELETE CLUSTER      *
+//********************************
+//DELCLUS  EXEC PGM=IDCAMS,COND=(8,LT)
+//SYSPRINT DD SYSOUT=*
+//SYSIN    DD *
+     DELETE   KC03XXX.ALU9999.CLIENT1.KSDS.VSAM CLUSTER PURGE
+     DELETE   KC03XXX.ALU9999.CURSOS.CLIENTE.CL
+//*
+//********************************
+//*       EJEMPLO KSDS           *
+//*   IDCAMS DEFINE CLUSTER      *
+//********************************
+//DEFKSDS  EXEC PGM=IDCAMS,COND=(8,LT)
+//SYSPRINT DD SYSOUT=*
+//SYSIN    DD *
+  DEFINE CLUSTER(NAME(KC03XXX.ALU9999.CLIENT1.KSDS.VSAM) -
+         CONTROLINTERVALSIZE(4096) -
+         VOLUMES(KCTR57) -
+         CYL(1 1) -
+         KEYS(13 0) -
+         RECORDSIZE(50 50) -
+         FREESPACE(10 5) -
+         SHR(2 3)) -
+  DATA   (NAME(KC03XXX.ALU9999.CLIENT1.KSDS.VSAM.DATA)) -
+  INDEX  (NAME(KC03XXX.ALU9999.CLIENT1.KSDS.VSAM.INDX))
+//*
+//*********************************
+//* EJEMPLO1 CLASIFICA CLIENTE    *
+//*********************************
+//SORT1       EXEC PGM=SORT,COND=EVEN
+//SYSOUT    DD SYSOUT=*
+//SORTIN    DD DSN=KC03XXX.ALU9999.CURSOS.CLIENTE,DISP=SHR
+//SORTOUT   DD DSN=KC03XXX.ALU9999.CURSOS.CLIENTE.CL,
+//            DCB=(LRECL=50,BLKSIZE=0,RECFM=FB),
+//            SPACE=(TRK,(1,1),RLSE),DISP=(,CATLG)
+//SYSIN     DD *
+ SORT FORMAT=BI,FIELDS=(1,13,A)
+//*
+//********************************
+//*        EJEMPLO REPRO         *
+//* IDCAMS PARA CARGAR KSDS VSAM *
+//* CLIENT1 = SALIDA PROGRAMA    *
+//* CLASE SINCRÏNICA 18.1        *
+//********************************
+//DEFREPRO EXEC PGM=IDCAMS,REGION=0M
+//CLIENT1  DD DSN=KC03XXX.ALU9999.CURSOS.CLIENTE.CL,DISP=SHR
+//SALIDA   DD DSN=KC03XXX.ALU9999.CLIENT1.KSDS.VSAM,DISP=SHR
+//SYSPRINT DD SYSOUT=*
+//SYSIN    DD *
+  REPRO INFILE(CLIENT1) OUTFILE(SALIDA) REPLACE
+//*
+//*
+//********************************
+//*       EJEMPLO KSDS           *
+//* IDCAMS DEFINE AIX POR CLI    *
+//********************************
+//DEFAIX   EXEC PGM=IDCAMS
+//SYSPRINT DD SYSOUT=*
+//SYSIN    DD *
+  DEFINE AIX (NAME(KC03XXX.ALU9999.CLIENT1.KSDS.VSAM.AIX) -
+         RELATE(KC03XXX.ALU9999.CLIENT1.KSDS.VSAM) -
+         KEYS(3 17) -
+         VOLUMES(KCTR57) -
+         FREESPACE(5 1) -
+         CYL(1 1) -
+         RECORDSIZE(50 50) -
+         CONTROLINTERVALSIZE(2048) -
+         NONUNIQUEKEY -
+         SHR(2 3)) -
+  DATA  (NAME(KC03XXX.ALU9999.CLIENT1.KSDS.VSAM.AIX.DATA)) -
+  INDEX (NAME(KC03XXX.ALU9999.CLIENT1.KSDS.VSAM.AIX.INDX))
+//********************************
+//*       EJEMPLO KSDS           *
+//* IDCAMS DEFINE PATH BLDINDEX  *
+//********************************
+//DEFPATH  EXEC PGM=IDCAMS
+//SYSPRINT DD SYSOUT=*
+//SYSIN    DD *
+  DEFINE PATH (NAME(KC03XXX.ALU9999.CLIENT1.KSDS.VSAM.PATH) -
+         PATHENTRY(KC03XXX.ALU9999.CLIENT1.KSDS.VSAM.AIX))
+  BLDINDEX -
+         IDS(KC03XXX.ALU9999.CLIENT1.KSDS.VSAM) -
+         ODS(KC03XXX.ALU9999.CLIENT1.KSDS.VSAM.AIX) -
+         ESORT
+//*

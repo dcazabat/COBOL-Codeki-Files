@@ -1,0 +1,18 @@
+      **************************************                            00010000
+      *         LAYOUT SUCURSAL            *                            00070000
+      *     ALU9999.CURSOS.PRODUCTO        *                            00071001
+      *     LARGO REGISTRO = 25 BYTES      *                            00072002
+      **************************************                            00080000
+       01  WS-REG-PRODUCTO.                                             00090001
+                                                                        00100000
+      *     POSICIÏN RELATIVA (1:3) C‰DIGO DE PRODUCTO                  00101001
+           03  COD-PRODUCTO        PIC 9(03)    VALUE ZEROS.            00110001
+      *     POSICIÏN RELATIVA (4:7)                                     00110103
+           03  COD-SUBPRODUCTO.                                         00110201
+              05  TIPO             PIC 99    VALUE ZEROS.               00110801
+              05  SUB-TIPO         PIC X(5)  VALUE SPACES.              00110903
+      *     POSICIÏN RELATIVA (11:9)                                    00111103
+           03  PRECIO              PIC  9(07)V99        VALUE ZEROS.    00111404
+      *     POSICIÏN RELATIVA (20:06)                                   00111503
+           03  FILLER              PIC X(06)    VALUE SPACES.           00112203
+                                                                        00113000
