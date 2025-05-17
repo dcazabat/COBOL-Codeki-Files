@@ -1,15 +1,15 @@
-//COMPTEST JOB CLASS=A,MSGCLASS=O,MSGLEVEL=(0,0),NOTIFY=&SYSUID,        00010000
-//             TIME=(,3)                                                00020000
-//JCLLIB       JCLLIB ORDER=KC02787.CURSOS.PROCLIB                      00030000
-//***********************************************                       00040000
-//*   COMPILADOR COBOL BATCH                    *                       00050000
-//*   ALUMLIB DIGITAR SU USERID ALUMNO          *                       00060000
-//*   GOPGM DIGITAR SU PROGRAM-ID               *                       00070000
-//*                                                                     00080000
-//*   SI SE DESEA USAR COPY SACAR ASTERISCO     *                       00090000
-//*      A COBOL.SYSLIB                         *                       00100000
-//***********************************************                       00110000
-//STEP1  EXEC COMPCOTE,                                                 00120000
-//       ALUMLIB=KC03C7C.CURSOS,                                        00130001
-//       GOPGM=PGMVAC7C                                                 00140002
-//COBOL.SYSLIB DD DSN=KC02788.ALU9999.COPYLIB,DISP=SHR                  00150000
+//COMPTEST JOB CLASS=A,MSGCLASS=O,MSGLEVEL=(0,0),NOTIFY=&SYSUID,
+//             TIME=(,3)
+//JCLLIB       JCLLIB ORDER=KC02787.CURSOS.PROCLIB
+//***********************************************
+//*   COMPILADOR COBOL BATCH                    *
+//*   ALUMLIB DIGITAR SU USERID ALUMNO          *
+//*   GOPGM DIGITAR SU PROGRAM-ID               *
+//*
+//*   SI SE DESEA USAR COPY SACAR ASTERISCO     *
+//*      A COBOL.SYSLIB                         *
+//***********************************************
+//STEP1  EXEC COMPCOTE,
+//       ALUMLIB=KC03C7C.CURSOS,
+//       GOPGM=PAPAVSAM
+//COBOL.SYSLIB DD DSN=KC02788.ALU9999.COPYLIB,DISP=SHR

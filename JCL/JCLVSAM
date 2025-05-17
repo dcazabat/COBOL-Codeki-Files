@@ -1,27 +1,30 @@
 //KC03C7CV JOB CLASS=A,MSGCLASS=O,MSGLEVEL=(1,1),NOTIFY=&SYSUID,        
 //             TIME=(,5)  ,RESTART=DEFAIX                               
 //********************************                                      
-//*          EJEMPLO             *                                      
+//*     JCL PARA PAPAVSAM        *                                      
 //* IDCAMS ALOCAR VSAM KSDS Y AIX*                                      
 //********************************                                      
 //********************************                                      
-//*          EJEMPLO             *                                      
+//*   BORRAR ARCHIVOS ANTERIORES *                                      
 //*   IDCAMS DELETE CLUSTER      *                                      
 //********************************                                      
 //DELCLUS  EXEC PGM=IDCAMS,COND=(8,LT)                                  
 //SYSPRINT DD SYSOUT=*                                                  
 //SYSIN    DD *                                                         
-     DELETE   KC03C7C.ARCHIVOS.CLIENT1.KSDS.VSAM CLUSTER PURGE          
-     DELETE   KC03C7C.ARCHIVOS.CLIENTE.CL                               
+     DELETE   KC02788.ALU9999.CLIENT1.KSDS.VSAM CLUSTER PURGE          
+     DELETE   KC02788.ALU9999.CLIENTE.CL                               
+     DELETE   KC02788.ALU9999.NOVCLIEN.CL      
+     DELETE   KC03XXX.CURSOS.SPOOL.PAPAVSAM
+     IF LASTCC LE 8 THEN SET MAXCC = 0                           
 //*                                                                     
 //********************************                                      
-//*       EJEMPLO KSDS           *                                      
+//*       DEFINIR VSAM KSDS      *                                      
 //*   IDCAMS DEFINE CLUSTER      *                                      
 //********************************                                      
 //DEFKSDS  EXEC PGM=IDCAMS,COND=(8,LT)                                  
 //SYSPRINT DD SYSOUT=*                                                  
 //SYSIN    DD *                                                         
-  DEFINE CLUSTER(NAME(KC03C7C.ARCHIVOS.CLIENT1.KSDS.VSAM) -             
+  DEFINE CLUSTER(NAME(KC02788.ALU9999.CLIENT1.KSDS.VSAM) -             
          CONTROLINTERVALSIZE(4096) -                                    
          VOLUMES(KCTR57) -                                              
          CYL(1 1) -                                                     
@@ -29,65 +32,57 @@
          RECORDSIZE(50 50) -                                            
          FREESPACE(10 5) -                                              
          SHR(2 3)) -                                                    
-  DATA   (NAME(KC03C7C.ARCHIVOS.CLIENT1.KSDS.VSAM.DATA)) -              
-  INDEX  (NAME(KC03C7C.ARCHIVOS.CLIENT1.KSDS.VSAM.INDX))                
+  DATA   (NAME(KC02788.ALU9999.CLIENT1.KSDS.VSAM.DATA)) -              
+  INDEX  (NAME(KC02788.ALU9999.CLIENT1.KSDS.VSAM.INDX))                
 //*                                                                     
 //*********************************                                     
-//* EJEMPLO1 CLASIFICA CLIENTE    *                                     
+//* CLASIFICAR ARCHIVO CLIENTE    *                                     
 //*********************************                                     
 //SORT1    EXEC PGM=SORT,COND=EVEN                                      
 //SYSOUT   DD SYSOUT=*                                                  
-//SORTIN   DD DSN=KC03C7C.ARCHIVOS.CLIENTE,DISP=SHR                     
-//SORTOUT  DD DSN=KC03C7C.ARCHIVOS.CLIENTE.CL,                          
+//SORTIN   DD DSN=KC02788.ALU9999.CLIENTE,DISP=SHR                     
+//SORTOUT  DD DSN=KC02788.ALU9999.CLIENTE.CL,                          
+//            DCB=(LRECL=50,BLKSIZE=0,RECFM=FB),                        
+//            SPACE=(TRK,(1,1),RLSE),DISP=(,CATLG)                      
+//SYSIN    DD *                                                         
+ SORT FORMAT=BI,FIELDS=(1,13,A)                                         
+//*                                                                     
+//*********************************                                     
+//* CLASIFICAR ARCHIVO NOVEDADES  *                                     
+//*********************************                                     
+//SORT2    EXEC PGM=SORT,COND=EVEN                                      
+//SYSOUT   DD SYSOUT=*                                                  
+//SORTIN   DD DSN=KC02788.ALU9999.NOVCLIEN,DISP=SHR                    
+//SORTOUT  DD DSN=KC02788.ALU9999.NOVCLIEN.CL,                         
 //            DCB=(LRECL=50,BLKSIZE=0,RECFM=FB),                        
 //            SPACE=(TRK,(1,1),RLSE),DISP=(,CATLG)                      
 //SYSIN    DD *                                                         
  SORT FORMAT=BI,FIELDS=(1,13,A)                                         
 //*                                                                     
 //********************************                                      
-//*        EJEMPLO REPRO         *                                      
-//* IDCAMS PARA CARGAR KSDS VSAM *                                      
-//* CLIENT1 = SALIDA PROGRAMA    *                                      
-//* CLASE SINCRONICA 18.1        *                                      
+//*        CARGAR VSAM KSDS      *                                      
+//* IDCAMS REPRO CARGA INICIAL   *                                      
 //********************************                                      
 //DEFREPRO EXEC PGM=IDCAMS,REGION=0M                                    
-//CLIENT1  DD DSN=KC03C7C.ARCHIVOS.CLIENTE.CL,DISP=SHR                  
-//SALIDA   DD DSN=KC03C7C.ARCHIVOS.CLIENT1.KSDS.VSAM,DISP=SHR           
+//CLIENT1  DD DSN=KC02788.ALU9999.CLIENTE.CL,DISP=SHR                  
+//SALIDA   DD DSN=KC02788.ALU9999.CLIENT1.KSDS.VSAM,DISP=SHR           
 //SYSPRINT DD SYSOUT=*                                                  
 //SYSIN    DD *                                                         
   REPRO INFILE(CLIENT1) OUTFILE(SALIDA) REPLACE                         
 //*                                                                     
-//*                                                                     
 //********************************                                      
-//*       EJEMPLO KSDS           *                                      
-//* IDCAMS DEFINE AIX POR CLI    *                                      
+//*    EJECUTAR PROGRAMA COBOL   *                                      
 //********************************                                      
-//DEFAIX   EXEC PGM=IDCAMS                                              
-//SYSPRINT DD SYSOUT=*                                                  
-//SYSIN    DD *                                                         
-  DEFINE AIX (NAME(KC03C7C.ARCHIVOS.CLIENT1.KSDS.VSAM.AIX) -            
-         RELATE(KC03C7C.ARCHIVOS.CLIENT1.KSDS.VSAM) -                   
-         KEYS(3 17) -                                                   
-         VOLUMES(KCTR57) -                                              
-         FREESPACE(5 1) -                                               
-         CYL(1 1) -                                                     
-         RECORDSIZE(50 50) -                                            
-         CONTROLINTERVALSIZE(2048) -                                    
-         NONUNIQUEKEY -                                                 
-         SHR(2 3)) -                                                    
-  DATA  (NAME(KC03C7C.ARCHIVOS.CLIENT1.KSDS.VSAM.AIX.DATA)) -           
-  INDEX (NAME(KC03C7C.ARCHIVOS.CLIENT1.KSDS.VSAM.AIX.INDX))             
-//********************************                                      
-//*       EJEMPLO KSDS           *                                      
-//* IDCAMS DEFINE PATH BLDINDEX  *                                      
-//********************************                                      
-//DEFPATH  EXEC PGM=IDCAMS                                              
-//SYSPRINT DD SYSOUT=*                                                  
-//SYSIN    DD *                                                         
-  DEFINE PATH (NAME(KC03C7C.ARCHIVOS.CLIENT1.KSDS.VSAM.PATH) -          
-         PATHENTRY(KC03C7C.ARCHIVOS.CLIENT1.KSDS.VSAM.AIX))             
-  BLDINDEX -                                                            
-         IDS(KC03C7C.ARCHIVOS.CLIENT1.KSDS.VSAM) -                      
-         ODS(KC03C7C.ARCHIVOS.CLIENT1.KSDS.VSAM.AIX) -                  
-         ESORT                                                          
-//*                                                                     
+//PAPAVSAM EXEC PGM=PAPAVSAM                                            
+//STEPLIB  DD DSN=KC03C7C.CURSOS.PGMLIB,DISP=SHR                          
+//SYSOUT   DD SYSOUT=*                                                  
+//DDFILE1  DD DSN=KC02788.ALU9999.CLIENT1.KSDS.VSAM,DISP=SHR           
+//DDFILE2  DD DSN=KC02788.ALU9999.NOVCLIEN.CL,DISP=SHR                 
+//DDFILE3  DD DSN=KC03XXX.CLIENTES.ENCONTRADOS,                        
+//            DCB=(LRECL=50,BLKSIZE=0,RECFM=FB),                        
+//            SPACE=(TRK,(1,1),RLSE),DISP=(,CATLG)                      
+//SYSOUT   DD DSN=KC03XXX.CURSOS.SPOOL.PAPAVSAM,                        
+//            DCB=(LRECL=133,BLKSIZE=0,RECFM=FBA),                      
+//            SPACE=(TRK,(1,1),RLSE),DISP=(,CATLG)                      
+//SYSUDUMP DD SYSOUT=*    
+//*

@@ -11,9 +11,12 @@
 //DELCLUS  EXEC PGM=IDCAMS,COND=(8,LT)                                  
 //SYSPRINT DD SYSOUT=*                                                  
 //SYSIN    DD *                                                         
-     DELETE   KC03C7C.ARCHIVOS.CLIENT1.KSDS.VSAM CLUSTER PURGE          
+     DELETE   KC03C7C.ARCHIVOS.CLIENTE.KSDS.VSAM CLUSTER PURGE          
      DELETE   KC03C7C.ARCHIVOS.CLIENTE.CL                               
-     DELETE   KC03C7C.ARCHIVOS.NOVCLIEN.CL                              
+     DELETE   KC03C7C.ARCHIVOS.NOVCLIEN.CL      
+     DELETE   KC03C7C.CURSOS.SPOOL.PAPAVSAM
+     DELETE   KC03C7C.ARCHIVOS.CLIENTES.ENTRADOS
+     IF LASTCC LE 8 THEN SET MAXCC = 0                           
 //*                                                                     
 //********************************                                      
 //*       DEFINIR VSAM KSDS      *                                      
@@ -22,7 +25,7 @@
 //DEFKSDS  EXEC PGM=IDCAMS,COND=(8,LT)                                  
 //SYSPRINT DD SYSOUT=*                                                  
 //SYSIN    DD *                                                         
-  DEFINE CLUSTER(NAME(KC03C7C.ARCHIVOS.CLIENT1.KSDS.VSAM) -             
+  DEFINE CLUSTER(NAME(KC03C7C.ARCHIVOS.CLIENTE.KSDS.VSAM) -             
          CONTROLINTERVALSIZE(4096) -                                    
          VOLUMES(KCTR57) -                                              
          CYL(1 1) -                                                     
@@ -30,23 +33,23 @@
          RECORDSIZE(50 50) -                                            
          FREESPACE(10 5) -                                              
          SHR(2 3)) -                                                    
-  DATA   (NAME(KC03C7C.ARCHIVOS.CLIENT1.KSDS.VSAM.DATA)) -              
-  INDEX  (NAME(KC03C7C.ARCHIVOS.CLIENT1.KSDS.VSAM.INDX))                
+  DATA   (NAME(KC03C7C.ARCHIVOS.CLIENTE.KSDS.VSAM.DATA)) -              
+  INDEX  (NAME(KC03C7C.ARCHIVOS.CLIENTE.KSDS.VSAM.INDX))                
 //*                                                                     
 //*********************************                                     
-//* CLASIFICAR ARCHIVO CLIENTE    *                                     
+//* SORT ARCHIVO CLIENTE          *                                     
 //*********************************                                     
 //SORT1    EXEC PGM=SORT,COND=EVEN                                      
 //SYSOUT   DD SYSOUT=*                                                  
-//SORTIN   DD DSN=KC03C7C.ARCHIVOS.CLIENTE,DISP=SHR                     
+//SORTIN   DD DSN=KC03C7C.ARCHIVOS.CURSOS.CLIENTE,DISP=SHR                     
 //SORTOUT  DD DSN=KC03C7C.ARCHIVOS.CLIENTE.CL,                          
 //            DCB=(LRECL=50,BLKSIZE=0,RECFM=FB),                        
 //            SPACE=(TRK,(1,1),RLSE),DISP=(,CATLG)                      
 //SYSIN    DD *                                                         
- SORT FORMAT=BI,FIELDS=(1,13,A)                                         
+  SORT FORMAT=BI,FIELDS=(1,2,A,3,11,A)                                      
 //*                                                                     
 //*********************************                                     
-//* CLASIFICAR ARCHIVO NOVEDADES  *                                     
+//* SORT ARCHIVO NOVEDADES        *                                     
 //*********************************                                     
 //SORT2    EXEC PGM=SORT,COND=EVEN                                      
 //SYSOUT   DD SYSOUT=*                                                  
@@ -55,7 +58,7 @@
 //            DCB=(LRECL=50,BLKSIZE=0,RECFM=FB),                        
 //            SPACE=(TRK,(1,1),RLSE),DISP=(,CATLG)                      
 //SYSIN    DD *                                                         
- SORT FORMAT=BI,FIELDS=(1,13,A)                                         
+  SORT FORMAT=BI,FIELDS=(1,2,A,3,11,A)                                         
 //*                                                                     
 //********************************                                      
 //*        CARGAR VSAM KSDS      *                                      
@@ -63,7 +66,7 @@
 //********************************                                      
 //DEFREPRO EXEC PGM=IDCAMS,REGION=0M                                    
 //CLIENT1  DD DSN=KC03C7C.ARCHIVOS.CLIENTE.CL,DISP=SHR                  
-//SALIDA   DD DSN=KC03C7C.ARCHIVOS.CLIENT1.KSDS.VSAM,DISP=SHR           
+//SALIDA   DD DSN=KC03C7C.ARCHIVOS.CLIENTE.KSDS.VSAM,DISP=SHR           
 //SYSPRINT DD SYSOUT=*                                                  
 //SYSIN    DD *                                                         
   REPRO INFILE(CLIENT1) OUTFILE(SALIDA) REPLACE                         
@@ -72,8 +75,14 @@
 //*    EJECUTAR PROGRAMA COBOL   *                                      
 //********************************                                      
 //PAPAVSAM EXEC PGM=PAPAVSAM                                            
-//STEPLIB  DD DSN=KC03C7C.LOAD.CONTA,DISP=SHR                          
-//SYSOUT   DD SYSOUT=*                                                  
-//DDFILE1  DD DSN=KC03C7C.ARCHIVOS.CLIENT1.KSDS.VSAM,DISP=SHR           
-//DDFILE2  DD DSN=KC03C7C.ARCHIVOS.NOVCLIEN.CL,DISP=SHR                 
+//STEPLIB  DD DSN=KC03C7C.CURSOS.PGMLIB,DISP=SHR                          
+//DDCLIEN  DD DSN=KC03C7C.ARCHIVOS.CLIENTE.KSDS.VSAM,DISP=SHR           
+//DDMOVIC  DD DSN=KC03C7C.ARCHIVOS.NOVCLIEN.CL,DISP=SHR                 
+//DDSCLIE  DD DSN=KC03C7C.ARCHIVOS.CLIENTES.ENTRADOS,                        
+//            DCB=(LRECL=50,BLKSIZE=0,RECFM=FB),                        
+//            SPACE=(TRK,(1,1),RLSE),DISP=(,CATLG)                      
+//SYSOUT   DD DSN=KC03C7C.CURSOS.SPOOL.PAPAVSAM,                        
+//            DCB=(LRECL=133,BLKSIZE=0,RECFM=FBA),                      
+//            SPACE=(TRK,(1,1),RLSE),DISP=(,CATLG)                      
+//SYSUDUMP DD SYSOUT=*    
 //*

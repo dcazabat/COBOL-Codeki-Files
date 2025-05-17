@@ -1,316 +1,231 @@
-CBL TEST                                                         
-       IDENTIFICATION DIVISION.                                         
-      *                                                        *        
-        PROGRAM-ID PAPAVSAM.                                            
-      **********************************************************        
-      *                                                        *        
-      *  PROGRAMA PARA VSAM KSDS                               *        
-      *  PROCESO DE APAREO DE MAESTRO DE CLIENTES CON NOVEDADES*        
-      *  Y GENERACIÓN DE ARCHIVO DE SALIDA CON ENCONTRADOS     *
-      **********************************************************        
-      *      MANTENIMIENTO DE PROGRAMA                         *        
-      **********************************************************        
-      *  FECHA   *    DETALLE        * COD *                            
-      **************************************                            
-      *  160525 *  CREACION         * DZB *                            
-      **************************************                            
-       ENVIRONMENT DIVISION.                                            
-       CONFIGURATION SECTION.                                           
-       SPECIAL-NAMES.                                                   
-           DECIMAL-POINT IS COMMA.                                      
-                                                                        
-       INPUT-OUTPUT SECTION.                                            
-       FILE-CONTROL.                                                    
-             SELECT FILE1   ASSIGN DDFILE1                              
-             ORGANIZATION   IS INDEXED                                  
-             ACCESS IS SEQUENTIAL                                       
-             RECORD KEY IS CLI-TIP-DOC IN REG-FILE1
-                           CLI-NRO-DOC IN REG-FILE1
-             FILE STATUS IS WS-FIL1-CODE.                               
-                                                                        
-             SELECT FILE2   ASSIGN DDFILE2                              
-             ACCESS IS SEQUENTIAL                                       
-             FILE STATUS IS WS-FIL2-CODE.                               
-                                                                        
-             SELECT FILE3   ASSIGN DDFILE3                              
-             ORGANIZATION IS SEQUENTIAL                                 
-             ACCESS IS SEQUENTIAL                                       
-             FILE STATUS IS WS-FIL3-CODE.                               
-                                                                        
-                                                                        
-       DATA DIVISION.                                                   
-       FILE SECTION.                                                    
-       FD FILE1.                                                        
-       COPY CPCLIE REPLACING REG-CLIENTE BY REG-FILE1.
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID PAPAVSAM.
+       AUTHOR.        D. CAZABAT.
+       INSTALLATION.  CURSO CODEKI.
+       DATE-WRITTEN.  16/05/2025.
+       DATE-COMPILED. 16/05/2025.
+       SECURITY.      UNCLASSIFIED.
+      ***********************************************************
+      *  PROGRAMA PARA VSAM KSDS                                *
+      *  PROCESO DE APAREO DE MAESTRO DE CLIENTES CON NOVEDADES *
+      *  Y GENERACIC0N DE ARCHIVO DE SALIDA CON ENCONTRADOS     *
+      ***********************************************************
+       ENVIRONMENT DIVISION.
+       CONFIGURATION SECTION.
+       SPECIAL-NAMES.
+           DECIMAL-POINT IS COMMA.
 
-       FD FILE2                                                         
-            BLOCK CONTAINS 0 RECORDS                                    
-            RECORDING MODE IS F.                                        
-       COPY CPNOVCLI REPLACING WS-REG-NOVCLIE BY REG-FILE2.
+       INPUT-OUTPUT SECTION.
+       FILE-CONTROL.
+           SELECT CLIENTES ASSIGN DDCLIEN
+           ORGANIZATION IS INDEXED
+           ACCESS IS SEQUENTIAL
+           RECORD KEY IS CLI-TIP-DOC OF REG-CLIENTE
+           ALTERNATE RECORD KEY IS CLI-NRO-DOC OF REG-CLIENTE
+           FILE STATUS IS WS-FCLIENTE-CODE.
+           *> Comentario de prueba
 
-       FD FILE3                                                         
-            BLOCK CONTAINS 0 RECORDS                                    
-            RECORDING MODE IS F.                                        
-       COPY CPCLIENS REPLACING REG-CLIENTES BY REG-FILE3.
-                                                                        
-       01 REG-FILE1.                                                    
-          03 KEY-CLAVE    PIC X(13).                                    
-          03 FILLER       PIC X(05).                                    
-          03 CLI-CLAVE    PIC 9(03).                                    
-          03 FILLER       PIC X(29).                                    
-                                                                        
-       FD FILE2                                                         
-            BLOCK CONTAINS 0 RECORDS                                    
-            RECORDING MODE IS F.                                        
-                                                                        
-       01 REG-FILE2      PIC X(50).                                     
-                                                                        
-       FD FILE3                                                         
-            BLOCK CONTAINS 0 RECORDS                                    
-            RECORDING MODE IS F.                                        
-                                                                        
-       01 REG-FILE3      PIC X(50).                                     
-                                                                        
-                                                                        
-      **************************************                            
-       WORKING-STORAGE SECTION.                                         
-      **************************************                            
-       77  FILLER        PIC X(26) VALUE '* INICIO WORKING-STORAGE *'.  
-       77  FILLER        PIC X(26) VALUE '* CODIGOS RETORNO FILES  *'.  
-       77  WS-FIL1-CODE      PIC XX    VALUE SPACES.                    
-       77  WS-FIL2-CODE      PIC XX    VALUE SPACES.                    
-       77  WS-FIL3-CODE      PIC XX    VALUE SPACES.                    
-                                                                        
-      * INDICADORES DE FIN DE ARCHIVO                                   
-       01  WS-STATUS-FIN    PIC X.                                      
-           88  WS-FIN-LECTURA         VALUE 'Y'.                        
-           88  WS-NO-FIN-LECTURA      VALUE 'N'.                        
-                                                                        
-       01  WS-STATUS-FILE1     PIC X.                                      
-           88  WS-FIN-FILE1           VALUE 'Y'.                        
-           88  WS-NO-FIN-FILE1        VALUE 'N'.                        
-                                                                        
-       01  WS-STATUS-FILE2    PIC X.                                      
-           88  WS-FIN-FILE2          VALUE 'Y'.                        
-           88  WS-NO-FIN-FILE2       VALUE 'N'.                        
+           SELECT MOVICC   ASSIGN DDMOVIC
+           ACCESS IS SEQUENTIAL
+           FILE STATUS IS WS-FMOVICC-CODE.
 
-      * CONTADORES 
+           SELECT SALCLIEN ASSIGN DDSCLIE
+           ORGANIZATION IS SEQUENTIAL
+           ACCESS IS SEQUENTIAL
+           FILE STATUS IS WS-FSALCLIEN-CODE.
+
+       DATA DIVISION.
+       FILE SECTION.
+       FD  CLIENTES.
+           COPY CPCLIE.
+       FD  MOVICC
+            BLOCK CONTAINS 0 RECORDS
+            RECORDING MODE IS F.
+           COPY CPNOVCLI.
+
+       FD  SALCLIEN
+            BLOCK CONTAINS 0 RECORDS
+            RECORDING MODE IS F.
+           COPY CPCLIENS.
+
+      **************************************
+       WORKING-STORAGE SECTION.
+      **************************************
+       77  FILLER        PIC X(26) VALUE '* INICIO WORKING-STORAGE *'.
+       77  FILLER        PIC X(26) VALUE '* CODIGOS RETORNO FILES  *'.
+       77  WS-FCLIENTE-CODE     PIC XX    VALUE SPACES.
+       77  WS-FMOVICC-CODE      PIC XX    VALUE SPACES.
+       77  WS-FSALCLIEN-CODE    PIC XX    VALUE SPACES.
+
+      * INDICADORES DE FIN DE ARCHIVO
+       01  WS-STATUS-FIN    PIC X.
+           88  WS-FIN-LECTURA         VALUE 'Y'.
+           88  WS-NO-FIN-LECTURA      VALUE 'N'.
+
+       01  WS-STATUS-CLIENTE   PIC X.
+           88  WS-FIN-CLIENTE         VALUE 'Y'.
+           88  WS-NO-FIN-CLIENTE      VALUE 'N'.
+
+       01  WS-STATUS-MOVICC    PIC X.
+           88  WS-FIN-MOVICC          VALUE 'Y'.
+           88  WS-NO-FIN-MOVICC       VALUE 'N'.
+
+      * CONTADORES
        01  WS-CONTADORES.
            03 WS-CONT-CLIENTES       PIC 9(06) VALUE ZEROS.
            03 WS-CONT-NOVEDADES      PIC 9(06) VALUE ZEROS.
            03 WS-CONT-ENCONTRADOS    PIC 9(06) VALUE ZEROS.
            03 WS-CONT-NO-ENCONTRADOS PIC 9(06) VALUE ZEROS.
 
-      * TABLAS DE VALIDACIÓN
-       01  WS-TABLAS-VALIDACION.
-           03 WS-TIP-DOC-VALIDOS.
-              05 FILLER           PIC X(02) VALUE 'DU'.
-              05 FILLER           PIC X(02) VALUE 'PA'.
-              05 FILLER           PIC X(02) VALUE 'PE'.
-              05 FILLER           PIC X(02) VALUE 'CI'.
-           03 WS-TABLA-TIP-DOC REDEFINES WS-TIP-DOC-VALIDOS.
-              05 WS-TIP-DOC-VAL   PIC X(02) OCCURS 4 TIMES.
+       77  FILLER        PIC X(26) VALUE '* FINAL  WORKING-STORAGE *'.
 
-           03 WS-TIP-CUE-VALIDOS.
-              05 FILLER           PIC X(02) VALUE '01'.
-              05 FILLER           PIC X(02) VALUE '02'.
-              05 FILLER           PIC X(02) VALUE '03'.
-           03 WS-TABLA-TIP-CUE REDEFINES WS-TIP-CUE-VALIDOS.
-              05 WS-TIP-CUE-VAL   PIC X(02) OCCURS 3 TIMES.
-
-      * VARIABLES PARA VALIDACIÓN
-       01  WS-VALIDACION.
-           03 WS-VAL-FECHA.
-              05 WS-VAL-ANIO      PIC 9(04).
-              05 WS-VAL-MES       PIC 9(02).
-              05 WS-VAL-DIA       PIC 9(02).
-           03 WS-FECHA-MIN        PIC 9(08) VALUE 20240101.
-           03 WS-CLAVE-ANTERIOR.
-              05 WS-CLI-TIP-DOC   PIC X(02) VALUE SPACES.
-              05 WS-CLI-NRO-DOC   PIC 9(11) VALUE ZEROS.
-
-      * ÁREAS DE TRABAJO
-       01  WS-WORK-AREAS.
-           03 WS-IND             PIC 9(02) VALUE ZEROS.
-           03 WS-FOUND           PIC X(01) VALUE 'N'.
-              88 WS-FOUND-YES    VALUE 'Y'.
-              88 WS-FOUND-NO     VALUE 'N'.
-                                                                        
-         COPY CLIENTE.                                                  
-         COPY MOVIMCC.                                                  
-                                                                        
-       01  WS-CLAVE1.                                                   
-           03  WS-TIP-DOC1      PIC X(02)       VALUE ZEROS.            
-           03  WS-NRO-DOC1      PIC 9(11)       VALUE ZEROS.            
-                                                                        
-       01  WS-CLAVE2.                                                   
-           03  WS-TIP-DOC2      PIC X(02)       VALUE ZEROS.            
-           03  WS-NRO-DOC2      PIC 9(11)       VALUE ZEROS.            
-                                                                        
-      ********     CONTADOR DE LEIDOS Y GRABADOS  *                     
-                                                                        
-       77  WS-LEIDOS-FILE1      PIC 9(05)        VALUE ZEROS.           
-       77  WS-LEIDOS-FILE2      PIC 9(05)        VALUE ZEROS.           
-       77  WS-LEIDOS-FILE3      PIC 9(05)        VALUE ZEROS.           
-       77  WS-ENCONTRADOS       PIC 9(05)        VALUE ZEROS.           
-       77  WS-NO-ENCONTRADO     PIC 9(05)        VALUE ZEROS.           
-                                                                        
-       77  WS-LEYEN-FILE1       PIC X(35) VALUE                         
-                        'CANTIDAD DE LEIDOS CLIENTES  :   '.            
-                                                                        
-       77  WS-LEYEN-FILE2       PIC X(35) VALUE                         
-                        'CANTIDAD DE LEIDOS NOVEDADES :   '.            
-                                                                        
-       77  WS-LEYEN-FILE3       PIC X(35) VALUE                         
-                        'CANTIDAD DE LEIDOS ENCONTRADOS :   '.            
-                                                                        
-       77  WS-LEYEN-ENCONTRADOS PIC X(35) VALUE                         
-                        'CANTIDAD ENCONTRADOS          :  '.            
-                                                                        
-       77  WS-LEYEN-NO-ENCONTRADO PIC X(35) VALUE                       
-                        'CANTIDAD DE NO ENCONTRADOS    :  '.            
-                                                                        
-      ********     FECHA DE PROCESO ***************                     
-       01  WS-FECHA.                                                    
-           03  WS-FECHA-AA      PIC 99            VALUE ZEROS.          
-           03  WS-FECHA-MM      PIC 99            VALUE ZEROS.          
-           03  WS-FECHA-DD      PIC 99            VALUE ZEROS.          
-                                                                        
-       77  FILLER        PIC X(26) VALUE '* FINAL  WORKING-STORAGE *'.  
-                                                                        
-      ***************************************************************.  
-       PROCEDURE DIVISION.                                              
-      **************************************                            
-      *                                    *                            
-      *  CUERPO PRINCIPAL DEL PROGRAMA     *                            
-      *                                    *                            
-      **************************************                            
-       0000-MAIN.
-           PERFORM 1000-INICIO THRU 1000-INICIO-EXIT
-           PERFORM 2000-PROCESO THRU 2000-PROCESO-EXIT 
-               UNTIL WS-FIN-FILE1 OR WS-FIN-FILE2
-           PERFORM 9000-FINAL THRU 9000-FINAL-EXIT
-           STOP RUN.
+      ***************************************************************.
+       PROCEDURE DIVISION.
+      **************************************
+      *                                    *
+      *  CUERPO PRINCIPAL DEL PROGRAMA     *
+      *                                    *
+      **************************************
+       MAIN-PROGRAM.
+           PERFORM 1000-INICIO
+              THRU 1000-INICIO-EXIT
+           PERFORM 2000-PROCESO
+              THRU 2000-PROCESO-EXIT
+              UNTIL WS-FIN-CLIENTE OR WS-FIN-MOVICC
+           PERFORM 9000-FINAL
+              THRU 9000-FINAL-EXIT.
+       F-MAIN-PROGRAM. GOBACK.
 
       *
        1000-INICIO.
            INITIALIZE WS-CONTADORES
-           SET WS-NO-FIN-FILE1 TO TRUE
-           SET WS-NO-FIN-FILE2 TO TRUE
+           SET WS-NO-FIN-CLIENTE TO TRUE
+           SET WS-NO-FIN-MOVICC TO TRUE
            SET WS-NO-FIN-LECTURA TO TRUE
 
-           OPEN INPUT FILE1
-           IF WS-FIL1-CODE NOT = '00'
-              DISPLAY 'ERROR OPEN FILE1: ' WS-FIL1-CODE
+           OPEN INPUT CLIENTES
+           IF WS-FCLIENTE-CODE NOT = '00'
+              DISPLAY 'ERROR OPEN CLIENTES: ' WS-FCLIENTE-CODE
               SET WS-FIN-LECTURA TO TRUE
            END-IF
 
-           OPEN INPUT FILE2
-           IF WS-FIL2-CODE NOT = '00'
-              DISPLAY 'ERROR OPEN FILE2: ' WS-FIL2-CODE
+           OPEN INPUT MOVICC
+           IF WS-FMOVICC-CODE NOT = '00'
+              DISPLAY 'ERROR OPEN MOVICC: ' WS-FMOVICC-CODE
               SET WS-FIN-LECTURA TO TRUE
            END-IF
 
-           OPEN OUTPUT FILE3
-           IF WS-FIL3-CODE NOT = '00'
-              DISPLAY 'ERROR OPEN FILE3: ' WS-FIL3-CODE
+           OPEN OUTPUT SALCLIEN
+           IF WS-FSALCLIEN-CODE NOT = '00'
+              DISPLAY 'ERROR OPEN SALCLIEN: ' WS-FSALCLIEN-CODE
               SET WS-FIN-LECTURA TO TRUE
            END-IF
 
-           PERFORM 3000-LEER-FILE1
-           PERFORM 4000-LEER-FILE2.
-       1000-INICIO-EXIT.
-           EXIT.
+           PERFORM 3000-LEER-CLIENTE
+              THRU 3000-LEER-CLIENTE-EXIT
+           PERFORM 4000-LEER-MOVICC
+              THRU 4000-LEER-MOVICC-EXIT.
+       1000-INICIO-EXIT. EXIT.
 
-      *
        2000-PROCESO.
            EVALUATE TRUE
-               WHEN CLI-TIP-DOC IN REG-FILE1 = NOV-TIP-DOC IN REG-FILE2
-                    AND CLI-NRO-DOC IN REG-FILE1 = NOV-NRO-DOC IN REG-FILE2
-                    PERFORM 5000-PROCESAR-COINCIDENCIA
-                    PERFORM 3000-LEER-FILE1
-                    PERFORM 4000-LEER-FILE2
-               WHEN CLI-TIP-DOC IN REG-FILE1 < NOV-TIP-DOC IN REG-FILE2
-                    OR (CLI-TIP-DOC IN REG-FILE1 = NOV-TIP-DOC IN REG-FILE2
-                    AND CLI-NRO-DOC IN REG-FILE1 < NOV-NRO-DOC IN REG-FILE2)
-                    PERFORM 3000-LEER-FILE1
+              WHEN CLI-TIP-CUE IN REG-CLIENTE =
+                   NOV-CLI-TIPO IN WS-REG-NOVCLIE
+                 AND CLI-NRO IN REG-CLIENTE =
+                 NOV-CLI-NRO IN WS-REG-NOVCLIE
+                    PERFORM 5000-PROCESAR-COINC
+                       THRU 5000-PROCESAR-COINC-EXIT
+                    PERFORM 3000-LEER-CLIENTE
+                       THRU 3000-LEER-CLIENTE-EXIT
+                    PERFORM 4000-LEER-MOVICC
+                       THRU 4000-LEER-MOVICC-EXIT
+               WHEN CLI-TIP-CUE IN REG-CLIENTE <
+                    NOV-CLI-TIPO IN WS-REG-NOVCLIE
+                    OR (CLI-TIP-CUE IN REG-CLIENTE =
+                    NOV-CLI-TIPO IN WS-REG-NOVCLIE
+                    AND CLI-NRO IN REG-CLIENTE <
+                    NOV-CLI-NRO IN WS-REG-NOVCLIE)
+                    PERFORM 3000-LEER-CLIENTE
+                       THRU 3000-LEER-CLIENTE-EXIT
                WHEN OTHER
                     ADD 1 TO WS-CONT-NO-ENCONTRADOS
-                    PERFORM 4000-LEER-FILE2
+                    PERFORM 4000-LEER-MOVICC
+                       THRU 4000-LEER-MOVICC-EXIT
            END-EVALUATE.
-       2000-PROCESO-EXIT.
-           EXIT.
+       2000-PROCESO-EXIT. EXIT.
 
-      *
-       3000-LEER-FILE1.
-           READ FILE1 NEXT
-               AT END 
-                   SET WS-FIN-FILE1 TO TRUE
-               NOT AT END
-                   ADD 1 TO WS-CONT-CLIENTES
+       3000-LEER-CLIENTE.
+           READ CLIENTES NEXT RECORD
+             AT END
+                 SET WS-FIN-CLIENTE TO TRUE
+             NOT AT END
+               IF WS-FCLIENTE-CODE = '00'
+                 ADD 1 TO WS-CONT-CLIENTES
+               ELSE
+                 DISPLAY 'ERROR EN LECTURA CLIENTES: ' WS-FCLIENTE-CODE
+                 SET WS-FIN-CLIENTE TO TRUE
+               END-IF
            END-READ.
+       3000-LEER-CLIENTE-EXIT. EXIT.
 
-      *
-       4000-LEER-FILE2.
-           READ FILE2
-               AT END 
-                   SET WS-FIN-FILE2 TO TRUE
+       4000-LEER-MOVICC.
+           READ MOVICC
+               AT END
+                   SET WS-FIN-MOVICC TO TRUE
                NOT AT END
                    ADD 1 TO WS-CONT-NOVEDADES
            END-READ.
+       4000-LEER-MOVICC-EXIT. EXIT.
 
-      *
-       5000-PROCESAR-COINCIDENCIA.
+       5000-PROCESAR-COINC.
            ADD 1 TO WS-CONT-ENCONTRADOS
-           MOVE SPACES TO REG-FILE3
-           
-           MOVE CLI-TIP-DOC IN REG-FILE1 TO CLIS-TIP-DOC IN REG-FILE3
-           MOVE CLI-NRO-DOC IN REG-FILE1 TO CLIS-NRO-DOC IN REG-FILE3
-           MOVE CLI-NRO-SUC IN REG-FILE1 TO CLIS-SUC IN REG-FILE3
-           
-           IF CLI-TIP-CUE IN REG-FILE1 = 'CC'
-              MOVE '01' TO CLIS-TIPO IN REG-FILE3
-           ELSE
-              IF CLI-TIP-CUE IN REG-FILE1 = 'CA'
-                 MOVE '02' TO CLIS-TIPO IN REG-FILE3
-              ELSE
-                 MOVE '03' TO CLIS-TIPO IN REG-FILE3
-              END-IF
-           END-IF
-           
-           MOVE CLI-NRO IN REG-FILE1 TO CLIS-NRO IN REG-FILE3
-           MOVE CLI-SALDO IN REG-FILE1 TO CLIS-IMPORTE IN REG-FILE3
-           MOVE CLI-AAAAMMDD IN REG-FILE1 TO CLIS-AAAAMMDD IN REG-FILE3
-           MOVE CLI-NOMAPE IN REG-FILE1(1:15) TO CLIS-LOCALIDAD IN REG-FILE3
-           
-           WRITE REG-FILE3
-           IF WS-FIL3-CODE NOT = '00'
-              DISPLAY 'ERROR WRITE FILE3: ' WS-FIL3-CODE
+           INITIALIZE REG-CLIENTES
+
+           MOVE NOV-TIP-DOC IN WS-REG-NOVCLIE
+             TO CLIS-TIP-DOC IN REG-CLIENTES
+           MOVE NOV-NRO-DOC IN WS-REG-NOVCLIE
+             TO CLIS-NRO-DOC IN REG-CLIENTES
+           MOVE NOV-SUC IN WS-REG-NOVCLIE
+             TO CLIS-SUC IN REG-CLIENTES
+
+           MOVE NOV-CLI-TIPO IN WS-REG-NOVCLIE
+             TO CLIS-TIPO IN REG-CLIENTES
+           MOVE NOV-CLI-NRO IN WS-REG-NOVCLIE
+             TO CLIS-NRO IN REG-CLIENTES
+           MOVE NOV-CLI-IMP IN WS-REG-NOVCLIE
+             TO CLIS-IMPORTE IN REG-CLIENTES
+           MOVE NOV-CLI-FECHA IN WS-REG-NOVCLIE
+             TO CLIS-AAAAMMDD IN REG-CLIENTES
+
+           WRITE REG-CLIENTES
+           IF WS-FSALCLIEN-CODE NOT = '00'
+              DISPLAY 'ERROR WRITE SALCLIEN: ' WS-FSALCLIEN-CODE
            END-IF.
+       5000-PROCESAR-COINC-EXIT. EXIT.
 
-      *
        9000-FINAL.
-           CLOSE FILE1
-           IF WS-FIL1-CODE NOT = '00'
-              DISPLAY 'ERROR CLOSE FILE1: ' WS-FIL1-CODE
+           CLOSE CLIENTES
+           IF WS-FCLIENTE-CODE NOT = '00'
+              DISPLAY 'ERROR CLOSE CLIENTES: ' WS-FCLIENTE-CODE
            END-IF
 
-           CLOSE FILE2
-           IF WS-FIL2-CODE NOT = '00'
-              DISPLAY 'ERROR CLOSE FILE2: ' WS-FIL2-CODE
+           CLOSE MOVICC
+           IF WS-FMOVICC-CODE NOT = '00'
+              DISPLAY 'ERROR CLOSE MOVICC: ' WS-FMOVICC-CODE
            END-IF
 
-           CLOSE FILE3
-           IF WS-FIL3-CODE NOT = '00'
-              DISPLAY 'ERROR CLOSE FILE3: ' WS-FIL3-CODE
+           CLOSE SALCLIEN
+           IF WS-FSALCLIEN-CODE NOT = '00'
+              DISPLAY 'ERROR CLOSE SALCLIEN: ' WS-FSALCLIEN-CODE
            END-IF
 
-           DISPLAY ' '
-           DISPLAY '***** ESTADISTICAS DEL PROCESO *****'
-           DISPLAY 'CANTIDAD CLIENTES LEIDOS    : ' WS-CONT-CLIENTES
-           DISPLAY 'CANTIDAD NOVEDADES LEIDAS   : ' WS-CONT-NOVEDADES
-           DISPLAY 'CANTIDAD NOV. ENCONTRADAS   : ' WS-CONT-ENCONTRADOS
-           DISPLAY 'CANTIDAD NOV. NO ENCONTRADAS: ' WS-CONT-NO-ENCONTRADOS.
-       9000-FINAL-EXIT.
-           EXIT.
-      *
+           DISPLAY '********* ESTADISTICAS DEL PROCESO **********'
+           DISPLAY 'CANTIDAD CLIENTES LEIDOS    : '
+                  WS-CONT-CLIENTES
+           DISPLAY 'CANTIDAD NOVEDADES LEIDAS   : '
+                  WS-CONT-NOVEDADES
+           DISPLAY 'CANTIDAD NOV. ENCONTRADAS   : '
+                  WS-CONT-ENCONTRADOS
+           DISPLAY 'CANTIDAD NOV. NO ENCONTRADAS: '
+                  WS-CONT-NO-ENCONTRADOS.
+       9000-FINAL-EXIT. EXIT.
