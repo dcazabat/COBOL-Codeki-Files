@@ -17,13 +17,11 @@
 
        INPUT-OUTPUT SECTION.
        FILE-CONTROL.
-           SELECT CLIENTES ASSIGN DDCLIEN
+           SELECT CLIENTES ASSIGN TO DDCLIEN
            ORGANIZATION IS INDEXED
-           ACCESS IS SEQUENTIAL
-           RECORD KEY IS CLI-TIP-DOC OF REG-CLIENTE
-           ALTERNATE RECORD KEY IS CLI-NRO-DOC OF REG-CLIENTE
+           ACCESS MODE IS SEQUENTIAL
+           RECORD KEY IS VSAM-KEY-CLIENTE
            FILE STATUS IS WS-FCLIENTE-CODE.
-           *> Comentario de prueba
 
            SELECT MOVICC   ASSIGN DDMOVIC
            ACCESS IS SEQUENTIAL
@@ -37,6 +35,9 @@
        DATA DIVISION.
        FILE SECTION.
        FD  CLIENTES.
+       01  VSAM-KEY-CLIENTE.
+           03 CLI-TIP-DOC        PIC X(02).
+           03 CLI-NRO-DOC        PIC 9(11).
            COPY CPCLIE.
        FD  MOVICC
             BLOCK CONTAINS 0 RECORDS
@@ -106,6 +107,13 @@
            OPEN INPUT CLIENTES
            IF WS-FCLIENTE-CODE NOT = '00'
               DISPLAY 'ERROR OPEN CLIENTES: ' WS-FCLIENTE-CODE
+              DISPLAY 'FILE STATUS DESCRIPTION:'
+              EVALUATE WS-FCLIENTE-CODE
+                 WHEN '35' DISPLAY 'File not found'
+                 WHEN '37' DISPLAY 'Device type conflict'
+                 WHEN '47' DISPLAY 'File not open in proper mode'
+                 WHEN OTHER DISPLAY 'Other error'
+              END-EVALUATE
               SET WS-FIN-LECTURA TO TRUE
            END-IF
 
@@ -129,22 +137,22 @@
 
        2000-PROCESO.
            EVALUATE TRUE
-              WHEN CLI-TIP-CUE IN REG-CLIENTE =
-                   NOV-CLI-TIPO IN WS-REG-NOVCLIE
-                 AND CLI-NRO IN REG-CLIENTE =
-                 NOV-CLI-NRO IN WS-REG-NOVCLIE
+              WHEN CLI-TIP-DOC IN REG-CLIENTE = 
+                   NOV-TIP-DOC IN WS-REG-NOVCLIE
+                   AND CLI-NRO-DOC IN REG-CLIENTE = 
+                   NOV-NRO-DOC IN WS-REG-NOVCLIE
                     PERFORM 5000-PROCESAR-COINC
                        THRU 5000-PROCESAR-COINC-EXIT
                     PERFORM 3000-LEER-CLIENTE
                        THRU 3000-LEER-CLIENTE-EXIT
                     PERFORM 4000-LEER-MOVICC
                        THRU 4000-LEER-MOVICC-EXIT
-               WHEN CLI-TIP-CUE IN REG-CLIENTE <
-                    NOV-CLI-TIPO IN WS-REG-NOVCLIE
-                    OR (CLI-TIP-CUE IN REG-CLIENTE =
-                    NOV-CLI-TIPO IN WS-REG-NOVCLIE
-                    AND CLI-NRO IN REG-CLIENTE <
-                    NOV-CLI-NRO IN WS-REG-NOVCLIE)
+               WHEN CLI-TIP-DOC IN REG-CLIENTE < 
+                    NOV-TIP-DOC IN WS-REG-NOVCLIE
+                    OR (CLI-TIP-DOC IN REG-CLIENTE = 
+                    NOV-TIP-DOC IN WS-REG-NOVCLIE
+                    AND CLI-NRO-DOC IN REG-CLIENTE < 
+                    NOV-NRO-DOC IN WS-REG-NOVCLIE)
                     PERFORM 3000-LEER-CLIENTE
                        THRU 3000-LEER-CLIENTE-EXIT
                WHEN OTHER

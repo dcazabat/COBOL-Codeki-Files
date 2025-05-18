@@ -1,0 +1,264 @@
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID PGM2CORT.
+       AUTHOR.        D. CAZABAT.
+       INSTALLATION.  CURSO CODEKI.
+       DATE-WRITTEN.  18/05/2025.
+       DATE-COMPILED. 18/05/2025.
+       SECURITY.      UNCLASSIFIED.
+      ***************************************************************
+      *  PROGRAMA PARA ARREGLOS MULTIDIMENSAIONALES                 *
+      *  PROCESO DE DOBLE CORTE DE CONTROL POR SEXO Y TIPO DE       *
+      *  DOCUMENTO, CAMBIANDO LA SALIDA A UN ARRAY DE 2 DIMENSIONES *
+      *  EN EL CUAL SE MUESTRAN LOS RESULTADOS.                     *
+      ***************************************************************
+       ENVIRONMENT DIVISION.
+       CONFIGURATION SECTION.
+
+       SPECIAL-NAMES.
+           DECIMAL-POINT IS COMMA.
+
+       INPUT-OUTPUT SECTION.
+       FILE-CONTROL.
+             SELECT CLIENTE  ASSIGN DDCLIEN
+                    FILE STATUS IS WS-FILE-CLI.
+
+       DATA DIVISION.
+       FILE SECTION.
+       FD CLIENTE
+            BLOCK CONTAINS 0 RECORDS
+            RECORDING MODE IS F.
+
+       01 REG-CLIENTE    PIC X(93).
+
+      **************************************
+       WORKING-STORAGE SECTION.
+      **************************************
+       77  FILLER        PIC X(26) VALUE '* INICIO WORKING-STORAGE *'.
+
+       77  FILLER        PIC X(26) VALUE '* CODIGOS RETORNO FILES  *'.
+      **************************************
+      *         FILE STATUS                *
+      **************************************
+       77  WS-FILE-CLI      PIC XX    VALUE SPACES.
+      **************************************
+
+       77  WS-STATUS-CLI    PIC X.
+           88  WS-FIN-CLI             VALUE 'Y'.
+           88  WS-NO-FIN-CLI          VALUE 'N'.
+
+       77  WS-LECTURA-OK    PIC X.
+           88  WS-OK                  VALUE 'Y'.
+           88  WS-NO-OK               VALUE 'N'.
+
+      **************************************
+      *         LAYOUT SUCURSAL            *
+      **************************************
+           COPY CLICOB.
+
+      * CONTADOR DE LEIDOS
+       77  WS-CANT-LEIDOS          PIC 9(3)            VALUE ZEROS.
+       77  WS-SUC-EDIT             PIC ZZ9             VALUE ZEROS.
+       77  WS-SUC-SEXO-ANT         PIC X               VALUE SPACES.
+       77  WS-TIP-DOC-ANT          PIC XX              VALUE SPACES.
+       77  WS-TOTAL-SEXO           PIC 9(3)            VALUE ZEROS.
+       77  WS-TOTAL-DOC            PIC 9(3)            VALUE ZEROS.
+       77  WS-TIP-DOC-DESC         PIC X(30)           VALUE SPACES.
+       77  WS-SUC-TIP-DOC-ANT      PIC XX             VALUE SPACES.
+
+       77  FILLER        PIC X(26) VALUE '* FINAL  WORKING-STORAGE *'.
+
+       01  WS-TABLA-SALIDA.
+           05  WS-FILA        OCCURS 100 TIMES.
+               10  WS-COLUMNA OCCURS 2 TIMES.
+                   15  WS-TEXTO      PIC X(40).
+
+       77  WS-IND-FILA           PIC 9(3)  VALUE 1.
+       77  WS-IND-COL           PIC 9(1)  VALUE 1.
+       77  WS-MAX-FILAS         PIC 9(3)  VALUE 100.
+      ***************************************************************.
+       PROCEDURE DIVISION.
+      **************************************
+      *                                    *
+      *  CUERPO PRINCIPAL DEL PROGRAMA     *
+      *                                    *
+      **************************************
+       MAIN-PROGRAM.
+
+           PERFORM 1000-INICIO  THRU   F-1000-INICIO.
+
+           PERFORM 2000-PROCESO  THRU  F-2000-PROCESO
+                   UNTIL WS-FIN-CLI.
+
+           PERFORM 9999-FINAL    THRU  F-9999-FINAL.
+
+       F-MAIN-PROGRAM. GOBACK.
+
+      **************************************
+      *                                    *
+      *  CUERPO INICIO APERTURA ARCHIVOS   *
+      *                                    *
+      **************************************
+       1000-INICIO.
+           SET WS-NO-FIN-CLI TO TRUE
+
+           OPEN INPUT  CLIENTE
+
+           IF WS-FILE-CLI IS NOT EQUAL '00'
+              MOVE '* ERROR EN OPEN CLIENTE = ' TO WS-TEXTO(1, 1)
+              MOVE WS-FILE-CLI TO WS-TEXTO(1, 2)
+              MOVE 9999 TO RETURN-CODE
+              SET  WS-FIN-CLI     TO TRUE
+           END-IF
+
+           IF WS-NO-FIN-CLI
+              PERFORM 2500-LEER     THRU F-2500-LEER
+           END-IF
+
+           IF WS-FIN-CLI
+              MOVE 'EL ARCHIVO ESTA VACIO' TO WS-TEXTO(1, 1)
+           ELSE
+              MOVE WS-SUC-SEXO     TO WS-SUC-SEXO-ANT
+              MOVE WS-SUC-TIP-DOC  TO WS-TIP-DOC-ANT
+           END-IF.
+
+       F-1000-INICIO.   EXIT.
+
+      **************************************
+      *                                    *
+      *  CUERPO PRINCIPAL DE PROCESOS      *
+      *                                    *
+      **************************************
+       2000-PROCESO.
+      *
+           IF WS-SUC-SEXO = WS-SUC-SEXO-ANT                             
+              IF WS-SUC-TIP-DOC = WS-TIP-DOC-ANT                        
+                 ADD 1  TO WS-TOTAL-DOC                                 
+              ELSE                                                      
+                 PERFORM 2700-CORTE-DOC  THRU F-2700-CORTE-DOC          
+              END-IF                                                    
+           ELSE                                                         
+              PERFORM 2600-CORTE-SEXO THRU F-2600-CORTE-SEXO            
+           END-IF                                                       
+                                                                        
+           PERFORM 2500-LEER     THRU F-2500-LEER.                              
+                                                                        
+       F-2000-PROCESO. EXIT.
+
+      **************************************
+      *  LEER REGISTROS                    *
+      **************************************
+       2500-LEER.
+
+           READ CLIENTE   INTO  WS-REG-CLICOB
+
+           EVALUATE WS-FILE-CLI
+              WHEN '00'
+                           ADD 1 TO WS-CANT-LEIDOS
+              WHEN '10'
+                       SET WS-FIN-CLI  TO TRUE
+              WHEN OTHER
+                  DISPLAY '* ERROR EN LECTURA CLIENTE  = ' WS-FILE-CLI
+                  MOVE 9999 TO RETURN-CODE
+                  SET WS-FIN-CLI  TO TRUE
+           END-EVALUATE
+
+           IF WS-FILE-CLI = '10'
+              PERFORM 2600-CORTE-SEXO THRU F-2600-CORTE-SEXO
+           END-IF
+           .
+
+       F-2500-LEER. EXIT.
+
+       2600-CORTE-SEXO.
+           PERFORM 2700-CORTE-DOC  THRU F-2700-CORTE-DOC
+           
+           MOVE WS-TOTAL-SEXO TO WS-SUC-EDIT
+           STRING 'TOTAL POR SEXO: ' WS-SUC-EDIT
+               DELIMITED BY SIZE
+               INTO WS-TEXTO(WS-IND-FILA, 1)
+           ADD 1 TO WS-IND-FILA
+           
+           IF NOT WS-FIN-CLI
+              MOVE SPACES TO WS-TEXTO(WS-IND-FILA, 1)
+              ADD 1 TO WS-IND-FILA
+              EVALUATE WS-SUC-SEXO
+                 WHEN 'M'
+                    MOVE 'SEXO MASCULINO' TO WS-TEXTO(WS-IND-FILA, 1)
+                 WHEN 'F'
+                    MOVE 'SEXO FEMENINO' TO WS-TEXTO(WS-IND-FILA, 1)
+                 WHEN 'O'
+                    MOVE 'SEXO OTROS' TO WS-TEXTO(WS-IND-FILA, 1)
+              END-EVALUATE
+              ADD 1 TO WS-IND-FILA
+           END-IF
+           
+           MOVE WS-SUC-SEXO TO WS-SUC-SEXO-ANT
+           MOVE 0 TO WS-TOTAL-SEXO.
+       F-2600-CORTE-SEXO. EXIT.
+
+       2700-CORTE-DOC.
+           MOVE WS-TOTAL-DOC TO WS-SUC-EDIT
+           STRING '    '
+                  FUNCTION TRIM(WS-TIP-DOC-DESC) ' - ' 
+                  WS-SUC-EDIT
+               DELIMITED BY SIZE
+               INTO WS-TEXTO(WS-IND-FILA, 1)
+           ADD 1 TO WS-IND-FILA
+           
+           EVALUATE WS-SUC-TIP-DOC
+              WHEN 'DU'
+                 MOVE 'DOCUMENTO UNICO' TO WS-TIP-DOC-DESC
+              WHEN 'CI'
+                 MOVE 'CEDULA DE IDENTIDAD' TO WS-TIP-DOC-DESC
+              WHEN 'PA'
+                 MOVE 'PASAPORTE ARGENTINO' TO WS-TIP-DOC-DESC
+              WHEN 'PE'
+                 MOVE 'PASAPORTE EXTRANJERO' TO WS-TIP-DOC-DESC
+           END-EVALUATE
+           
+           MOVE WS-SUC-TIP-DOC TO WS-TIP-DOC-ANT
+           ADD WS-TOTAL-DOC TO WS-TOTAL-SEXO
+           MOVE 1 TO WS-TOTAL-DOC.
+       F-2700-CORTE-DOC. EXIT.
+
+      **************************************
+      *                                    *
+      *  CUERPO FINAL CIERRE DE FILES      *
+      *                                    *
+      **************************************
+       9999-FINAL.
+           IF RETURN-CODE = 9999
+              NEXT SENTENCE
+           ELSE
+              CLOSE CLIENTE
+                IF WS-FILE-CLI IS NOT EQUAL '00'
+                    MOVE '* ERROR EN CLOSE CLIENTE = '
+                         TO WS-TEXTO(WS-IND-FILA, 1)
+                    MOVE WS-FILE-CLI TO WS-TEXTO(WS-IND-FILA, 2)
+                    ADD 1 TO WS-IND-FILA
+                    MOVE 9999 TO RETURN-CODE
+                    SET WS-FIN-CLI     TO TRUE
+                END-IF
+
+              IF RETURN-CODE = 9999
+                NEXT SENTENCE
+              ELSE
+                MOVE WS-CANT-LEIDOS TO WS-SUC-EDIT
+                STRING 'CANTIDAD REGISTROS LEIDOS  ' WS-SUC-EDIT
+                    DELIMITED BY SIZE
+                    INTO WS-TEXTO(WS-IND-FILA, 1)
+                ADD 1 TO WS-IND-FILA
+              END-IF
+
+              PERFORM VARYING WS-IND-FILA FROM 1 BY 1
+                      UNTIL WS-IND-FILA > WS-MAX-FILAS
+                 IF WS-TEXTO(WS-IND-FILA, 1) NOT = SPACES
+                    DISPLAY WS-TEXTO(WS-IND-FILA, 1)
+                 END-IF
+                 IF WS-TEXTO(WS-IND-FILA, 2) NOT = SPACES
+                    DISPLAY WS-TEXTO(WS-IND-FILA, 2)
+                 END-IF
+              END-PERFORM
+           END-IF.
+       F-9999-FINAL. EXIT.
+      *
