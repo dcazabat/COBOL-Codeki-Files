@@ -63,7 +63,7 @@
        77  WS-TOTAL-SEXO           PIC 9(3)            VALUE ZEROS.
        77  WS-TOTAL-DOC            PIC 9(3)            VALUE ZEROS.
        77  WS-TIP-DOC-DESC         PIC X(30)           VALUE SPACES.
-       77  WS-SUC-TIP-DOC-ANT      PIC XX             VALUE SPACES.
+       77  WS-SUC-TIP-DOC-ANT      PIC XX              VALUE SPACES.
 
        77  FILLER        PIC X(26) VALUE '* FINAL  WORKING-STORAGE *'.
 
@@ -72,7 +72,7 @@
                10  WS-COLUMNA OCCURS 2 TIMES.
                    15  WS-TEXTO      PIC X(40).
 
-       77  WS-IND-FILA           PIC 9(3)  VALUE 1.
+       77  WS-IND-FILA          PIC 9(3)  VALUE 1.
        77  WS-IND-COL           PIC 9(1)  VALUE 1.
        77  WS-MAX-FILAS         PIC 9(3)  VALUE 100.
       ***************************************************************.
@@ -111,16 +111,37 @@
            END-IF
 
            IF WS-NO-FIN-CLI
-              PERFORM 2500-LEER     THRU F-2500-LEER
+              PERFORM 2500-LEER
+                 THRU F-2500-LEER
            END-IF
 
            IF WS-FIN-CLI
               MOVE 'EL ARCHIVO ESTA VACIO' TO WS-TEXTO(1, 1)
            ELSE
+              EVALUATE WS-SUC-SEXO
+                 WHEN 'M'
+                    MOVE 'SEXO MASCULINO' TO WS-TEXTO(WS-IND-FILA, 1)
+                 WHEN 'F'
+                    MOVE 'SEXO FEMENINO' TO WS-TEXTO(WS-IND-FILA, 1)
+                 WHEN 'O'
+                    MOVE 'SEXO OTROS' TO WS-TEXTO(WS-IND-FILA, 1)
+              END-EVALUATE
+              ADD 1 TO WS-IND-FILA
+
+              EVALUATE WS-SUC-TIP-DOC
+                 WHEN 'DU'
+                    MOVE 'DOCUMENTO UNICO' TO WS-TIP-DOC-DESC
+                 WHEN 'CI'
+                    MOVE 'CEDULA DE IDENTIDAD' TO WS-TIP-DOC-DESC
+                 WHEN 'PA'
+                    MOVE 'PASAPORTE ARGENTINO' TO WS-TIP-DOC-DESC
+                 WHEN 'PE'
+                    MOVE 'PASAPORTE EXTRANJERO' TO WS-TIP-DOC-DESC
+              END-EVALUATE
+
               MOVE WS-SUC-SEXO     TO WS-SUC-SEXO-ANT
               MOVE WS-SUC-TIP-DOC  TO WS-TIP-DOC-ANT
            END-IF.
-
        F-1000-INICIO.   EXIT.
 
       **************************************
@@ -134,13 +155,16 @@
               IF WS-SUC-TIP-DOC = WS-TIP-DOC-ANT                        
                  ADD 1  TO WS-TOTAL-DOC                                 
               ELSE                                                      
-                 PERFORM 2700-CORTE-DOC  THRU F-2700-CORTE-DOC          
+                 PERFORM 2700-CORTE-DOC
+                    THRU F-2700-CORTE-DOC          
               END-IF                                                    
            ELSE                                                         
-              PERFORM 2600-CORTE-SEXO THRU F-2600-CORTE-SEXO            
+              PERFORM 2600-CORTE-SEXO
+                 THRU F-2600-CORTE-SEXO            
            END-IF                                                       
                                                                         
-           PERFORM 2500-LEER     THRU F-2500-LEER.                              
+           PERFORM 2500-LEER
+              THRU F-2500-LEER.                              
                                                                         
        F-2000-PROCESO. EXIT.
 
@@ -153,17 +177,18 @@
 
            EVALUATE WS-FILE-CLI
               WHEN '00'
-                           ADD 1 TO WS-CANT-LEIDOS
+                 ADD 1 TO WS-CANT-LEIDOS
               WHEN '10'
-                       SET WS-FIN-CLI  TO TRUE
+                 SET WS-FIN-CLI  TO TRUE
               WHEN OTHER
-                  DISPLAY '* ERROR EN LECTURA CLIENTE  = ' WS-FILE-CLI
-                  MOVE 9999 TO RETURN-CODE
-                  SET WS-FIN-CLI  TO TRUE
+                 DISPLAY '* ERROR EN LECTURA CLIENTE  = ' WS-FILE-CLI
+                 MOVE 9999 TO RETURN-CODE
+                 SET WS-FIN-CLI  TO TRUE
            END-EVALUATE
 
            IF WS-FILE-CLI = '10'
-              PERFORM 2600-CORTE-SEXO THRU F-2600-CORTE-SEXO
+              PERFORM 2600-CORTE-SEXO
+                 THRU F-2600-CORTE-SEXO
            END-IF
            .
 
@@ -178,9 +203,11 @@
                INTO WS-TEXTO(WS-IND-FILA, 1)
            ADD 1 TO WS-IND-FILA
            
+           MOVE SPACES TO WS-TEXTO(WS-IND-FILA, 1)
+           ADD 1 TO WS-IND-FILA
+           
+           *> Agrega el sexo al array
            IF NOT WS-FIN-CLI
-              MOVE SPACES TO WS-TEXTO(WS-IND-FILA, 1)
-              ADD 1 TO WS-IND-FILA
               EVALUATE WS-SUC-SEXO
                  WHEN 'M'
                     MOVE 'SEXO MASCULINO' TO WS-TEXTO(WS-IND-FILA, 1)
@@ -250,13 +277,15 @@
                 ADD 1 TO WS-IND-FILA
               END-IF
 
+              *> MUESTRA RESULTADOS 
               PERFORM VARYING WS-IND-FILA FROM 1 BY 1
                       UNTIL WS-IND-FILA > WS-MAX-FILAS
+                 STRING WS-TEXTO(WS-IND-FILA, 1) 
+                        WS-TEXTO(WS-IND-FILA, 2)
+                        DELIMITED BY SIZE 
+                        INTO WS-TEXTO(WS-IND-FILA, 1)
                  IF WS-TEXTO(WS-IND-FILA, 1) NOT = SPACES
                     DISPLAY WS-TEXTO(WS-IND-FILA, 1)
-                 END-IF
-                 IF WS-TEXTO(WS-IND-FILA, 2) NOT = SPACES
-                    DISPLAY WS-TEXTO(WS-IND-FILA, 2)
                  END-IF
               END-PERFORM
            END-IF.
