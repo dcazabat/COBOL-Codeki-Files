@@ -26,7 +26,7 @@
 //            DCB=(LRECL=50,BLKSIZE=0,RECFM=FB),
 //            SPACE=(TRK,(1,1),RLSE),DISP=(,CATLG)
 //SYSIN    DD *
-  SORT FORMAT=BI,FIELDS=(15,2,A)
+  SORT FORMAT=BI,FIELDS=(16,2,A)
 /*
 //*
 //********************************

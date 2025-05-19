@@ -17,7 +17,7 @@
                ORGANIZATION IS SEQUENTIAL
                ACCESS MODE IS SEQUENTIAL
                FILE STATUS IS FS-CLIENTES.
-               
+
            SELECT SALIDA-FILE    ASSIGN TO DOUTPUT
                ORGANIZATION IS SEQUENTIAL
                ACCESS MODE IS SEQUENTIAL
@@ -80,6 +80,30 @@
            05 FILLER            PIC X(10) VALUE 'TOTAL: '.
            05 WS-TIPO-TOTAL     PIC $$$$,$$$,$$9.99.
 
+       01  WS-LINEA-DETALLE.
+           05 FILLER            PIC X(02) VALUE SPACES.
+           05 WS-DET-TIP-DOC    PIC X(02).
+           05 FILLER            PIC X(01) VALUE '-'.
+           05 WS-DET-NRO-DOC    PIC 9(11).
+           05 FILLER            PIC X(02) VALUE SPACES.
+           05 WS-DET-TIPO       PIC 9(02).
+           05 FILLER            PIC X(01) VALUE '-'.
+           05 WS-DET-NRO        PIC 9(03).
+           05 FILLER            PIC X(02) VALUE SPACES.
+           05 WS-DET-IMPORTE    PIC $$$$,$$$,$$9.99.
+           05 FILLER            PIC X(02) VALUE SPACES.
+
+       01  WS-ENCABEZADO.
+           05 FILLER            PIC X(50) VALUE ALL '='.
+           05 FILLER            PIC X(50) VALUE
+              '           LISTADO DE CLIENTES POR TIPO DE CUENTA'.
+           05 FILLER            PIC X(50) VALUE ALL '='.
+
+       01  WS-CONTROL-PAGINA.
+           05 WS-LINEAS-PAG     PIC 99    VALUE 60.
+           05 WS-LINEA-ACT      PIC 99    VALUE 1.
+           05 WS-NRO-PAGINA     PIC 9999  VALUE 1.
+
        PROCEDURE DIVISION.
        0000-MAIN.
            PERFORM 1000-INICIALIZAR
@@ -136,7 +160,6 @@
            EVALUATE TRUE
                WHEN CLI-OK
                    ADD 1 TO WS-REG-LEIDOS
-                   MOVE CLIS-TIPO TO WS-TIPO-ANTERIOR
                WHEN CLI-EOF
                    SET FS-EOF TO TRUE
                WHEN CLI-ERROR
@@ -150,39 +173,58 @@
        2500-F-LEER-ARCHIVO-EXIT. EXIT.
 
        3000-PROCESAR.
+           MOVE CLIS-TIPO TO WS-TIPO-ANTERIOR
            PERFORM UNTIL FS-EOF
-               *> Verificar si cambió el tipo de cuenta (corte de control)
                IF CLIS-TIPO NOT = WS-TIPO-ANTERIOR
                   PERFORM 3100-TOTAL-TIPO
                      THRU 3100-F-TOTAL-TIPO-EXIT
                END-IF
 
-               PERFORM 3200-GRABAR-REGISTRO
-                  THRU 3200-F-GRABAR-REGISTRO-EXIT
                PERFORM 3300-ACUMULAR-TOTALES
                   THRU 3300-F-ACUMULAR-TOTALES-EXIT
+
+               PERFORM 3200-GRABAR-REGISTRO
+                  THRU 3200-F-GRABAR-REGISTRO-EXIT
+
                PERFORM 2500-LEER-ARCHIVO
                   THRU 2500-F-LEER-ARCHIVO-EXIT
            END-PERFORM.
        3000-F-PROCESAR-EXIT. EXIT.
 
        3100-TOTAL-TIPO.
+           *> Verificar espacio para subtotal
+           IF WS-LINEA-ACT > (WS-LINEAS-PAG - 4)
+              PERFORM 3250-NUEVA-PAGINA
+                 THRU 3250-F-NUEVA-PAGINA-EXIT
+           END-IF
+
            *> Mostrar total del tipo anterior
            MOVE WS-TIPO-ANTERIOR TO WS-TIPO-ACTUAL
            PERFORM 3150-DESCRIBIR-TIPO
               THRU 3150-F-DESCRIBIR-TIPO-EXIT
            MOVE WS-TOTAL-TIPO TO WS-TIPO-TOTAL
-           DISPLAY WS-CABECERA
 
-           *> Grabar línea de total en archivo de salida
+           *> Grabar línea en blanco antes del subtotal
            MOVE SPACES TO REG-SALIDA
-           STRING 'TOTAL TIPO ' WS-TIPO-ACTUAL ':' DELIMITED BY SIZE
+           WRITE REG-SALIDA
+           ADD 1 TO WS-REG-GRABADOS
+           ADD 1 TO WS-LINEA-ACT
+
+           *> Grabar subtotal del tipo
+           STRING 'SUBTOTAL TIPO ' WS-TIPO-ACTUAL ' - ' 
                   WS-TIPO-DESC DELIMITED BY '  '
                   ' IMPORTE: ' DELIMITED BY SIZE
                   WS-TIPO-TOTAL DELIMITED BY SIZE
                   INTO REG-SALIDA
            WRITE REG-SALIDA
            ADD 1 TO WS-REG-GRABADOS
+           ADD 1 TO WS-LINEA-ACT
+
+           *> Grabar línea en blanco después del subtotal
+           MOVE SPACES TO REG-SALIDA
+           WRITE REG-SALIDA
+           ADD 1 TO WS-REG-GRABADOS
+           ADD 1 TO WS-LINEA-ACT
 
            *> Reiniciar acumulador para el nuevo tipo
            MOVE ZEROS TO WS-TOTAL-TIPO
@@ -199,7 +241,18 @@
        3150-F-DESCRIBIR-TIPO-EXIT. EXIT.
 
        3200-GRABAR-REGISTRO.
-           MOVE REG-CLIENTES TO REG-SALIDA
+           IF WS-LINEA-ACT > WS-LINEAS-PAG
+              PERFORM 3250-NUEVA-PAGINA
+                 THRU 3250-F-NUEVA-PAGINA-EXIT
+           END-IF
+
+           MOVE CLIS-TIP-DOC TO WS-DET-TIP-DOC
+           MOVE CLIS-NRO-DOC TO WS-DET-NRO-DOC
+           MOVE CLIS-TIPO    TO WS-DET-TIPO
+           MOVE CLIS-NRO     TO WS-DET-NRO
+           MOVE CLIS-IMPORTE TO WS-DET-IMPORTE
+           MOVE WS-LINEA-DETALLE TO REG-SALIDA
+
            WRITE REG-SALIDA
            IF SAL-ERROR
               STRING 'ERROR EN ESCRITURA SALIDA: ' FS-SALIDA
@@ -210,8 +263,17 @@
               SET FS-EOF TO TRUE
            ELSE
               ADD 1 TO WS-REG-GRABADOS
+              ADD 1 TO WS-LINEA-ACT
            END-IF.
        3200-F-GRABAR-REGISTRO-EXIT. EXIT.
+
+       3250-NUEVA-PAGINA.
+           MOVE SPACES TO REG-SALIDA
+           WRITE REG-SALIDA
+           WRITE REG-SALIDA FROM WS-ENCABEZADO
+           ADD 1 TO WS-NRO-PAGINA
+           MOVE 1 TO WS-LINEA-ACT.
+       3250-F-NUEVA-PAGINA-EXIT. EXIT.
 
        3300-ACUMULAR-TOTALES.
            *> Acumular para corte de control
@@ -220,7 +282,7 @@
            *> Acumular para total general
            ADD CLIS-IMPORTE TO WS-TOTAL-GENERAL
 
-           *> Acumular por tipo para estadísticas finales
+           *> Acumular por tipo para estadC-sticas finales
            MOVE CLIS-TIPO TO WS-IND-NUM
            IF WS-IND-NUM >= 1 AND WS-IND-NUM <= 3
               SET WS-INDICE TO WS-IND-NUM
@@ -232,7 +294,7 @@
        3300-F-ACUMULAR-TOTALES-EXIT. EXIT.
 
        3500-TOTAL-FINAL.
-           *> Procesar último tipo
+           *> Procesar C:ltimo tipo
            PERFORM 3100-TOTAL-TIPO
 
            *> Mostrar total general
