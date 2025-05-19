@@ -1,0 +1,287 @@
+        IDENTIFICATION DIVISION.
+       PROGRAM-ID PGMIMP7C.
+       AUTHOR.        D. CAZABAT.
+       INSTALLATION.  CURSO CODEKI.
+       DATE-WRITTEN.  20/05/2025.
+       DATE-COMPILED. 20/05/2025.
+       SECURITY.      UNCLASSIFIED.
+      ***************************************************************
+      *  PROGRAMA PARA IMPRIMIR Y GUARDAR ARCHVIO FBA DE CLIENTES.  *
+      *  PROCESO DE DOBLE CORTE DE CONTROL TIPO DE CUENTA           *
+      *  LOS CLIENTES SE LEEN DE UN ARCHVIO QSAM                    *
+      ***************************************************************
+       ENVIRONMENT DIVISION.
+       INPUT-OUTPUT SECTION.
+       FILE-CONTROL.
+           SELECT CLIENTES-FILE  ASSIGN TO DDCLIEN
+               ORGANIZATION IS SEQUENTIAL
+               ACCESS MODE IS SEQUENTIAL
+               FILE STATUS IS FS-CLIENTES.
+               
+           SELECT SALIDA-FILE    ASSIGN TO DOUTPUT
+               ORGANIZATION IS SEQUENTIAL
+               ACCESS MODE IS SEQUENTIAL
+               FILE STATUS IS FS-SALIDA.
+
+       DATA DIVISION.
+       FILE SECTION.
+       FD  CLIENTES-FILE
+           RECORD CONTAINS 50 CHARACTERS
+           RECORDING MODE IS F
+           BLOCK CONTAINS 0 CHARACTERS
+           LABEL RECORDS ARE STANDARD
+           DATA RECORD IS REG-CLIENTES.
+       COPY CPCLIENS.
+
+       FD  SALIDA-FILE
+           RECORD CONTAINS 50 CHARACTERS
+           RECORDING MODE IS F
+           BLOCK CONTAINS 0 CHARACTERS
+           LABEL RECORDS ARE STANDARD
+           DATA RECORD IS REG-SALIDA.
+       01  REG-SALIDA            PIC X(50).
+
+       WORKING-STORAGE SECTION.
+       01  FS-STATUS.
+           05 FS-CLIENTES        PIC X(02) VALUE '00'.
+               88 CLI-OK         VALUE '00'.
+               88 CLI-EOF        VALUE '10'.
+               88 CLI-ERROR      VALUES '01' THRU '09',
+                                       '11' THRU '99'.
+           05 FS-SALIDA          PIC X(02) VALUE '00'.
+               88 SAL-OK         VALUE '00'.
+               88 SAL-ERROR      VALUES '01' THRU '09',
+                                       '11' THRU '99'.
+           88 FS-EOF            VALUE '10'.
+
+       01  WS-CONTADORES.
+           05 WS-REG-LEIDOS      PIC 9(05) VALUE ZEROS.
+           05 WS-REG-GRABADOS    PIC 9(05) VALUE ZEROS.
+           05 WS-REG-ERROR       PIC 9(05) VALUE ZEROS.
+
+       01  WS-CORTE-CONTROL.
+           05 WS-TIPO-ACTUAL     PIC 9(02) VALUE ZEROS.
+           05 WS-TIPO-ANTERIOR   PIC 9(02) VALUE ZEROS.
+           05 WS-TOTAL-TIPO      PIC S9(09)V99 COMP-3 VALUE ZEROS.
+           05 WS-TOTAL-GENERAL   PIC S9(09)V99 COMP-3 VALUE ZEROS.
+
+       01  WS-TIPOS-CUENTA.
+           05 FILLER OCCURS 3 TIMES INDEXED BY WS-INDICE.
+              10 WS-TIPO-CUENTA  PIC 9(02).
+              10 WS-CANT-TIPO    PIC 9(05).
+              10 WS-IMPORTE-TIPO PIC S9(09)V99 COMP-3.
+
+       01  WS-AUXILIARES.
+           05 WS-IND-NUM         PIC 9(02).
+
+       01  WS-CABECERA.
+           05 FILLER            PIC X(20) VALUE 'TIPO DE CUENTA: '.
+           05 WS-TIPO-DESC      PIC X(20).
+           05 FILLER            PIC X(10) VALUE 'TOTAL: '.
+           05 WS-TIPO-TOTAL     PIC $$$$,$$$,$$9.99.
+
+       PROCEDURE DIVISION.
+       0000-MAIN.
+           PERFORM 1000-INICIALIZAR
+              THRU 1000-F-INICIALIZAR-EXIT
+           PERFORM 2000-ABRIR-ARCHIVOS
+              THRU 2000-F-ABRIR-ARCHIVOS-EXIT
+           PERFORM 2500-LEER-ARCHIVO
+              THRU 2500-F-LEER-ARCHIVO-EXIT
+           PERFORM 3000-PROCESAR
+              THRU 3000-F-PROCESAR-EXIT
+           PERFORM 3500-TOTAL-FINAL
+              THRU 3500-F-TOTAL-FINAL-EXIT
+           PERFORM 4000-CERRAR-ARCHIVOS
+              THRU 4000-F-CERRAR-ARCHIVOS-EXIT
+           PERFORM 4500-MOSTRAR-ESTAD
+              THRU 4500-F-MOSTRAR-ESTAD-EXIT.
+       0000-F-MAIN-EXIT. GOBACK.
+
+       1000-INICIALIZAR.
+           INITIALIZE WS-CONTADORES WS-CORTE-CONTROL
+           PERFORM VARYING WS-IND-NUM FROM 1 BY 1 UNTIL WS-IND-NUM > 3
+              SET WS-INDICE TO WS-IND-NUM
+              MOVE WS-IND-NUM TO WS-TIPO-CUENTA(WS-INDICE)
+              MOVE ZEROS TO WS-CANT-TIPO(WS-INDICE)
+                            WS-IMPORTE-TIPO(WS-INDICE)
+           END-PERFORM.
+       1000-F-INICIALIZAR-EXIT. EXIT.
+
+       2000-ABRIR-ARCHIVOS.
+           OPEN INPUT  CLIENTES-FILE
+           IF CLI-ERROR
+              STRING 'ERROR AL ABRIR ARCHIVO CLIENTES: ' FS-CLIENTES
+                     DELIMITED BY SIZE
+                     INTO REG-SALIDA
+              DISPLAY REG-SALIDA
+              MOVE 9999 TO RETURN-CODE
+              GOBACK
+           END-IF
+
+           OPEN OUTPUT SALIDA-FILE
+           IF SAL-ERROR
+              STRING 'ERROR AL ABRIR ARCHIVO SALIDA: ' FS-SALIDA
+                     DELIMITED BY SIZE
+                     INTO REG-SALIDA
+              DISPLAY REG-SALIDA
+              PERFORM 4000-CERRAR-ARCHIVOS
+              MOVE 9999 TO RETURN-CODE
+              GOBACK
+           END-IF.
+       2000-F-ABRIR-ARCHIVOS-EXIT. EXIT.
+
+       2500-LEER-ARCHIVO.
+           READ CLIENTES-FILE
+           EVALUATE TRUE
+               WHEN CLI-OK
+                   ADD 1 TO WS-REG-LEIDOS
+                   MOVE CLIS-TIPO TO WS-TIPO-ANTERIOR
+               WHEN CLI-EOF
+                   SET FS-EOF TO TRUE
+               WHEN CLI-ERROR
+                   STRING 'ERROR EN LECTURA CLIENTES: ' FS-CLIENTES
+                          DELIMITED BY SIZE
+                          INTO REG-SALIDA
+                   DISPLAY REG-SALIDA
+                   MOVE 9999 TO RETURN-CODE
+                   SET FS-EOF TO TRUE
+           END-EVALUATE.
+       2500-F-LEER-ARCHIVO-EXIT. EXIT.
+
+       3000-PROCESAR.
+           PERFORM UNTIL FS-EOF
+               *> Verificar si cambió el tipo de cuenta (corte de control)
+               IF CLIS-TIPO NOT = WS-TIPO-ANTERIOR
+                  PERFORM 3100-TOTAL-TIPO
+                     THRU 3100-F-TOTAL-TIPO-EXIT
+               END-IF
+
+               PERFORM 3200-GRABAR-REGISTRO
+                  THRU 3200-F-GRABAR-REGISTRO-EXIT
+               PERFORM 3300-ACUMULAR-TOTALES
+                  THRU 3300-F-ACUMULAR-TOTALES-EXIT
+               PERFORM 2500-LEER-ARCHIVO
+                  THRU 2500-F-LEER-ARCHIVO-EXIT
+           END-PERFORM.
+       3000-F-PROCESAR-EXIT. EXIT.
+
+       3100-TOTAL-TIPO.
+           *> Mostrar total del tipo anterior
+           MOVE WS-TIPO-ANTERIOR TO WS-TIPO-ACTUAL
+           PERFORM 3150-DESCRIBIR-TIPO
+              THRU 3150-F-DESCRIBIR-TIPO-EXIT
+           MOVE WS-TOTAL-TIPO TO WS-TIPO-TOTAL
+           DISPLAY WS-CABECERA
+
+           *> Grabar línea de total en archivo de salida
+           MOVE SPACES TO REG-SALIDA
+           STRING 'TOTAL TIPO ' WS-TIPO-ACTUAL ':' DELIMITED BY SIZE
+                  WS-TIPO-DESC DELIMITED BY '  '
+                  ' IMPORTE: ' DELIMITED BY SIZE
+                  WS-TIPO-TOTAL DELIMITED BY SIZE
+                  INTO REG-SALIDA
+           WRITE REG-SALIDA
+           ADD 1 TO WS-REG-GRABADOS
+
+           *> Reiniciar acumulador para el nuevo tipo
+           MOVE ZEROS TO WS-TOTAL-TIPO
+           MOVE CLIS-TIPO TO WS-TIPO-ANTERIOR.
+       3100-F-TOTAL-TIPO-EXIT. EXIT.
+      *
+       3150-DESCRIBIR-TIPO.
+           EVALUATE WS-TIPO-ACTUAL
+              WHEN 01 MOVE 'CUENTA CORRIENTE' TO WS-TIPO-DESC
+              WHEN 02 MOVE 'CAJA DE AHORROS'  TO WS-TIPO-DESC
+              WHEN 03 MOVE 'PLAZO FIJO'       TO WS-TIPO-DESC
+              WHEN OTHER MOVE 'TIPO DESCONOCIDO' TO WS-TIPO-DESC
+           END-EVALUATE.
+       3150-F-DESCRIBIR-TIPO-EXIT. EXIT.
+
+       3200-GRABAR-REGISTRO.
+           MOVE REG-CLIENTES TO REG-SALIDA
+           WRITE REG-SALIDA
+           IF SAL-ERROR
+              STRING 'ERROR EN ESCRITURA SALIDA: ' FS-SALIDA
+                     DELIMITED BY SIZE
+                     INTO REG-SALIDA
+              DISPLAY REG-SALIDA
+              MOVE 9999 TO RETURN-CODE
+              SET FS-EOF TO TRUE
+           ELSE
+              ADD 1 TO WS-REG-GRABADOS
+           END-IF.
+       3200-F-GRABAR-REGISTRO-EXIT. EXIT.
+
+       3300-ACUMULAR-TOTALES.
+           *> Acumular para corte de control
+           ADD CLIS-IMPORTE TO WS-TOTAL-TIPO
+
+           *> Acumular para total general
+           ADD CLIS-IMPORTE TO WS-TOTAL-GENERAL
+
+           *> Acumular por tipo para estadísticas finales
+           MOVE CLIS-TIPO TO WS-IND-NUM
+           IF WS-IND-NUM >= 1 AND WS-IND-NUM <= 3
+              SET WS-INDICE TO WS-IND-NUM
+              ADD 1 TO WS-CANT-TIPO(WS-INDICE)
+              ADD CLIS-IMPORTE TO WS-IMPORTE-TIPO(WS-INDICE)
+           ELSE
+              ADD 1 TO WS-REG-ERROR
+           END-IF.
+       3300-F-ACUMULAR-TOTALES-EXIT. EXIT.
+
+       3500-TOTAL-FINAL.
+           *> Procesar último tipo
+           PERFORM 3100-TOTAL-TIPO
+
+           *> Mostrar total general
+           MOVE WS-TOTAL-GENERAL TO WS-TIPO-TOTAL
+           DISPLAY ' '
+           DISPLAY 'TOTAL GENERAL: ' WS-TIPO-TOTAL
+
+           *> Grabar total general en archivo
+           MOVE SPACES TO REG-SALIDA
+           STRING 'TOTAL GENERAL: ' DELIMITED BY SIZE
+                  WS-TIPO-TOTAL DELIMITED BY SIZE
+                  INTO REG-SALIDA
+           WRITE REG-SALIDA
+           ADD 1 TO WS-REG-GRABADOS.
+       3500-F-TOTAL-FINAL-EXIT. EXIT.
+
+       4000-CERRAR-ARCHIVOS.
+           CLOSE CLIENTES-FILE
+           IF CLI-ERROR
+              STRING 'ERROR AL CERRAR CLIENTES: ' FS-CLIENTES
+                     DELIMITED BY SIZE
+                     INTO REG-SALIDA
+              DISPLAY REG-SALIDA
+           END-IF
+
+           CLOSE SALIDA-FILE
+           IF SAL-ERROR
+              STRING 'ERROR AL CERRAR SALIDA: ' FS-SALIDA
+                     DELIMITED BY SIZE
+                     INTO REG-SALIDA
+              DISPLAY REG-SALIDA
+           END-IF.
+       4000-F-CERRAR-ARCHIVOS-EXIT. EXIT.
+
+       4500-MOSTRAR-ESTAD.
+           DISPLAY ' '
+           DISPLAY 'ESTADISTICAS DEL PROCESO:'
+           DISPLAY 'REGISTROS LEIDOS:    ' WS-REG-LEIDOS
+           DISPLAY 'REGISTROS GRABADOS:  ' WS-REG-GRABADOS
+           DISPLAY 'REGISTROS CON ERROR: ' WS-REG-ERROR
+           DISPLAY ' '
+           DISPLAY 'DETALLE POR TIPO DE CUENTA:'
+           PERFORM VARYING WS-IND-NUM FROM 1 BY 1 UNTIL WS-IND-NUM > 3
+              SET WS-INDICE TO WS-IND-NUM
+              MOVE WS-TIPO-CUENTA(WS-INDICE) TO WS-TIPO-ACTUAL
+              PERFORM 3150-DESCRIBIR-TIPO
+              MOVE WS-IMPORTE-TIPO(WS-INDICE) TO WS-TIPO-TOTAL
+              DISPLAY 'TIPO ' WS-TIPO-ACTUAL ' - ' WS-TIPO-DESC
+                      ': ' WS-CANT-TIPO(WS-INDICE) ' CLIENTES'
+                      ' TOTAL: ' WS-TIPO-TOTAL
+           END-PERFORM.
+       4500-F-MOSTRAR-ESTAD-EXIT. EXIT.
