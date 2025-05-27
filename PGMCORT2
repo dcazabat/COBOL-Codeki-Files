@@ -150,7 +150,7 @@
                      PERFORM 2300-CORTE-TPDOC
                         THRU 2300-F-CORTE-TPDOC
                  END-IF
-              END-IF.
+              END-IF
            END-IF.
 
        2000-F-PROCESO. EXIT.

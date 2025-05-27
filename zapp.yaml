@@ -10,6 +10,12 @@ author: IBM Z Open Editor
 propertyGroups:
   - name: search-all
     libraries:
+      - name: syslocallib
+        type: local
+        locations:
+          - './copylib'
+          - './'
+          - './src/copylib'
       - name: syslib
         type: mvs
         locations:

@@ -2,8 +2,8 @@
        PROGRAM-ID PGMIMP7C.
        AUTHOR.        D. CAZABAT.
        INSTALLATION.  CURSO CODEKI.
-       DATE-WRITTEN.  20/05/2025.
-       DATE-COMPILED. 20/05/2025.
+       DATE-WRITTEN.  21/05/2025.
+       DATE-COMPILED. 21/05/2025.
        SECURITY.      UNCLASSIFIED.
       ***************************************************************
       *  PROGRAMA PARA IMPRIMIR Y GUARDAR ARCHVIO FBA DE CLIENTES.  *
@@ -11,6 +11,11 @@
       *  LOS CLIENTES SE LEEN DE UN ARCHVIO QSAM                    *
       ***************************************************************
        ENVIRONMENT DIVISION.
+
+       CONFIGURATION SECTION.                                           
+       SPECIAL-NAMES.                                                   
+           DECIMAL-POINT IS COMMA.       
+
        INPUT-OUTPUT SECTION.
        FILE-CONTROL.
            SELECT CLIENTES-FILE  ASSIGN TO DDCLIEN
@@ -60,66 +65,74 @@
            05 WS-REG-ERROR       PIC 9(05) VALUE ZEROS.
 
        01  WS-CORTE-CONTROL.
-           05 WS-TIPO-ACTUAL     PIC 9(02) VALUE ZEROS.
-           05 WS-TIPO-ANTERIOR   PIC 9(02) VALUE ZEROS.
-           05 WS-TOTAL-TIPO      PIC S9(09)V99 COMP-3 VALUE ZEROS.
-           05 WS-TOTAL-GENERAL   PIC S9(09)V99 COMP-3 VALUE ZEROS.
-
-       01  WS-TIPOS-CUENTA.
-           05 FILLER OCCURS 3 TIMES INDEXED BY WS-INDICE.
-              10 WS-TIPO-CUENTA  PIC 9(02).
-              10 WS-CANT-TIPO    PIC 9(05).
-              10 WS-IMPORTE-TIPO PIC S9(09)V99 COMP-3.
-
-       01  WS-AUXILIARES.
-           05 WS-IND-NUM         PIC 9(02).
-
-       01  WS-CABECERA.
-           05 FILLER            PIC X(20) VALUE 'TIPO DE CUENTA: '.
-           05 WS-TIPO-DESC      PIC X(20).
-           05 FILLER            PIC X(10) VALUE 'TOTAL: '.
-           05 WS-TIPO-TOTAL     PIC $$$$,$$$,$$9.99.
-
-       01  WS-LINEA-DETALLE.
-           05 FILLER            PIC X(02) VALUE SPACES.
-           05 WS-DET-TIP-DOC    PIC X(02).
-           05 FILLER            PIC X(01) VALUE '-'.
-           05 WS-DET-NRO-DOC    PIC 9(11).
-           05 FILLER            PIC X(02) VALUE SPACES.
-           05 WS-DET-TIPO       PIC 9(02).
-           05 FILLER            PIC X(01) VALUE '-'.
-           05 WS-DET-NRO        PIC 9(03).
-           05 FILLER            PIC X(02) VALUE SPACES.
-           05 WS-DET-IMPORTE    PIC $$$$,$$$,$$9.99.
-           05 FILLER            PIC X(84) VALUE SPACES.
-
-       01  WS-ENCABEZADO.
-           05 FILLER            PIC X(132) VALUE ALL '='.
-           05 FILLER            PIC X(132) VALUE
-              '       LISTADO DE CLIENTES POR TIPO DE CUENTA'.
-           05 FILLER            PIC X(132) VALUE ALL '='.
-
-       01  WS-CONTROL-PAGINA.
-           05 WS-LINEAS-PAG     PIC 99    VALUE 62.
-           05 WS-LINEA-ACT      PIC 99    VALUE 1.
-           05 WS-NRO-PAGINA     PIC 9999  VALUE 1.
+           05 WS-DOC-TIPO-ACTUAL PIC X(02)    VALUE SPACES.
+           05 WS-DOC-TIPO-ANT    PIC X(02)    VALUE SPACES.
+           05 WS-CONT-DOC-TIPO   PIC 9(05)    VALUE ZEROS.
 
        01  WS-TITULO.
            05 FILLER            PIC X(132) VALUE 
-              '       LISTADO DE CLIENTES - FECHA: '.
-           05 WS-TIT-DD         PIC 99.
+              'DETALLE DE CLIENTES - FECHA: '.
+           05 WS-TIT-DD         PIC Z9.
            05 FILLER            PIC X     VALUE '/'.
            05 WS-TIT-MM         PIC 99.
            05 FILLER            PIC X     VALUE '/'.
-           05 WS-TIT-AA         PIC 99.
+           05 WS-TIT-AAAA       PIC 9(4).
            05 FILLER            PIC X(15) VALUE SPACES.
            05 FILLER            PIC X(15) VALUE 'PAGINA: '.
            05 WS-TIT-PAGINA     PIC ZZZ9.
+
+       01  WS-SUBTITULO.
+           05 FILLER  PIC X(15)    VALUE 'TIPO DOC'.
+           05 FILLER  PIC X(15)    VALUE 'NRO DOC'.
+           05 FILLER  PIC X(08)    VALUE 'SUCURSAL'.
+           05 FILLER  PIC X(12)    VALUE 'TIPO CUENTA'.
+           05 FILLER  PIC X(12)    VALUE 'NRO CUENTA'.
+           05 FILLER  PIC X(15)    VALUE 'IMPORTE'.
+           05 FILLER  PIC X(15)    VALUE 'FECHA'.
+           05 FILLER  PIC X(15)    VALUE 'LOCALIDAD'.
+           05 FILLER  PIC X(25)    VALUE SPACES.
+
+       01  WS-TOTAL-DOC.
+           05 FILLER              PIC X(20)    VALUE 
+              'TOTAL TIPO DOC: '.
+           05 WS-TOT-TIPO-DOC     PIC X(02)    VALUE SPACES.
+           05 FILLER              PIC X(02)    VALUE SPACES.
+           05 WS-TOT-CANTIDAD     PIC Z9(5)    VALUE ZEROS.
+           05 FILLER              PIC X(83)    VALUE SPACES.
+
+       01  WS-CONTROL-PAGINA.
+           05 WS-LINEAS-PAG       PIC 99       VALUE 15.
+           05 WS-LINEA-ACT        PIC 99       VALUE 1.
+           05 WS-NRO-PAGINA       PIC 9999     VALUE 1.
 
        01  WS-FECHA.
            05 WS-FECHA-AA       PIC 99.
            05 WS-FECHA-MM       PIC 99.
            05 WS-FECHA-DD       PIC 99.
+
+       01  WS-FECHA-AUX.
+           05 WS-AUX-AAAA      PIC 9(4).
+           05 WS-AUX-MM        PIC 99.
+           05 WS-AUX-DD        PIC 99.
+
+       01  WS-LINEA-DETALLE.
+           05 FILLER            PIC X(02) VALUE SPACES.
+           05 WS-DET-TIP-DOC    PIC X(02) VALUE SPACES.
+           05 FILLER            PIC X(11) VALUE SPACES.
+           05 WS-DET-NRO-DOC    PIC 9(11) VALUE ZEROS.
+           05 FILLER            PIC X(02) VALUE SPACES.
+           05 WS-DET-SUC        PIC 99    VALUE ZEROS.
+           05 FILLER            PIC X(06) VALUE SPACES.
+           05 WS-DET-TIPO       PIC 99    VALUE ZEROS.
+           05 FILLER            PIC X(08) VALUE SPACES.
+           05 WS-DET-NRO        PIC 999   VALUE ZEROS.
+           05 FILLER            PIC X(08) VALUE SPACES.
+           05 WS-DET-IMPORTE    PIC -ZZZ.ZZZ.ZZ9,99 VALUE ZEROS.
+           05 FILLER            PIC X(02) VALUE SPACES.
+           05 WS-DET-FECHA      PIC 99/99/9999.
+           05 FILLER            PIC X(02) VALUE SPACES.
+           05 WS-DET-LOCALIDAD  PIC X(15) VALUE SPACES.
+           05 FILLER            PIC X(10) VALUE SPACES.
 
        PROCEDURE DIVISION.
        0000-MAIN.
@@ -141,16 +154,11 @@
 
        1000-INICIALIZAR.
            ACCEPT WS-FECHA FROM DATE
-           MOVE WS-FECHA-AA TO WS-TIT-AA
+           MOVE WS-FECHA-AA TO WS-TIT-AAAA
            MOVE WS-FECHA-MM TO WS-TIT-MM
            MOVE WS-FECHA-DD TO WS-TIT-DD
-           INITIALIZE WS-CONTADORES WS-CORTE-CONTROL
-           PERFORM VARYING WS-IND-NUM FROM 1 BY 1 UNTIL WS-IND-NUM > 3
-              SET WS-INDICE TO WS-IND-NUM
-              MOVE WS-IND-NUM TO WS-TIPO-CUENTA(WS-INDICE)
-              MOVE ZEROS TO WS-CANT-TIPO(WS-INDICE)
-                            WS-IMPORTE-TIPO(WS-INDICE)
-           END-PERFORM.
+           INITIALIZE WS-CONTADORES 
+                     WS-CORTE-CONTROL.
        1000-F-INICIALIZAR-EXIT. EXIT.
 
        2000-ABRIR-ARCHIVOS.
@@ -194,16 +202,16 @@
        2500-F-LEER-ARCHIVO-EXIT. EXIT.
 
        3000-PROCESAR.
-           MOVE CLIS-TIPO TO WS-TIPO-ANTERIOR
+           MOVE CLIS-TIP-DOC TO WS-DOC-TIPO-ANT
+           *> POner textos iniciales en blanco
            PERFORM UNTIL FS-EOF
-               IF CLIS-TIPO NOT = WS-TIPO-ANTERIOR
-                  PERFORM 3100-TOTAL-TIPO
-                     THRU 3100-F-TOTAL-TIPO-EXIT
+               IF CLIS-TIP-DOC NOT = WS-DOC-TIPO-ANT
+                  PERFORM 3100-TOTAL-TIPO-DOC
+                     THRU 3100-F-TOTAL-TIPO-DOC-EXIT
                END-IF
 
-               PERFORM 3300-ACUMULAR-TOTALES
-                  THRU 3300-F-ACUMULAR-TOTALES-EXIT
-
+               ADD 1 TO WS-CONT-DOC-TIPO
+               
                PERFORM 3200-GRABAR-REGISTRO
                   THRU 3200-F-GRABAR-REGISTRO-EXIT
 
@@ -212,48 +220,31 @@
            END-PERFORM.
        3000-F-PROCESAR-EXIT. EXIT.
 
-       3100-TOTAL-TIPO.
-           *> Verificar espacio para subtotal y nueva página si es necesario
-           IF WS-LINEA-ACT > (WS-LINEAS-PAG - 4)
-              PERFORM 3250-NUEVA-PAGINA
-           END-IF
+       3100-TOTAL-TIPO-DOC.
+           MOVE WS-DOC-TIPO-ANT   TO WS-TOT-TIPO-DOC
+           MOVE WS-CONT-DOC-TIPO  TO WS-TOT-CANTIDAD
 
-           *> Procesar totales y descripción
-           MOVE WS-TIPO-ANTERIOR TO WS-TIPO-ACTUAL
-           PERFORM 3150-DESCRIBIR-TIPO
-           MOVE WS-TOTAL-TIPO TO WS-TIPO-TOTAL
+           MOVE SPACES TO REG-SALIDA
+           WRITE REG-SALIDA AFTER 2
+           
+           WRITE REG-SALIDA FROM WS-TOTAL-DOC
+           
+           *> Saltar directamente a nueva página sin usar SPACES
+           PERFORM 3250-NUEVA-PAGINA
+              THRU 3250-F-NUEVA-PAGINA-EXIT
 
-           *> Grabar líneas de subtotal con PERFORM inline
-           PERFORM 3 TIMES
-              EVALUATE TALLY
-                 WHEN 1
-                    MOVE SPACES TO REG-SALIDA
-                 WHEN 2
-                    STRING 'SUBTOTAL TIPO ' WS-TIPO-ACTUAL ' - ' 
-                           WS-TIPO-DESC DELIMITED BY '  '
-                           ' IMPORTE: ' DELIMITED BY SIZE
-                           WS-TIPO-TOTAL DELIMITED BY SIZE
-                           INTO REG-SALIDA
-                 WHEN 3
-                    MOVE SPACES TO REG-SALIDA
-              END-EVALUATE
-              WRITE REG-SALIDA
-              ADD 1 TO WS-REG-GRABADOS
-              ADD 1 TO WS-LINEA-ACT
-           END-PERFORM
+           MOVE CLIS-TIP-DOC TO WS-DOC-TIPO-ANT
+           MOVE ZEROS TO WS-CONT-DOC-TIPO.
+       3100-F-TOTAL-TIPO-DOC-EXIT. EXIT.
 
-           *> Reiniciar para nuevo tipo
-           MOVE ZEROS TO WS-TOTAL-TIPO
-           MOVE CLIS-TIPO TO WS-TIPO-ANTERIOR.
-       3100-F-TOTAL-TIPO-EXIT. EXIT.
-
-       3150-DESCRIBIR-TIPO.
-           EVALUATE WS-TIPO-ACTUAL
-              WHEN 01 MOVE 'CUENTA CORRIENTE' TO WS-TIPO-DESC
-              WHEN 02 MOVE 'CAJA DE AHORROS'  TO WS-TIPO-DESC
-              WHEN 03 MOVE 'PLAZO FIJO'       TO WS-TIPO-DESC
-              WHEN OTHER MOVE 'TIPO DESCONOCIDO' TO WS-TIPO-DESC
-           END-EVALUATE.
+       3250-NUEVA-PAGINA.
+           MOVE WS-NRO-PAGINA TO WS-TIT-PAGINA
+           WRITE REG-SALIDA FROM WS-TITULO BEFORE PAGE
+           WRITE REG-SALIDA FROM WS-SUBTITULO AFTER 2
+           
+           ADD 1 TO WS-NRO-PAGINA
+           MOVE 3 TO WS-LINEA-ACT.
+       3250-F-NUEVA-PAGINA-EXIT. EXIT.
 
        3200-GRABAR-REGISTRO.
            IF WS-LINEA-ACT > WS-LINEAS-PAG
@@ -261,14 +252,22 @@
                  THRU 3250-F-NUEVA-PAGINA-EXIT
            END-IF
 
-           MOVE CLIS-TIP-DOC TO WS-DET-TIP-DOC
-           MOVE CLIS-NRO-DOC TO WS-DET-NRO-DOC
-           MOVE CLIS-TIPO    TO WS-DET-TIPO
-           MOVE CLIS-NRO     TO WS-DET-NRO
-           MOVE CLIS-IMPORTE TO WS-DET-IMPORTE
-           MOVE WS-LINEA-DETALLE TO REG-SALIDA
-
-           WRITE REG-SALIDA
+           MOVE CLIS-TIP-DOC    TO WS-DET-TIP-DOC
+           MOVE CLIS-NRO-DOC    TO WS-DET-NRO-DOC
+           MOVE CLIS-SUC        TO WS-DET-SUC
+           MOVE CLIS-TIPO       TO WS-DET-TIPO
+           MOVE CLIS-NRO        TO WS-DET-NRO
+           MOVE CLIS-IMPORTE    TO WS-DET-IMPORTE
+           
+           *> Formatear fecha de AAAAMMDD a DD/MM/AAAA
+           MOVE CLIS-AAAAMMDD   TO WS-FECHA-AUX
+           STRING WS-AUX-DD '/' WS-AUX-MM '/' WS-AUX-AAAA
+                  DELIMITED BY SIZE 
+                  INTO WS-DET-FECHA
+           
+           MOVE CLIS-LOCALIDAD  TO WS-DET-LOCALIDAD
+           
+           WRITE REG-SALIDA FROM WS-LINEA-DETALLE
            IF SAL-ERROR
               STRING 'ERROR EN ESCRITURA SALIDA: ' FS-SALIDA
                      DELIMITED BY SIZE
@@ -282,49 +281,21 @@
            END-IF.
        3200-F-GRABAR-REGISTRO-EXIT. EXIT.
 
-       3250-NUEVA-PAGINA.
-           MOVE SPACES TO REG-SALIDA
-           WRITE REG-SALIDA AFTER PAGE
-           
-           MOVE WS-NRO-PAGINA TO WS-TIT-PAGINA
-           WRITE REG-SALIDA FROM WS-TITULO
-           WRITE REG-SALIDA FROM WS-ENCABEZADO AFTER 1
-           
-           ADD 1 TO WS-NRO-PAGINA
-           MOVE 3 TO WS-LINEA-ACT.
-       3250-F-NUEVA-PAGINA-EXIT. EXIT.
-
-       3300-ACUMULAR-TOTALES.
-           *> Acumular para corte de control
-           ADD CLIS-IMPORTE TO WS-TOTAL-TIPO
-
-           *> Acumular para total general
-           ADD CLIS-IMPORTE TO WS-TOTAL-GENERAL
-
-           *> Acumular por tipo para estadC-sticas finales
-           MOVE CLIS-TIPO TO WS-IND-NUM
-           IF WS-IND-NUM >= 1 AND WS-IND-NUM <= 3
-              SET WS-INDICE TO WS-IND-NUM
-              ADD 1 TO WS-CANT-TIPO(WS-INDICE)
-              ADD CLIS-IMPORTE TO WS-IMPORTE-TIPO(WS-INDICE)
-           ELSE
-              ADD 1 TO WS-REG-ERROR
-           END-IF.
-       3300-F-ACUMULAR-TOTALES-EXIT. EXIT.
-
        3500-TOTAL-FINAL.
-           *> Procesar C:ltimo tipo
-           PERFORM 3100-TOTAL-TIPO
+           *> Procesar último tipo de documento
+           PERFORM 3100-TOTAL-TIPO-DOC
+              THRU 3100-F-TOTAL-TIPO-DOC-EXIT
 
-           *> Mostrar total general
-           MOVE WS-TOTAL-GENERAL TO WS-TIPO-TOTAL
-           DISPLAY ' '
-           DISPLAY 'TOTAL GENERAL: ' WS-TIPO-TOTAL
+           *> Grabar línea en blanco
+           MOVE SPACES TO REG-SALIDA
+           WRITE REG-SALIDA AFTER 2
 
            *> Grabar total general en archivo
            MOVE SPACES TO REG-SALIDA
-           STRING 'TOTAL GENERAL: ' DELIMITED BY SIZE
-                  WS-TIPO-TOTAL DELIMITED BY SIZE
+           STRING 'TOTAL GENERAL DE DOCUMENTOS: ' 
+                  WS-REG-LEIDOS
+                  ' CLIENTES PROCESADOS'
+                  DELIMITED BY SIZE
                   INTO REG-SALIDA
            WRITE REG-SALIDA
            ADD 1 TO WS-REG-GRABADOS.
@@ -351,18 +322,6 @@
        4500-MOSTRAR-ESTAD.
            DISPLAY ' '
            DISPLAY 'ESTADISTICAS DEL PROCESO:'
-           DISPLAY 'REGISTROS LEIDOS:    ' WS-REG-LEIDOS
-           DISPLAY 'REGISTROS GRABADOS:  ' WS-REG-GRABADOS
-           DISPLAY 'REGISTROS CON ERROR: ' WS-REG-ERROR
-           DISPLAY ' '
-           DISPLAY 'DETALLE POR TIPO DE CUENTA:'
-           PERFORM VARYING WS-IND-NUM FROM 1 BY 1 UNTIL WS-IND-NUM > 3
-              SET WS-INDICE TO WS-IND-NUM
-              MOVE WS-TIPO-CUENTA(WS-INDICE) TO WS-TIPO-ACTUAL
-              PERFORM 3150-DESCRIBIR-TIPO
-              MOVE WS-IMPORTE-TIPO(WS-INDICE) TO WS-TIPO-TOTAL
-              DISPLAY 'TIPO ' WS-TIPO-ACTUAL ' - ' WS-TIPO-DESC
-                      ': ' WS-CANT-TIPO(WS-INDICE) ' CLIENTES'
-                      ' TOTAL: ' WS-TIPO-TOTAL
-           END-PERFORM.
+           DISPLAY 'CANTIDAD CLIENTES LEIDOS:   ' WS-REG-LEIDOS
+           DISPLAY 'CANTIDAD CLIENTES IMPRESOS: ' WS-REG-GRABADOS.
        4500-F-MOSTRAR-ESTAD-EXIT. EXIT.

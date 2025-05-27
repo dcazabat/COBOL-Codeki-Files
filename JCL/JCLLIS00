@@ -1,0 +1,60 @@
+//KC03C7CE JOB CLASS=A,MSGCLASS=O,MSGLEVEL=(1,1),NOTIFY=&SYSUID,
+//             TIME=(,1)
+//*            TYPRUN=SCAN
+//*            JOBPARM(LINES=10)
+//************************************
+//*         EJECUCION JOB BATCH      *
+//************************************
+//STEP1    EXEC PGM=IDCAMS,COND=(8,LT)
+//SYSPRINT DD SYSOUT=*
+//SYSIN    DD *
+     DELETE   KC03C7C.ARCHIVOS.CURSOS.CLIENTE
+     DELETE   KC03C7C.ARCHIVOS.CURSOS.NOVCLIEN.CLAS
+     DELETE   KC03C7C.CURSOS.LIST1
+
+  SET MAXCC = 0
+//*
+//*****************************************************
+//*                 SORT                              *
+//* KC02788.ALU9999.CURSOS.NOVCLIEN.CLAS (CLASIFICADO)*
+//*****************************************************
+//STEP2       EXEC PGM=SORT
+//SYSOUT    DD SYSOUT=*
+//SORTIN    DD DSN=KC03C7C.ARCHIVOS.NOVCLIEN,DISP=SHR
+//SORTOUT   DD DSN=KC03C7C.CURSOS.NOVCLIEN.CLAS,DISP=(,CATLG),
+//          UNIT=SYSDA,
+//          DCB=(LRECL=50,BLKSIZE=5000,RECFM=FB),
+//          SPACE=(TRK,(1,1),RLSE)
+//SYSIN     DD *
+ SORT       FORMAT=BI,FIELDS=(1,2,A,3,11,A)
+//*
+//************************************
+//*         EJECUCION PROGRAMA       *
+//************************************
+//STEP3    EXEC PGM=PGMACTXX
+//STEPLIB  DD DSN=KC03C7C.CURSOS.PGMLIB,DISP=SHR
+//NOVEDAD  DD DSN=KC03C7C.CURSOS.NOVCLIEN.CLAS,DISP=SHR
+//CLIENTE  DD DSN=KC03C7C.CURSOS.CLIENTE.KSDS.VSAM,DISP=SHR
+//SALIDA   DD DSN=KC03C7C.CURSOS.CLIENTE,
+//              DISP=(NEW,CATLG,DELETE),UNIT=SYSDA,
+//            DCB=(LRECL=50,BLKSIZE=5000,RECFM=FB),
+//            SPACE=(TRK,(1,1),RLSE)
+//SYSOUT   DD SYSOUT=*,OUTLIM=1000
+//SYSUDUMP DD SYSOUT=*
+//*
+//************************************
+//*         EJECUCION LISTADOR       *
+//*  LARGO REGISTRO SALIDA 132 BYTES *
+//*  EN EL CODIGO FUENTE             *
+//*  EN EL JCL LARGO 133 BYTES       *
+//************************************
+//STEP4    EXEC PGM=PGMEDIXX
+//STEPLIB  DD DSN=KC03C7C.CURSOS.PGMLIB,DISP=SHR
+//DDINP1   DD DSN=KC03C7C.ALU9999.CURSOS.CLIENTE,DISP=SHR
+//DDOUT1   DD DSN=KC03C7C.ALU9999.CURSOS.LIST1,DISP=(NEW,CATLG,DELETE),
+//            UNIT=SYSDA,
+//            DCB=(LRECL=133,BLKSIZE=13300,RECFM=FB),
+//            SPACE=(TRK,(1,1),RLSE)
+//SYSOUT   DD SYSOUT=*,OUTLIM=1000
+//SYSUDUMP DD SYSOUT=*
+//

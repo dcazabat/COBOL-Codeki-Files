@@ -1,5 +1,5 @@
-//KC03C7CA JOB CLASS=A,MSGCLASS=O,MSGLEVEL=(1,1),NOTIFY=&SYSUID,        
-//             TIME=(,5) ,RESTART=STEP4                                 
+//KC03C7C JOB CLASS=A,MSGCLASS=O,MSGLEVEL=(1,1),NOTIFY=&SYSUID,        
+//        TIME=(,5) ,RESTART=STEP4                                 
 //************************************                                  
 //* EJEMPLO EJECUCION JOB BATCH      *                                  
 //************************************                                  

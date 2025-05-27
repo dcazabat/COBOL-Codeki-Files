@@ -1,0 +1,196 @@
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. PGMCCLEO.
+
+      ****************************************************
+      * CORTE DE CONTROL POR TIPO DOCUMENTO Y SEXO        *
+      ****************************************************
+
+       ENVIRONMENT DIVISION.
+       CONFIGURATION SECTION.
+       SPECIAL-NAMES.
+           DECIMAL-POINT IS COMMA.
+
+       INPUT-OUTPUT SECTION.
+       FILE-CONTROL.
+           SELECT ENTRADA ASSIGN DDENTRA
+                  FILE STATUS IS FS-ENT.
+
+       DATA DIVISION.
+       FILE SECTION.
+       FD ENTRADA
+           BLOCK CONTAINS 0 RECORDS
+           RECORDING MODE IS F.
+       01 REG-ENTRADA    PIC X(93).
+
+       WORKING-STORAGE SECTION.
+       01  WS-VARIABLES.
+           05 FS-ENT                PIC XX      VALUE SPACES.
+           05 WS-STATUS-FIN         PIC X.
+              88 WS-FIN-LECTURA                 VALUE 'Y'.
+              88 WS-NO-FIN-LECTURA              VALUE 'N'.
+           05 WS-TIP-DOC-ANT       PIC XX       VALUE SPACES.
+           05 WS-SEXO-ANT          PIC X        VALUE SPACES.
+           05 WS-CANT-SEXO         PIC 9(4)     VALUE ZEROS.
+           05 WS-PROCESAR-REG      PIC X        VALUE 'N'.
+              88 WS-PROCESAR-SI                 VALUE 'S'.
+              88 WS-PROCESAR-NO                 VALUE 'N'.
+           05 WS-CANT-LEIDAS       PIC 9(4)     VALUE ZEROS.
+           05 WS-CANT-LEIDAS-OK    PIC 9(4)     VALUE ZEROS.
+           05 WS-CANT-LEIDAS-NOK   PIC 9(4)     VALUE ZEROS.
+
+       01  CN-CONTADORES.
+           05 CN-TIP-DOC           PIC 9(4)     VALUE ZEROS.
+           05 CN-SEXO              PIC 9(4)     VALUE ZEROS.
+           05 CN-LEIDOS            PIC 9(4)     VALUE ZEROS.
+           05 CN-LEIDOS-OK         PIC 9(4)     VALUE ZEROS.
+           05 CN-LEIDOS-NOK        PIC 9(4)     VALUE ZEROS.
+           05 WS-CANT-TPDOC        PIC 9(4)     VALUE ZEROS.
+
+       01  WS-FECHA.
+           03 WS-FECHA-AA          PIC 99       VALUE ZEROS.
+           03 WS-FECHA-MM          PIC 99       VALUE ZEROS.
+           03 WS-FECHA-DD          PIC 99       VALUE ZEROS.
+
+       01  WS-DISPLAYS.
+           05 WS-EDI-CANT          PIC ZZZ9     VALUE ZEROS.
+           05 WS-EDIT-LEIDAS-OK    PIC ZZZ9     VALUE ZEROS.
+           05 WS-EDIT-LEIDAS-NOK   PIC ZZZ9     VALUE ZEROS.
+           05 WS-SEPARADOR         PIC X(50)    VALUE ALL '-'.
+           05 WS-VALUE-PRINT       PIC ZZZ9     VALUE ZEROS.
+
+           COPY CLICOB.
+
+       PROCEDURE DIVISION.
+       0000-CONTROL.
+           PERFORM 1000-I-INICIO
+              THRU 1000-F-INICIO
+
+           PERFORM 2000-I-PROCESO
+              THRU 2000-F-PROCESO
+              UNTIL WS-FIN-LECTURA
+
+           PERFORM 3000-I-FINAL
+              THRU 3000-F-FINAL
+
+           GOBACK.
+
+       1000-I-INICIO.
+           ACCEPT WS-FECHA FROM DATE
+           DISPLAY 'FECHA DE PROCESO: '
+                   WS-FECHA-DD '/' WS-FECHA-MM '/' WS-FECHA-AA
+           SET WS-NO-FIN-LECTURA TO TRUE
+
+           OPEN INPUT ENTRADA
+           IF FS-ENT NOT = '00'
+              DISPLAY '* ERROR EN OPEN ENTRADA = ' FS-ENT
+              SET WS-FIN-LECTURA TO TRUE
+           END-IF.
+       1000-F-INICIO. EXIT.
+
+       2000-I-PROCESO.
+           READ ENTRADA INTO WS-REG-CLICOB
+           EVALUATE FS-ENT
+              WHEN '00'
+                 ADD 1 TO CN-LEIDOS  
+                 IF WS-SUC-TIP-DOC = 'DU' OR 
+                    WS-SUC-TIP-DOC = 'PA' OR
+                    WS-SUC-TIP-DOC = 'PE' OR
+                    WS-SUC-TIP-DOC = 'CI'
+                    ADD 1 TO CN-LEIDOS-OK
+                    MOVE WS-SUC-TIP-DOC TO WS-TIP-DOC-ANT
+                    MOVE WS-SUC-SEXO TO WS-SEXO-ANT
+                 ELSE
+                    ADD 1 TO CN-LEIDOS-NOK
+                 END-IF
+              WHEN '10'
+                 SET WS-FIN-LECTURA TO TRUE
+              WHEN OTHER
+                 DISPLAY '*ERROR EN LECTURA: ' FS-ENT
+                 SET WS-FIN-LECTURA TO TRUE
+           END-EVALUATE
+           
+           PERFORM UNTIL WS-FIN-LECTURA
+              OR FS-ENT NOT = '00'
+              
+      *    ===== INICIO CORTE CONTROL POR TIPO DOCUMENTO =====
+              DISPLAY 'Tipo de Documento ==> ' WS-TIP-DOC-ANT
+              DISPLAY ALL '-'
+              
+              PERFORM UNTIL WS-FIN-LECTURA
+                 OR FS-ENT NOT = '00'
+                 OR WS-SUC-TIP-DOC NOT = WS-TIP-DOC-ANT
+                 
+      *    ===== INICIO CORTE CONTROL POR SEXO =====
+                 MOVE WS-SUC-SEXO TO WS-SEXO-ANT
+                 
+                 PERFORM UNTIL WS-FIN-LECTURA
+                    OR FS-ENT NOT = '00'
+                    OR WS-SUC-TIP-DOC NOT = WS-TIP-DOC-ANT
+                    OR WS-SUC-SEXO NOT = WS-SEXO-ANT
+                    
+      *    ===== PROCESAMIENTO DE REGISTROS INDIVIDUALES =====
+                    ADD 1 TO WS-CANT-TPDOC
+                    ADD 1 TO WS-CANT-SEXO
+                    ADD 1 TO WS-CANT-LEIDAS
+                    
+                    READ ENTRADA INTO WS-REG-CLICOB
+                    EVALUATE FS-ENT
+                       WHEN '00'
+                          ADD 1 TO CN-LEIDOS
+                          IF WS-SUC-TIP-DOC IS NOT = 'DU' AND 
+                             WS-SUC-TIP-DOC IS NOT = 'PA' AND
+                             WS-SUC-TIP-DOC IS NOT = 'PE' AND
+                             WS-SUC-TIP-DOC IS NOT = 'CI'
+                             ADD 1 TO CN-LEIDOS-NOK
+                          ELSE
+                             ADD 1 TO CN-LEIDOS-OK
+                          END-IF
+                       WHEN '10'
+                          SET WS-FIN-LECTURA TO TRUE
+                       WHEN OTHER
+                          DISPLAY '*ERROR EN LECTURA: ' FS-ENT
+                          SET WS-FIN-LECTURA TO TRUE
+                    END-EVALUATE
+                 END-PERFORM
+                 
+      *    ===== FIN CORTE CONTROL POR SEXO =====
+                 MOVE WS-CANT-SEXO TO WS-VALUE-PRINT
+                 DISPLAY '    Sexo ' WS-SEXO-ANT 
+                        ' con ' WS-VALUE-PRINT ' personas'
+                 MOVE 0 TO WS-CANT-SEXO
+              END-PERFORM
+              
+      *    ===== FIN CORTE CONTROL POR TIPO DOCUMENTO =====
+              MOVE WS-CANT-TPDOC TO WS-VALUE-PRINT
+              DISPLAY ALL '-'
+              DISPLAY 'Total para ' WS-TIP-DOC-ANT
+                     ' = ' WS-VALUE-PRINT
+              DISPLAY ALL '-'
+              MOVE 0 TO WS-CANT-TPDOC
+           END-PERFORM.
+       2000-F-PROCESO. EXIT.
+
+      ****************************************************
+       3000-I-FINAL.
+      ****************************************************
+
+           MOVE CN-LEIDOS TO WS-EDI-CANT
+           MOVE CN-LEIDOS-OK TO WS-EDIT-LEIDAS-OK
+           MOVE CN-LEIDOS-NOK TO WS-EDIT-LEIDAS-NOK
+           DISPLAY WS-SEPARADOR
+           DISPLAY 'REGISTROS PROCESADOS OK     = ' WS-EDIT-LEIDAS-OK
+           DISPLAY 'REGISTROS PROCESADOS NOK    = ' WS-EDIT-LEIDAS-NOK
+           DISPLAY 'REGISTROS PROCESADOS        = ' WS-EDI-CANT.
+           DISPLAY WS-SEPARADOR
+
+           CLOSE ENTRADA
+              IF FS-ENT IS NOT EQUAL '00'
+                DISPLAY '* ERROR EN CLOSE ENTRADA = '
+                                            FS-ENT
+                MOVE 9999 TO RETURN-CODE
+                SET WS-FIN-LECTURA TO TRUE
+             END-IF.
+
+       3000-F-FINAL.  EXIT.
+
+
