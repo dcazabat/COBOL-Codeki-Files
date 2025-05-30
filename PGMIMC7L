@@ -1,0 +1,269 @@
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID PGMIMC7L.
+       AUTHOR.        D. CAZABAT.
+       INSTALLATION.  CURSO CODEKI.
+       DATE-WRITTEN.  21/05/2025.
+       DATE-COMPILED. 21/05/2025.
+       SECURITY.      UNCLASSIFIED.
+      ***************************************************************
+      *  PROGRAMA PARA IMPRIMIR Y GUARDAR ARCHVIO FBA DE CLIENTES.  *
+      *  PROCESO DE DOBLE CORTE DE CONTROL TIPO DE CUENTA           *
+      *  LOS CLIENTES SE LEEN DE UN ARCHVIO QSAM                    *
+      ***************************************************************
+       ENVIRONMENT DIVISION.
+       CONFIGURATION SECTION.
+       SPECIAL-NAMES.
+           DECIMAL-POINT IS COMMA.
+
+       INPUT-OUTPUT SECTION.
+       FILE-CONTROL.
+           SELECT CLIENTES-FILE
+           ASSIGN TO DDCLIEN
+           FILE STATUS IS SW-FS-CLIENTES.
+
+           SELECT SALIDA-FILE
+           ASSIGN TO DOUTPUT
+           FILE STATUS IS SW-FS-SALIDA.
+
+       DATA DIVISION.
+       FILE SECTION.
+       FD  CLIENTES-FILE
+           RECORD CONTAINS 50 CHARACTERS
+           RECORDING MODE IS F.
+       COPY CPCLIENS.
+
+       FD  SALIDA-FILE
+           RECORD CONTAINS 132 CHARACTERS
+           RECORDING MODE IS F.
+       01  REG-SALIDA            PIC X(132).
+
+       WORKING-STORAGE SECTION.
+       01  WS-STATUS.
+           05 SW-FS-CLIENTES     PIC X(02).
+              88 SW-CLI-OK       VALUE '00'.
+              88 SW-CLI-EOF      VALUE '10'.
+              88 SW-FS-EOF      VALUE '10'.
+              88 SW-CLI-NOK      VALUE '01' THRU '09'
+                                      '11' THRU '99'.
+           05 SW-FS-SALIDA       PIC X(02).
+              88 SW-SAL-OK       VALUE '00'.
+              88 SW-SAL-NOK      VALUE '01' THRU '09'
+                                      '11' THRU '99'.
+
+       01  CN-CONTADORES.
+           05 CN-REG-READ        PIC 9(05).
+           05 CN-REG-WRITE       PIC 9(05).
+           05 CN-REG-ERROR       PIC 9(05).
+           05 CN-DOC-TIPO        PIC 9(05).
+
+       01  WS-CORTE.
+           05 WS-DOC-TIPO-ACT    PIC X(02).
+           05 WS-DOC-TIPO-ANT    PIC X(02).
+
+       01  WS-FECHAS.
+           05 WS-FECHA.
+              10 WS-FECHA-AA     PIC 99.
+              10 WS-FECHA-MM     PIC 99.
+              10 WS-FECHA-DD     PIC 99.
+           05 WS-FECHA-AUX.
+              10 WS-AUX-AAAA     PIC 9(4).
+              10 WS-AUX-MM       PIC 99.
+              10 WS-AUX-DD       PIC 99.
+
+       01  WS-CONTROLES.
+           05 WS-LINEAS-PAG      PIC 99    VALUE 15.
+           05 WS-LINEA-ACT       PIC 99    VALUE 1.
+           05 WS-NRO-PAGINA      PIC 9999  VALUE 1.
+
+       01  WS-TITULO.
+           05 FILLER            PIC X(132) VALUE 
+              'DETALLE DE CLIENTES - FECHA: '.
+           05 WS-TIT-DD         PIC Z9.
+           05 FILLER            PIC X     VALUE '/'.
+           05 WS-TIT-MM         PIC 99.
+           05 FILLER            PIC X     VALUE '/'.
+           05 WS-TIT-AAAA       PIC 9(4).
+           05 FILLER            PIC X(15) VALUE SPACES.
+           05 FILLER            PIC X(15) VALUE 'PAGINA: '.
+           05 WS-TIT-PAGINA     PIC ZZZ9.
+
+       01  WS-SUBTITULO.
+           05 FILLER  PIC X(15)    VALUE 'TIPO DOC'.
+           05 FILLER  PIC X(15)    VALUE 'NRO DOC'.
+           05 FILLER  PIC X(08)    VALUE 'SUCURSAL'.
+           05 FILLER  PIC X(12)    VALUE 'TIPO CUENTA'.
+           05 FILLER  PIC X(12)    VALUE 'NRO CUENTA'.
+           05 FILLER  PIC X(15)    VALUE 'IMPORTE'.
+           05 FILLER  PIC X(15)    VALUE 'FECHA'.
+           05 FILLER  PIC X(15)    VALUE 'LOCALIDAD'.
+           05 FILLER  PIC X(25)    VALUE SPACES.
+
+       01  WS-TOTAL-DOC.
+           05 FILLER              PIC X(20)    VALUE 
+              'TOTAL TIPO DOC: '.
+           05 WS-TOT-TIPO-DOC     PIC X(02)    VALUE SPACES.
+           05 FILLER              PIC X(02)    VALUE SPACES.
+           05 WS-TOT-CANTIDAD     PIC Z9(5)    VALUE ZEROS.
+           05 FILLER              PIC X(83)    VALUE SPACES.
+
+       01  CO-SEPARADOR          PIC X(132) VALUE ALL '='.
+       01  CO-SEPARADOR1         PIC X(132) VALUE ALL '-'.
+
+       01  WS-LINEA-DETALLE.
+           05 WS-DET-TIP-DOC     PIC X(15).
+           05 WS-DET-NRO-DOC     PIC X(15).
+           05 WS-DET-SUC         PIC X(08).
+           05 WS-DET-TIPO        PIC X(12).
+           05 WS-DET-NRO         PIC X(12).
+           05 WS-DET-IMPORTE     PIC X(15).
+           05 WS-DET-FECHA       PIC X(15).
+           05 WS-DET-LOCALIDAD   PIC X(15).
+           05 FILLER             PIC X(25).
+
+       PROCEDURE DIVISION.
+       0000-CONTROL.
+           PERFORM 1000-INICIO
+           PERFORM 2000-PROCESO
+           PERFORM 3000-FINAL
+           GOBACK.
+
+       1000-INICIO.
+           OPEN INPUT  CLIENTES-FILE
+           IF SW-CLI-NOK
+              DISPLAY '* Error al abrir CLIENTES: ' SW-FS-CLIENTES
+              MOVE 9999 TO RETURN-CODE
+              GOBACK
+           END-IF
+           OPEN OUTPUT SALIDA-FILE
+           IF SW-SAL-NOK
+              DISPLAY '* Error al abrir SALIDA: ' SW-FS-SALIDA
+              CLOSE CLIENTES-FILE
+              MOVE 9999 TO RETURN-CODE
+              GOBACK
+           END-IF.
+           ACCEPT WS-FECHA FROM DATE
+           MOVE WS-FECHA-AA TO WS-TIT-AAAA
+           MOVE WS-FECHA-MM TO WS-TIT-MM
+           MOVE WS-FECHA-DD TO WS-TIT-DD
+           INITIALIZE CN-CONTADORES
+                      WS-CORTE.
+
+       2000-PROCESO.
+           PERFORM 2100-LEER-CLIENTE
+           PERFORM 2200-PROCESAR-DATOS UNTIL SW-CLI-EOF
+           PERFORM 2300-I-TOTAL-FINAL.
+
+       2100-LEER-CLIENTE.
+           READ CLIENTES-FILE
+           EVALUATE TRUE
+               WHEN SW-CLI-OK
+                   ADD 1 TO CN-REG-READ
+               WHEN SW-CLI-EOF
+                   SET SW-FS-EOF TO TRUE
+               WHEN SW-CLI-NOK
+                   DISPLAY '* Error en lectura CLIENTES: ' 
+                          SW-FS-CLIENTES
+                   SET SW-FS-EOF TO TRUE
+           END-EVALUATE.
+
+       2200-PROCESAR-DATOS.
+           MOVE CLIS-TIP-DOC TO WS-DOC-TIPO-ANT
+           PERFORM UNTIL SW-FS-EOF
+               IF CLIS-TIP-DOC NOT = WS-DOC-TIPO-ANT
+                  PERFORM 3100-TOTAL-TIPO-DOC
+               END-IF
+               ADD 1 TO CN-DOC-TIPO
+               PERFORM 3200-GRABAR-REGISTRO
+               PERFORM 2100-LEER-CLIENTE
+           END-PERFORM.
+
+       3100-TOTAL-TIPO-DOC.
+           MOVE WS-DOC-TIPO-ANT   TO WS-TOT-TIPO-DOC
+           MOVE CN-DOC-TIPO       TO WS-TOT-CANTIDAD
+
+           MOVE SPACES TO REG-SALIDA
+           WRITE REG-SALIDA AFTER 2
+           
+           WRITE REG-SALIDA FROM WS-TOTAL-DOC
+           
+           *> Saltar directamente a nueva página sin usar SPACES
+           PERFORM 3250-NUEVA-PAGINA
+              THRU 3250-F-NUEVA-PAGINA-EXIT
+
+           MOVE CLIS-TIP-DOC TO WS-DOC-TIPO-ANT
+           MOVE ZEROS TO CN-DOC-TIPO.
+
+       3250-NUEVA-PAGINA.
+           MOVE WS-NRO-PAGINA TO WS-TIT-PAGINA
+           WRITE REG-SALIDA FROM WS-TITULO BEFORE PAGE
+           WRITE REG-SALIDA FROM WS-SUBTITULO AFTER 2
+           
+           ADD 1 TO WS-NRO-PAGINA
+           MOVE 3 TO WS-LINEA-ACT.
+       3250-F-NUEVA-PAGINA-EXIT. EXIT.
+
+       3200-GRABAR-REGISTRO.
+           IF WS-LINEA-ACT > WS-LINEAS-PAG
+              PERFORM 3250-NUEVA-PAGINA
+                 THRU 3250-F-NUEVA-PAGINA-EXIT
+           END-IF
+
+           MOVE CLIS-TIP-DOC    TO WS-DET-TIP-DOC
+           MOVE CLIS-NRO-DOC    TO WS-DET-NRO-DOC
+           MOVE CLIS-SUC        TO WS-DET-SUC
+           MOVE CLIS-TIPO       TO WS-DET-TIPO
+           MOVE CLIS-NRO        TO WS-DET-NRO
+           MOVE CLIS-IMPORTE    TO WS-DET-IMPORTE
+           
+           *> Formatear fecha de AAAAMMDD a DD/MM/AAAA
+           MOVE CLIS-AAAAMMDD   TO WS-FECHA-AUX
+           STRING WS-AUX-DD '/' WS-AUX-MM '/' WS-AUX-AAAA
+                  DELIMITED BY SIZE 
+                  INTO WS-DET-FECHA
+           
+           MOVE CLIS-LOCALIDAD  TO WS-DET-LOCALIDAD
+           
+           WRITE REG-SALIDA FROM WS-LINEA-DETALLE
+           IF SW-SAL-NOK
+              DISPLAY '* Error en escritura SALIDA: ' SW-FS-SALIDA
+              MOVE 9999 TO RETURN-CODE
+              SET SW-FS-EOF TO TRUE
+           ELSE
+              ADD 1 TO CN-REG-WRITE
+              ADD 1 TO WS-LINEA-ACT
+           END-IF.
+
+       2300-I-TOTAL-FINAL.
+           *> Procesar último tipo de documento
+           PERFORM 3100-TOTAL-TIPO-DOC
+
+           *> Grabar línea en blanco
+           MOVE SPACES TO REG-SALIDA
+           WRITE REG-SALIDA AFTER 2
+
+           *> Grabar total general en archivo
+           MOVE SPACES TO REG-SALIDA
+           STRING 'TOTAL GENERAL DE DOCUMENTOS: ' 
+                  CN-REG-READ
+                  ' CLIENTES PROCESADOS'
+                  DELIMITED BY SIZE
+                  INTO REG-SALIDA
+           WRITE REG-SALIDA
+           ADD 1 TO CN-REG-WRITE.
+
+       3000-FINAL.
+           CLOSE CLIENTES-FILE
+           IF SW-CLI-NOK
+              DISPLAY '* Error al cerrar CLIENTES: ' SW-FS-CLIENTES
+           END-IF
+           CLOSE SALIDA-FILE
+           IF SW-SAL-NOK
+              DISPLAY '* Error al cerrar SALIDA: ' SW-FS-SALIDA
+           END-IF
+           DISPLAY ' '
+           DISPLAY CO-SEPARADOR
+           DISPLAY ' ESTADISTICAS DEL PROCESO '
+           DISPLAY CO-SEPARADOR
+           DISPLAY ' CLIENTES LEIDOS   : ' CN-REG-READ
+           DISPLAY ' CLIENTES IMPRESOS : ' CN-REG-WRITE
+           DISPLAY CO-SEPARADOR.

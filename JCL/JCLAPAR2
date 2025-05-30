@@ -52,18 +52,19 @@
 //STEPLIB  DD DSN=&USERID..&USERIDF.PGMLIB,DISP=SHR
 //DDCLIEN  DD DSN=&USERID..&USERIDF..CLIENTE.CLAS,DISP=SHR
 //DDMOVIM  DD DSN=&USERID..&USERIDF..MOVIMICC.CLAS,DISP=SHR
-//DDSAL    DD DSN=&USERID..&USERIDF..SALCLIEN.NUE,DISP=(NEW,CATLG,CATLG),
+//DDSAL    DD DSN=&USERID..&USERIDF..SALCLIEN.NUE,
+              DISP=(NEW,CATLG,CATLG),
 //            UNIT=SYSDA,VOL=SER=ZASWO1,
 //            DCB=(LRECL=30,BLKSIZE=3000,RECFM=FB),
 //            SPACE=(TRK,(1,1),RLSE)
-//*SYSOUT   DD SYSOUT=*,OUTLIM=1000
-//SYSOUT   DD DSN=&USERID..&USERIDF..SPOOL.&PROGRAID.,                 X
+//*SYSOUT  DD SYSOUT=*,OUTLIM=1000
+//SYSOUT   DD DSN=&USERID..&USERIDF..SPOOL.&PROGRAID.,
 //            OUTLIM=1000,                                              
 //            UNIT=SYSDA,VOL=SER=ZASWO1,                                
 //            DCB=(RECFM=FBA,LRECL=133,BLKSIZE=27930),                  
 //            SPACE=(CYL,(1,1),RLSE),                                   
 //            DISP=(NEW,CATLG,DELETE)                                   
 //SYSUDUMP DD SYSOUT=*  
-//*SYSIN    DD SYSOUT=*
+//*SYSIN   DD SYSOUT=*
 //*240430
 //

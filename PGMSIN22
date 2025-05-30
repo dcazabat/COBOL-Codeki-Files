@@ -1,0 +1,248 @@
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID PGMSIN22.
+       AUTHOR.        D. CAZABAT.
+       INSTALLATION.  CURSO CODEKI.
+       DATE-WRITTEN.  30/05/2025.
+       DATE-COMPILED. 30/05/2025.
+       SECURITY.      UNCLASSIFIED.
+      ***********************************************************
+      *  PROGRAMA PARA VSAM KSDS Y FBA                          *
+      *  CLASE SINCRONICA N° 22 - LECTURA DE ARCHIVO VSAM DE    *
+      *  CLIENTES E IMPRESION DE REGISTROS LEIDOS EN FBA        *
+      ***********************************************************
+       ENVIRONMENT DIVISION.
+       CONFIGURATION SECTION.
+       SPECIAL-NAMES.
+           DECIMAL-POINT IS COMMA.
+
+       INPUT-OUTPUT SECTION.
+       FILE-CONTROL.
+           SELECT CLIENTES ASSIGN TO DDCLIEN
+           ORGANIZATION IS INDEXED
+           ACCESS MODE IS SEQUENTIAL
+           RECORD KEY IS VSAM-KEY-CLIENTE
+           FILE STATUS IS WS-FCLIENTE-CODE.
+
+           SELECT SALCLIEN ASSIGN DDSCLIE
+           ORGANIZATION IS SEQUENTIAL
+           ACCESS IS SEQUENTIAL
+           FILE STATUS IS WS-FSALCLIEN-CODE.
+
+       DATA DIVISION.
+       FILE SECTION.
+       FD  CLIENTES.  
+       01  VSAM-KEY-CLIENTE.
+           03 VS-CLI-TIP-DOC        PIC X(02).
+           03 VS-CLI-NRO-DOC        PIC 9(11).
+       COPY CPCLIE.
+
+       FD  SALCLIEN  
+           BLOCK CONTAINS 0 RECORDS
+           RECORDING MODE IS F
+           RECORD CONTAINS 133 CHARACTERS.
+       01  REG-LINEA-SALIDA.
+           03 WS-CC               PIC X.
+           03 WS-LINEA            PIC X(132).
+       
+      **************************************
+       WORKING-STORAGE SECTION.
+      **************************************
+       77  FILLER        PIC X(26) VALUE '* INICIO WORKING-STORAGE *'.
+       77  FILLER        PIC X(26) VALUE '* CODIGOS RETORNO FILES  *'.
+       77  WS-FCLIENTE-CODE     PIC XX    VALUE SPACES.
+       77  WS-FSALCLIEN-CODE    PIC XX    VALUE SPACES.
+
+      * VARIABLES PARA CONTROL DE PAGINA
+       01  WS-CONTROL-LISTADO.
+           03 WS-LINEAS-PAG        PIC 99    VALUE ZEROS.
+           03 WS-CONT-LINEAS       PIC 99    VALUE ZEROS.
+           03 WS-NRO-PAGINA        PIC 9(02) VALUE ZEROS.
+
+      * FECHA DEL SISTEMA
+       01  WS-CURRENT-DATE.
+           03 WS-FECHA.
+              05 WS-ANIO           PIC 9(04).
+              05 WS-MES            PIC 9(02).
+              05 WS-DIA            PIC 9(02).
+           03 WS-HORA              PIC 9(08).
+
+      * VARIABLES PARA TITULOS
+       01  WS-TITULO.
+           03 FILLER              PIC X(30) VALUE SPACES.
+           03 FILLER              PIC X(22) 
+              VALUE 'DETALLE DE CLIENTES - '.
+           03 FILLER              PIC X(08) VALUE 'FECHA: '.
+           03 WS-FECHA-FORM.
+              05 WS-DIA-F         PIC 99.
+              05 FILLER           PIC X     VALUE '-'.
+              05 WS-MES-F         PIC 99.
+              05 FILLER           PIC X     VALUE '-'.
+              05 WS-ANIO-F        PIC 9999.
+
+       01  WS-SUBTITULO.
+           03 FILLER              PIC X(04) VALUE 'TIP '.
+           03 FILLER              PIC X(11) VALUE 'NRO.DOC    '.
+           03 FILLER              PIC X(10) VALUE 'SUCURSAL  '.
+           03 FILLER              PIC X(06) VALUE 'SEXO  '.
+           03 FILLER              PIC X(30) VALUE 'NOMBRE Y APELLIDO'.
+
+       01  WS-LINEA-DETALLE.
+           03 FILLER              PIC X(02) VALUE SPACES.
+           03 WS-DET-TIP-DOC      PIC X(02).
+           03 FILLER              PIC X(02) VALUE SPACES.
+           03 WS-DET-NRO-DOC      PIC 9(11).
+           03 FILLER              PIC X(02) VALUE SPACES.
+           03 WS-DET-NRO-SUC      PIC 9(02).
+           03 FILLER              PIC X(02) VALUE SPACES.
+           03 WS-DET-SEXO         PIC X(01).
+           03 FILLER              PIC X(02) VALUE SPACES.
+           03 WS-DET-NOMAPE       PIC X(15).
+
+       01  WS-LINEA-FINAL.
+           03 FILLER              PIC X(30) VALUE SPACES.
+           03 FILLER              PIC X(22) 
+              VALUE 'FINAL LISTADO CLIENTES'.
+
+      * LINEA EN BLANCO
+       01  WS-LINEA-BLANCO        PIC X(132) VALUE ALL ' '.
+
+      * CONTADORES
+       01  WS-CONTADORES.
+           03 WS-CONT-LEIDOS      PIC 9(06) VALUE ZEROS.
+           03 WS-CONT-IMPRESOS    PIC 9(06) VALUE ZEROS.
+
+      * SWITCHES
+       01  WS-SWITCHES.
+           03 WS-SW-CLIENTE       PIC X VALUE 'N'.
+              88 WS-FIN-CLIENTE         VALUE 'S'.
+              88 WS-NO-FIN-CLIENTE      VALUE 'N'.
+
+       77  FILLER        PIC X(26) VALUE '* FINAL  WORKING-STORAGE *'.
+
+      ***************************************************************.
+       PROCEDURE DIVISION.
+       0000-CONTROL.
+           PERFORM 1000-I-INICIO
+           PERFORM 2000-I-PROCESO
+              THRU 2000-F-PROCESO
+              UNTIL WS-FIN-CLIENTE
+           PERFORM 3000-I-FINAL
+           GOBACK
+           .
+
+       1000-I-INICIO.
+           INITIALIZE WS-CONTADORES
+           MOVE 60 TO WS-LINEAS-PAG
+           MOVE 0  TO WS-CONT-LINEAS
+           MOVE 0  TO WS-NRO-PAGINA
+           SET WS-NO-FIN-CLIENTE TO TRUE
+
+           MOVE FUNCTION CURRENT-DATE TO WS-CURRENT-DATE
+           MOVE WS-DIA  TO WS-DIA-F
+           MOVE WS-MES  TO WS-MES-F
+           MOVE WS-ANIO TO WS-ANIO-F
+
+           OPEN INPUT CLIENTES
+           IF WS-FCLIENTE-CODE NOT = '00'
+              DISPLAY 'ERROR OPEN CLIENTES: ' WS-FCLIENTE-CODE
+              SET WS-FIN-CLIENTE TO TRUE
+           END-IF
+
+           OPEN OUTPUT SALCLIEN
+           IF WS-FSALCLIEN-CODE NOT = '00'
+              DISPLAY 'ERROR OPEN SALCLIEN: ' WS-FSALCLIEN-CODE
+              SET WS-FIN-CLIENTE TO TRUE
+           END-IF
+
+           PERFORM 5000-I-TITULOS
+           PERFORM 4000-I-LEER-CLIENTE
+           .
+       2000-I-PROCESO.
+           IF WS-CONT-LINEAS >= WS-LINEAS-PAG
+              PERFORM 5000-I-TITULOS
+              DISPLAY WS-CONT-LINEAS " | " WS-LINEAS-PAG
+           END-IF
+
+           MOVE SPACE          TO WS-CC
+           MOVE CLI-TIP-DOC    TO WS-DET-TIP-DOC
+           MOVE CLI-NRO-DOC    TO WS-DET-NRO-DOC
+           MOVE CLI-NRO-SUC    TO WS-DET-NRO-SUC
+           MOVE CLI-SEXO       TO WS-DET-SEXO
+           MOVE CLI-NOMAPE     TO WS-DET-NOMAPE
+
+           MOVE WS-LINEA-DETALLE TO WS-LINEA
+           WRITE REG-LINEA-SALIDA
+
+           ADD 1 TO WS-CONT-LINEAS
+           ADD 1 TO WS-CONT-IMPRESOS
+      
+           IF WS-FSALCLIEN-CODE NOT = '00'
+              DISPLAY 'ERROR WRITE SALCLIEN: ' WS-FSALCLIEN-CODE
+           END-IF
+
+           PERFORM 4000-I-LEER-CLIENTE
+           .
+       2000-F-PROCESO.
+           EXIT
+           .
+
+       3000-I-FINAL.
+           MOVE SPACE          TO WS-CC
+           MOVE WS-LINEA-BLANCO TO WS-LINEA
+           WRITE REG-LINEA-SALIDA
+
+           MOVE SPACE          TO WS-CC
+           MOVE WS-LINEA-FINAL TO WS-LINEA
+           WRITE REG-LINEA-SALIDA
+
+           CLOSE CLIENTES
+           IF WS-FCLIENTE-CODE NOT = '00'
+              DISPLAY 'ERROR CLOSE CLIENTES: ' WS-FCLIENTE-CODE
+           END-IF
+
+           CLOSE SALCLIEN
+           IF WS-FSALCLIEN-CODE NOT = '00'
+              DISPLAY 'ERROR CLOSE SALIDA: ' WS-FSALCLIEN-CODE
+           END-IF
+
+           DISPLAY '********* ESTADISTICAS DEL PROCESO **********'
+           DISPLAY 'CANTIDAD REGISTROS LEIDOS   : ' WS-CONT-LEIDOS
+           DISPLAY 'CANTIDAD REGISTROS IMPRESOS : ' WS-CONT-IMPRESOS
+           .
+
+       4000-I-LEER-CLIENTE.
+           READ CLIENTES NEXT RECORD
+             AT END
+                 SET WS-FIN-CLIENTE TO TRUE
+             NOT AT END
+               IF WS-FCLIENTE-CODE = '00'
+                 ADD 1 TO WS-CONT-LEIDOS
+               ELSE
+                 DISPLAY 'ERROR EN LECTURA CLIENTES: ' WS-FCLIENTE-CODE
+                 SET WS-FIN-CLIENTE TO TRUE
+               END-IF
+           END-READ
+           .
+
+       5000-I-TITULOS.
+           ADD 1 TO WS-NRO-PAGINA
+           MOVE 0 TO WS-CONT-LINEAS
+
+           MOVE SPACE          TO WS-CC
+           MOVE WS-TITULO      TO WS-LINEA
+           WRITE REG-LINEA-SALIDA
+
+           MOVE SPACE          TO WS-CC
+           MOVE WS-LINEA-BLANCO TO WS-LINEA
+           WRITE REG-LINEA-SALIDA
+
+           MOVE SPACE          TO WS-CC
+           MOVE WS-SUBTITULO   TO WS-LINEA
+           WRITE REG-LINEA-SALIDA
+
+           MOVE SPACE          TO WS-CC
+           MOVE WS-LINEA-BLANCO TO WS-LINEA
+           WRITE REG-LINEA-SALIDA
+
+           ADD 4 TO WS-CONT-LINEAS
+           .

@@ -1,8 +1,13 @@
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PGMCCLEO.
-
+       AUTHOR.        D. CAZABAT.
+       INSTALLATION.  CURSO CODEKI.
+       DATE-WRITTEN.  27/05/2025.
+       DATE-COMPILED. 27/05/2025.
+       SECURITY.      UNCLASSIFIED.
       ****************************************************
-      * CORTE DE CONTROL POR TIPO DOCUMENTO Y SEXO        *
+      * CORTE DE CONTROL POR TIPO DOCUMENTO Y SEXO       *
+      * BASADO EN EL PROGRAMA PGMCORT2                   *
       ****************************************************
 
        ENVIRONMENT DIVISION.
@@ -52,7 +57,7 @@
            03 WS-FECHA-DD          PIC 99       VALUE ZEROS.
 
        01  WS-DISPLAYS.
-           05 WS-EDI-CANT          PIC ZZZ9     VALUE ZEROS.
+           05 WS-EDIT-CANT         PIC ZZZ9     VALUE ZEROS.
            05 WS-EDIT-LEIDAS-OK    PIC ZZZ9     VALUE ZEROS.
            05 WS-EDIT-LEIDAS-NOK   PIC ZZZ9     VALUE ZEROS.
            05 WS-SEPARADOR         PIC X(50)    VALUE ALL '-'.
@@ -109,10 +114,11 @@
                  SET WS-FIN-LECTURA TO TRUE
            END-EVALUATE
            
-           PERFORM UNTIL WS-FIN-LECTURA
+           PERFORM 
+              UNTIL WS-FIN-LECTURA
               OR FS-ENT NOT = '00'
               
-      *    ===== INICIO CORTE CONTROL POR TIPO DOCUMENTO =====
+              *>==== INICIO CORTE CONTROL POR TIPO DOCUMENTO =====
               DISPLAY 'Tipo de Documento ==> ' WS-TIP-DOC-ANT
               DISPLAY ALL '-'
               
@@ -120,7 +126,7 @@
                  OR FS-ENT NOT = '00'
                  OR WS-SUC-TIP-DOC NOT = WS-TIP-DOC-ANT
                  
-      *    ===== INICIO CORTE CONTROL POR SEXO =====
+                 *>===== INICIO CORTE CONTROL POR SEXO =====
                  MOVE WS-SUC-SEXO TO WS-SEXO-ANT
                  
                  PERFORM UNTIL WS-FIN-LECTURA
@@ -128,7 +134,7 @@
                     OR WS-SUC-TIP-DOC NOT = WS-TIP-DOC-ANT
                     OR WS-SUC-SEXO NOT = WS-SEXO-ANT
                     
-      *    ===== PROCESAMIENTO DE REGISTROS INDIVIDUALES =====
+                    *>== PROCESAMIENTO DE REGISTROS INDIVIDUALES ==
                     ADD 1 TO WS-CANT-TPDOC
                     ADD 1 TO WS-CANT-SEXO
                     ADD 1 TO WS-CANT-LEIDAS
@@ -153,14 +159,14 @@
                     END-EVALUATE
                  END-PERFORM
                  
-      *    ===== FIN CORTE CONTROL POR SEXO =====
+                 *>===== FIN CORTE CONTROL POR SEXO =====
                  MOVE WS-CANT-SEXO TO WS-VALUE-PRINT
                  DISPLAY '    Sexo ' WS-SEXO-ANT 
                         ' con ' WS-VALUE-PRINT ' personas'
                  MOVE 0 TO WS-CANT-SEXO
               END-PERFORM
               
-      *    ===== FIN CORTE CONTROL POR TIPO DOCUMENTO =====
+              *>===== FIN CORTE CONTROL POR TIPO DOCUMENTO =====
               MOVE WS-CANT-TPDOC TO WS-VALUE-PRINT
               DISPLAY ALL '-'
               DISPLAY 'Total para ' WS-TIP-DOC-ANT
@@ -174,13 +180,13 @@
        3000-I-FINAL.
       ****************************************************
 
-           MOVE CN-LEIDOS TO WS-EDI-CANT
+           MOVE CN-LEIDOS TO WS-EDIT-CANT
            MOVE CN-LEIDOS-OK TO WS-EDIT-LEIDAS-OK
            MOVE CN-LEIDOS-NOK TO WS-EDIT-LEIDAS-NOK
            DISPLAY WS-SEPARADOR
            DISPLAY 'REGISTROS PROCESADOS OK     = ' WS-EDIT-LEIDAS-OK
            DISPLAY 'REGISTROS PROCESADOS NOK    = ' WS-EDIT-LEIDAS-NOK
-           DISPLAY 'REGISTROS PROCESADOS        = ' WS-EDI-CANT.
+           DISPLAY 'REGISTROS PROCESADOS        = ' WS-EDIT-CANT.
            DISPLAY WS-SEPARADOR
 
            CLOSE ENTRADA
