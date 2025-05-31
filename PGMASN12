@@ -4,60 +4,69 @@
        ENVIRONMENT DIVISION.
        INPUT-OUTPUT SECTION.
        FILE-CONTROL.
-           SELECT AUTOMOTO
-           ASSIGN TO AUTOMOTO
-           FILE STATUS IS SW-FS-AUTOMOTO.
+           SELECT CLIENTES
+           ASSIGN TO DDCLIEN
+           FILE STATUS IS SW-FS-CLIENTES.
       
        DATA DIVISION.
        FILE SECTION.
-       FD  AUTOMOTO
+       FD  CLIENTES
            BLOCK CONTAINS 0 RECORDS
            RECORDING MODE IS F.
-       01  REC-AUTOMOTO              PIC X(118).
+       01  REC-CLIENTES              PIC X(50).
       
        WORKING-STORAGE SECTION.
-       01  WS-REC-AUTOMOTO.
-      *    COPY AUTOMOTO.
-           05 WS-AUT-MAR             PIC X(30).
-           05 WS-AUT-MOD             PIC X(48).
-           05 WS-AUT-PAT             PIC X(06).
-           05 WS-AUT-TIP             PIC X(26).
-           05 WS-AUT-IMP             PIC 9(08).
+
+       COPY CPCLIENS.
       
-       01  WS-DIS-AUTOMOTO.
-           05 WS-DIS-MAR             PIC X(30).
-           05 FILLER                 PIC X(01) VALUE '|'.
-           05 WS-DIS-MOD             PIC X(45).
-           05 FILLER                 PIC X(01) VALUE '|'.
-           05 WS-DIS-PAT             PIC X(02).
-           05 FILLER                 PIC X(01) VALUE '|'.
-           05 WS-DIS-TIP             PIC X(20).
-           05 FILLER                 PIC X(01) VALUE '|'.
-           05 WS-DIS-IMP             PIC $$$,$$$,$99.
+       01  SW-VALIDACIONES.
+           05 SW-SUC-OK            PIC X(01).
+              88 SW-SUC-VALIDA     VALUE 'S'.
+              88 SW-SUC-INVALIDA   VALUE 'N'.
+           05 SW-TIPO-OK           PIC X(01).
+              88 SW-TIPO-VALIDO    VALUE 'S'.
+              88 SW-TIPO-INVALIDO  VALUE 'N'.
       
-       01  SW-FS-AUTOMOTO           PIC X(02).
+       01  WS-DIS-CLIENTES.
+           05 FILLER                PIC X(05) VALUE SPACES.
+           05 WS-DIS-TIPO-DESC      PIC X(20).
+           05 FILLER                PIC X(05) VALUE SPACES.
+           05 WS-DIS-IMP            PIC $$$,$$$,$99.
+      
+       01  SW-FS-CLIENTES           PIC X(02).
            88 SW-FS-OK              VALUE '00'.
            88 SW-FS-EOF             VALUE '10'.
            88 SW-FS-NOK             VALUE '01' THRU '09'
                                          '11' THRU '99'.
       
        01  WS-VARIABLES.
-           05 WS-AUT-MAR-ANT        PIC X(30).
+           05 WS-SUC-ANT            PIC 9(02).
+           05 WS-TIPO-ANT           PIC 9(02).
            05 WS-NUM-EDI            PIC $$$,$$$,$99.
       
        01  AC-ACUMULADORES.
-           05 AC-AUT-MAR            PIC 9(12).
-           05 AC-AUT-TOT            PIC 9(12).
+           05 AC-IMP-TIPO           PIC S9(11)V99 COMP-3.
+           05 AC-IMP-SUC            PIC S9(11)V99 COMP-3.
+           05 AC-IMP-TOT            PIC S9(11)V99 COMP-3.
       
        01  CN-CONTADORES.
-           05 CN-AUT-MAR            PIC 9(05).
-           05 CN-AUT-READ           PIC 9(05).
+           05 CN-REG-TIPO           PIC 9(05).
+           05 CN-REG-SUC            PIC 9(05).
+           05 CN-REG-TOT            PIC 9(05).
+
+       01  WS-TITLES.
+           05 WS-TIT-TIPO           PIC X(30).
+           05 WS-TIT-SUC            PIC X(30).
       
-       01  CO-SEPARADO1             PIC X(120) VALUE
-           ALL '-'.
+       01  CO-SEPARADO1             PIC X(120) VALUE ALL '-'.
+       01  CO-SEPARADOR             PIC X(120) VALUE ALL '='.
       
-       01  CO-SEPARADOR             PIC X(120) VALUE
-           ALL '='.
+       01  WS-TIPO-DESC-TAB.
+           05 FILLER                PIC X(20) VALUE 'Cta. Corriente'.
+           05 FILLER                PIC X(20) VALUE 'Caja de Ahorro'.
+           05 FILLER                PIC X(20) VALUE 'Plazo Fijo'.
+       01  WS-TIPO-DESC REDEFINES WS-TIPO-DESC-TAB.
+           05 WS-DESC-TIPO          PIC X(20) OCCURS 3.
       
        PROCEDURE DIVISION.
        0000-CONTROL.
@@ -74,9 +83,9 @@
            .
       
        1000-I-INICIO.
-           OPEN INPUT AUTOMOTO
+           OPEN INPUT CLIENTES
            IF NOT SW-FS-OK
-              DISPLAY '* Error En Open  Automoto= ' SW-FS-AUTOMOTO
+              DISPLAY '* Error En Open  CLIENTES= ' SW-FS-CLIENTES
               MOVE 9999 TO RETURN-CODE
            END-IF
            .
@@ -85,59 +94,81 @@
            .
       
        2000-I-PROCESO.
-           READ AUTOMOTO            INTO WS-REC-AUTOMOTO
-           MOVE 0                   TO CN-AUT-READ
-           MOVE 0                   TO AC-AUT-TOT
-      
-           PERFORM UNTIL SW-FS-EOF
-              OR SW-FS-NOK
-              MOVE WS-AUT-MAR       TO WS-AUT-MAR-ANT
+           INITIALIZE AC-ACUMULADORES CN-CONTADORES
+           READ CLIENTES INTO REG-CLIENTES
+           
+           PERFORM UNTIL SW-FS-EOF OR SW-FS-NOK
+              PERFORM 2100-VALIDA-DATOS
               
-              DISPLAY ' Ventas Marca ==> ' WS-AUT-MAR-ANT
-              DISPLAY CO-SEPARADO1
-              
-              PERFORM UNTIL SW-FS-EOF
-                 OR SW-FS-NOK
-                 OR WS-AUT-MAR NOT = WS-AUT-MAR-ANT
+              IF SW-SUC-VALIDA
+                 MOVE CLIS-SUC      TO WS-SUC-ANT
+                 MOVE 0             TO AC-IMP-SUC
                  
-                 ADD 1              TO CN-AUT-MAR
-                 ADD 1              TO CN-AUT-READ
-                 ADD WS-AUT-IMP     TO AC-AUT-MAR
+                 DISPLAY 'Sucursal ' WS-SUC-ANT
                  
-                 MOVE WS-AUT-MAR    TO WS-DIS-MAR
-                 MOVE WS-AUT-MOD    TO WS-DIS-MOD
-                 MOVE WS-AUT-PAT    TO WS-DIS-PAT
-                 MOVE WS-AUT-TIP    TO WS-DIS-TIP
-                 MOVE WS-AUT-IMP    TO WS-DIS-IMP
+                 PERFORM UNTIL SW-FS-EOF OR SW-FS-NOK
+                           OR CLIS-SUC NOT = WS-SUC-ANT
+                    
+                    PERFORM 2100-VALIDA-DATOS
+                    IF SW-SUC-VALIDA AND SW-TIPO-VALIDO
+                       MOVE CLIS-TIPO  TO WS-TIPO-ANT
+                       MOVE 0          TO AC-IMP-TIPO
+                       
+                       PERFORM UNTIL SW-FS-EOF OR SW-FS-NOK
+                                 OR CLIS-SUC NOT = WS-SUC-ANT
+                                 OR CLIS-TIPO NOT = WS-TIPO-ANT
+                          
+                          PERFORM 2100-VALIDA-DATOS
+                          IF SW-SUC-VALIDA AND SW-TIPO-VALIDO
+                             ADD CLIS-IMPORTE TO AC-IMP-TIPO
+                             ADD CLIS-IMPORTE TO AC-IMP-SUC
+                             ADD CLIS-IMPORTE TO AC-IMP-TOT
+                          END-IF
+                          READ CLIENTES INTO REG-CLIENTES
+                       END-PERFORM
+                       
+                       MOVE AC-IMP-TIPO TO WS-DIS-IMP
+                       MOVE WS-DESC-TIPO(WS-TIPO-ANT) 
+                         TO WS-DIS-TIPO-DESC
+                       DISPLAY '     ' WS-DIS-CLIENTES
+                    ELSE
+                       READ CLIENTES INTO REG-CLIENTES
+                    END-IF
+                 END-PERFORM
                  
-                 DISPLAY WS-DIS-AUTOMOTO
-                 READ AUTOMOTO      INTO WS-REC-AUTOMOTO
-              END-PERFORM
-              
-              MOVE AC-AUT-MAR       TO WS-NUM-EDI
-              
-              DISPLAY CO-SEPARADO1
-              DISPLAY ' Total              ' WS-AUT-MAR-ANT
-              DISPLAY ' Reg.Leidos       ' CN-AUT-MAR
-              DISPLAY ' Total Marca      ' WS-NUM-EDI
-              DISPLAY CO-SEPARADO1
-              
-              ADD AC-AUT-MAR         TO AC-AUT-TOT
+                 MOVE AC-IMP-SUC    TO WS-DIS-IMP
+                 MOVE 'Total Sucursal' TO WS-DIS-TIPO-DESC
+                 DISPLAY WS-DIS-CLIENTES
+              ELSE
+                 READ CLIENTES INTO REG-CLIENTES
+              END-IF
            END-PERFORM
            
-           DISPLAY CO-SEPARADOR
-           DISPLAY ' Total Venta Automotores '
-           DISPLAY CO-SEPARADOR
+           MOVE AC-IMP-TOT         TO WS-DIS-IMP
+           MOVE 'Total General'     TO WS-DIS-TIPO-DESC
+           DISPLAY WS-DIS-CLIENTES
            .
        2000-F-PROCESO.
            EXIT
            .
       
        3000-I-FINAL.
-           CLOSE AUTOMOTO
+           CLOSE CLIENTES
            IF NOT SW-FS-OK
-              DISPLAY '* Error En Close Automoto= ' SW-FS-AUTOMOTO
+              DISPLAY '* Error En Close CLIENTES= ' SW-FS-CLIENTES
            END-IF
            .
        3000-F-FINAL.
            EXIT.
+       2100-VALIDA-DATOS.
+           SET SW-SUC-INVALIDA     TO TRUE
+           SET SW-TIPO-INVALIDO    TO TRUE
+           
+           IF CLIS-SUC >= 01 AND CLIS-SUC <= 10
+              SET SW-SUC-VALIDA    TO TRUE
+           END-IF
+           
+           IF CLIS-TIPO >= 01 AND CLIS-TIPO <= 03
+              SET SW-TIPO-VALIDO   TO TRUE
+           END-IF
+           .
