@@ -1,0 +1,171 @@
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. PGMDCC7C.
+       AUTHOR.        D. CAZABAT.
+       INSTALLATION.  CURSO CODEKI.
+       DATE-WRITTEN.  03/06/2025.
+       DATE-COMPILED. 03/06/2025.
+       SECURITY.      UNCLASSIFIED.                                             
+      **************************************************
+      *                                                *
+      *  SINCRONICA 23: CORTE CONTROL                  *
+      *  ============================                  *
+      *                                                *
+      *  - HACE UN  CORTE DE CONTROL POR CLI-NRO-SUC   *
+      *  - Y OTRO CORTE DE CONTROL POR CLI-TIP-CUE     *
+      *                                                *
+      *                                                *
+      **************************************************          
+       ENVIRONMENT DIVISION.
+       CONFIGURATION SECTION.
+
+       SPECIAL-NAMES.
+           DECIMAL-POINT IS COMMA.
+
+       INPUT-OUTPUT SECTION.
+       FILE-CONTROL.
+           SELECT CLIENTE
+           ASSIGN TO DDCLIEN
+           FILE STATUS IS SW-FS-CLIENTE.
+      
+       DATA DIVISION.
+       FILE SECTION.
+       FD  CLIENTE
+           BLOCK CONTAINS 0 RECORDS
+           RECORDING MODE IS F.
+       01  REC-CLIENTE              PIC X(50).
+      
+       WORKING-STORAGE SECTION.
+
+       COPY CPCLIE.
+       
+       01  WS-DIS-CLIENTE.
+           05 FILLER                PIC X(05) VALUE SPACES.
+           05 WS-DIS-TIPO-DESC      PIC X(20).
+           05 FILLER                PIC X(05) VALUE SPACES.
+           05 WS-DIS-IMP            PIC $$$.$$$.$99,99-.
+      
+       01  SW-FS-CLIENTE           PIC X(02).
+           88 SW-FS-OK              VALUE '00'.
+           88 SW-FS-EOF             VALUE '10'.
+           88 SW-FS-NOK             VALUE '01' THRU '09'
+                                         '11' THRU '99'.
+      
+       01  WS-VARIABLES.
+           05 WS-SUC-ANT            PIC 9(02).
+           05 WS-TIPO-ANT           PIC XX.
+           05 WS-NUM-EDI            PIC $$$.$$$.$99.
+           05 WS-EDIT-TOT           PIC ZZZ.ZZ9.
+      
+       01  AC-ACUMULADORES.
+           05 AC-IMP-SUC            PIC S9(11)V99 COMP-3.
+           05 AC-IMP-TIPO           PIC S9(11)V99 COMP-3.
+           05 AC-IMP-TOT            PIC S9(11)V99 COMP-3.
+      
+       01  CN-CONTADORES.
+           05 CN-REG-TIPO           PIC 9(05).
+           05 CN-REG-SUC            PIC 9(05).
+           05 CN-REG-TOT            PIC 9(05).
+
+       01  WS-TITLES.
+           05 WS-TIT-TIPO           PIC X(30).
+           05 WS-TIT-SUC            PIC X(30).
+      
+       01  CO-SEPARADO1             PIC X(50) VALUE ALL '-'.
+       01  CO-SEPARADOR             PIC X(50) VALUE ALL '='.
+      
+       01  WS-HEADERS.
+           05 WS-HEAD1             PIC X(50) VALUE ALL '*'.
+           05 WS-HEAD2             PIC X(50) VALUE 
+              'LISTADO DE SALDOS POR SUCURSAL Y TIPO DE CUENTA'.
+           05 WS-HEAD3             PIC X(50) VALUE
+              'SUCURSAL    TIPO CUENTA    SALDO'.
+              
+       PROCEDURE DIVISION.
+       0000-CONTROL.
+           PERFORM 1000-I-INICIO
+              THRU 1000-F-INICIO
+      
+           PERFORM 2000-I-PROCESO
+              THRU 2000-F-PROCESO
+
+           GOBACK
+           .
+      
+       1000-I-INICIO.
+           OPEN INPUT CLIENTE
+           IF NOT SW-FS-OK
+              DISPLAY '* Error En Open  CLIENTE= ' SW-FS-CLIENTE
+              MOVE 9999 TO RETURN-CODE
+           END-IF
+           .
+       1000-F-INICIO.
+           EXIT
+           .
+      
+       2000-I-PROCESO.
+           INITIALIZE AC-ACUMULADORES CN-CONTADORES
+           PERFORM 2100-LEER-CLIENTE
+           
+           IF NOT SW-FS-EOF
+              DISPLAY WS-HEAD1
+              DISPLAY WS-HEAD2
+              DISPLAY WS-HEAD1
+      *       DISPLAY WS-HEAD3
+           END-IF
+           
+           PERFORM UNTIL SW-FS-EOF
+              MOVE CLI-NRO-SUC TO WS-SUC-ANT
+              DISPLAY 'SUCURSAL: ' WS-SUC-ANT
+              MOVE ZEROS TO AC-IMP-SUC
+              
+              PERFORM UNTIL SW-FS-EOF OR 
+                          CLI-NRO-SUC NOT = WS-SUC-ANT
+                 MOVE CLI-TIP-CUE TO WS-TIPO-ANT
+                 MOVE ZEROS TO AC-IMP-TIPO
+                 ADD 1 TO CN-REG-SUC
+                    
+                 PERFORM UNTIL SW-FS-EOF OR 
+                             CLI-NRO-SUC NOT = WS-SUC-ANT OR
+                             CLI-TIP-CUE NOT = WS-TIPO-ANT
+                       
+                    ADD CLI-SALDO TO AC-IMP-TIPO
+                    ADD CLI-SALDO TO AC-IMP-SUC
+                    ADD CLI-SALDO TO AC-IMP-TOT
+                    ADD 1 TO CN-REG-TIPO
+                    ADD 1 TO CN-REG-TOT
+                       
+                    PERFORM 2100-LEER-CLIENTE
+                 END-PERFORM
+                 IF AC-IMP-TIPO NOT = 0
+                    MOVE AC-IMP-TIPO TO WS-DIS-IMP
+                    STRING 'Total Tipo Cuenta ' WS-TIPO-ANT
+                       DELIMITED BY SIZE 
+                       INTO WS-DIS-TIPO-DESC
+                    DISPLAY WS-DIS-CLIENTE
+                 END-IF
+              END-PERFORM
+              
+              MOVE AC-IMP-SUC TO WS-DIS-IMP
+              MOVE 'Total Sucursal    ' TO WS-DIS-TIPO-DESC
+              DISPLAY WS-DIS-CLIENTE
+              DISPLAY CO-SEPARADOR
+           END-PERFORM
+           
+           DISPLAY CO-SEPARADOR
+           MOVE AC-IMP-TOT TO WS-DIS-IMP
+           MOVE 'TOTAL GENERAL     ' TO WS-DIS-TIPO-DESC
+           DISPLAY WS-DIS-CLIENTE
+           DISPLAY WS-HEAD1
+           MOVE CN-REG-TOT TO WS-EDIT-TOT
+           DISPLAY 'Total Registros Procesados: ' WS-EDIT-TOT
+           DISPLAY WS-HEAD1
+           .
+       2000-F-PROCESO.
+           EXIT
+           .
+           
+       2100-LEER-CLIENTE.
+           READ CLIENTE INTO REG-CLIENTE
+           AT END SET SW-FS-EOF TO TRUE
+           END-READ
+           .
