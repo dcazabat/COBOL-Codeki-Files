@@ -1,0 +1,145 @@
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. PGMCCC7C.
+       AUTHOR.        D. CAZABAT.
+       INSTALLATION.  CURSO CODEKI.
+       DATE-WRITTEN.  05/06/2025.
+       DATE-COMPILED. 05/06/2025.
+       SECURITY.      UNCLASSIFIED.                                             
+      ******************************************************
+      *                                                    *
+      *  SINCRONICA 24: CORTE CONTROL                      *
+      *  ============================                      *
+      *                                                    *
+      *  - HACE UN  CORTE DE CONTROL POR WS-DATO-EST-CIV   *
+      *                                                    *
+      ******************************************************          
+       ENVIRONMENT DIVISION.
+       CONFIGURATION SECTION.
+
+       SPECIAL-NAMES.
+           DECIMAL-POINT IS COMMA.
+
+       INPUT-OUTPUT SECTION.
+       FILE-CONTROL.
+           SELECT ENTRADA
+           ASSIGN TO DENTRAD
+           FILE STATUS IS SW-FS-ENTRADA.
+      
+       DATA DIVISION.
+       FILE SECTION.
+       FD  ENTRADA
+           BLOCK CONTAINS 0 RECORDS
+           RECORDING MODE IS F.
+       01  REG-ENTRADA              PIC X(142).
+      
+       WORKING-STORAGE SECTION.
+
+       COPY CPDATOCD.
+       
+       01  SW-FS-ENTRADA           PIC X(02).
+           88 SW-FS-OK              VALUE '00'.
+           88 SW-FS-EOF             VALUE '10'.
+           88 SW-FS-NOK             VALUE '01' THRU '09'
+                                         '11' THRU '99'.
+      
+       01  WS-DIS-MONTOS.
+           05 FILLER               PIC X(5).
+           05 WS-DIS-CONCEPTO      PIC X(15).
+           05 FILLER               PIC X(02) VALUE ': '.
+           05 WS-DIS-MONTO         PIC -ZZZ.ZZZ.ZZZ.ZZZ.ZZ9,99.
+
+       01  WS-VARIABLES.
+           05 WS-EST-CIV-ANT       PIC X(10).
+      
+       01  AC-TOTALES.
+           05 AC-PATRIMONIO        PIC S9(13)V99 COMP-3.
+           05 AC-DEUDA             PIC S9(13)V99 COMP-3.
+           05 AC-PATRIMONIO-EST    PIC S9(13)V99 COMP-3.
+           05 AC-DEUDA-EST         PIC S9(13)V99 COMP-3.
+      
+       01  CO-SEPARADOR             PIC X(50) VALUE ALL '='.
+      
+       01  WS-HEADERS.
+           05 WS-HEAD1             PIC X(50) VALUE ALL '*'.
+           05 WS-HEAD2             PIC X(50) VALUE 
+              'LISTADO DE SALDOS POR ESTADO CIVIL'.
+           05 WS-HEAD3             PIC X(50) VALUE
+              'ESTADO CIVIL    PATRIMONIO    DEUDA'.
+              
+       PROCEDURE DIVISION.
+       0000-CONTROL.
+           PERFORM 1000-I-INICIO
+              THRU 1000-F-INICIO
+      
+           PERFORM 2000-I-PROCESO
+              THRU 2000-F-PROCESO
+
+           GOBACK
+           .
+      
+       1000-I-INICIO.
+           OPEN INPUT ENTRADA
+           IF NOT SW-FS-OK
+              DISPLAY '* Error En Open  ENTRADA= ' SW-FS-ENTRADA
+              MOVE 9999 TO RETURN-CODE
+           END-IF
+           .
+       1000-F-INICIO.
+           EXIT
+           .
+      
+       2000-I-PROCESO.
+           INITIALIZE AC-TOTALES
+           PERFORM 2100-LEER-ENTRADA
+           
+           IF NOT SW-FS-EOF
+              DISPLAY WS-HEAD1
+              DISPLAY WS-HEAD2
+              DISPLAY WS-HEAD1
+           END-IF
+           
+           PERFORM UNTIL SW-FS-EOF
+              MOVE WS-DATO-EST-CIV TO WS-EST-CIV-ANT
+              DISPLAY 'ESTADO CIVIL: ' WS-EST-CIV-ANT
+              MOVE ZEROS TO AC-PATRIMONIO-EST
+              MOVE ZEROS TO AC-DEUDA-EST
+              
+              PERFORM UNTIL SW-FS-EOF OR 
+                          WS-DATO-EST-CIV NOT = WS-EST-CIV-ANT
+                    
+                 ADD WS-DATO-PATRIM TO AC-PATRIMONIO-EST
+                 ADD WS-DATO-PATRIM TO AC-PATRIMONIO
+                 ADD WS-DATO-DEUDOR TO AC-DEUDA-EST
+                 ADD WS-DATO-DEUDOR TO AC-DEUDA
+                    
+                 PERFORM 2100-LEER-ENTRADA
+              END-PERFORM
+
+              MOVE 'PATRIMONIO EN $' TO WS-DIS-CONCEPTO
+              MOVE AC-PATRIMONIO-EST TO WS-DIS-MONTO
+              DISPLAY WS-DIS-MONTOS
+              MOVE 'DEUDA EN      $' TO WS-DIS-CONCEPTO
+              MOVE AC-DEUDA-EST TO WS-DIS-MONTO
+              DISPLAY WS-DIS-MONTOS
+              DISPLAY CO-SEPARADOR
+           END-PERFORM
+           
+           DISPLAY WS-HEAD1
+           DISPLAY 'TOTALES GENERALES'
+           MOVE 'PATRIMONIO EN $' TO WS-DIS-CONCEPTO
+           MOVE AC-PATRIMONIO TO WS-DIS-MONTO
+           DISPLAY WS-DIS-MONTOS
+           MOVE 'DEUDA EN      $' TO WS-DIS-CONCEPTO
+           MOVE AC-DEUDA TO WS-DIS-MONTO
+           DISPLAY WS-DIS-MONTOS
+           DISPLAY WS-HEAD1
+           .
+       2000-F-PROCESO.
+           EXIT
+           .
+           
+       2100-LEER-ENTRADA.
+           READ ENTRADA INTO WS-REG-DATOS
+           AT END SET SW-FS-EOF TO TRUE
+           END-READ
+           .

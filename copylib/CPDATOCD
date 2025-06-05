@@ -1,0 +1,49 @@
+      **************************************                            00010000
+      *         LAYOUT DATOS               *                            00020000
+      *     KC02788.ALU9999.DATCORTE       *                            00030000
+      *     LARGO REGISTRO = 142 BYTES     *                            00040000
+      **************************************                            00050000
+                                                                        00060000
+       01  WS-REG-DATOS.                                                00070000
+                                                                        00080000
+      * TIPO DOCUMENTO VALIDOS: 'DU'; 'PA'; 'PE'; 'CI'; 'CU'            00090002
+           03  WS-DATO-TIP-DOC     PIC XX       VALUE SPACES.           00100000
+                                                                        00110000
+           03  WS-DATO-NRO-DOC     PIC 9(11)    VALUE ZEROS.            00110100
+                                                                        00110200
+           03  WS-DATO-NOMAPE      PIC X(30)    VALUE SPACES.           00110300
+                                                                        00110400
+      * ESTADO CIVIL  VALIDOS : 'SOLTERO   '; 'VIUDO     '              00110503
+      *                         'DIVORCIADO'; 'CASADO    '              00110603
+      *                         'JURIDICA'                              00110902
+           03  WS-DATO-EST-CIV     PIC X(10)    VALUE SPACES.           00111002
+                                                                        00111102
+      * SEXO           VALIDOS: 'F'; 'M'; 'O'; 'X'(PERSONA JUR)         00112001
+           03  WS-DATO-SEXO        PIC X        VALUE SPACES.           00112100
+      * NACIONALIDAD                                                    00112200
+           03  WS-DATO-NACION      PIC X(17)    VALUE SPACES.           00112301
+                                                                        00112400
+      * TIPO DE CLIENTE                                                 00112500
+      *                 VALIDOS: '1A', '1B', '1C', '1D', '1E'           00112600
+      *                                                                 00112700
+      *      1A= P.FISICA   - RESIDENTE EN EL PAIS                      00112800
+      *      1B= P.FISICA   - NO RESIDENTE                              00112900
+      *      1C= P.JURIDICA - EMPRESA PYME                              00113000
+      *      1D= P.JURIDICA - EMPRESA UNICORNIO                         00113100
+      *      1E= P.JURIDICA - EMPRESA MULTINACIONAL                     00113200
+           03  WS-DATO-TIP-CL      PIC X(02)    VALUE SPACES.           00113301
+                                                                        00113400
+      *      PATRIMONIO EN $                                            00113500
+           03  WS-DATO-PATRIM      PIC S9(13)V99 COMP-3 VALUE ZEROS.    00113600
+                                                                        00113700
+      *      IMPORTE DEUDOR EN $                                        00113800
+           03  WS-DATO-DEUDOR      PIC S9(13)V99 COMP-3 VALUE ZEROS.    00113900
+                                                                        00114000
+      *      PATRIMONIO EN U$S                                          00114100
+           03  WS-DATO-PATRIM-DOL  PIC S9(13)V99 COMP-3 VALUE ZEROS.    00114200
+                                                                        00114300
+      *      IMPORTE DEUDOR EN U$S                                      00114400
+           03  WS-DATO-DEUDOR-DOL  PIC S9(13)V99 COMP-3 VALUE ZEROS.    00114500
+                                                                        00114600
+           03  FILLER              PIC X(37)    VALUE SPACES.           00114700
+                                                                        00114800

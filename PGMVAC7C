@@ -1,149 +1,149 @@
-       IDENTIFICATION DIVISION.                                         00010009
-       PROGRAM-ID PGMVAC7C.                                             00020009
-       AUTHOR.        D. CAZABAT.                                       00030009
-       INSTALLATION.  CURSO CODEKI.                                     00040009
-       DATE-WRITTEN.  30/04/2025.                                       00050009
-       DATE-COMPILED. 30/04/2025.                                       00060009
-      **********************************************************        00070009
-      *                                                        *        00080009
-      *  OBJETIVO: PRACTICA CODIFICACION COBOL                 *        00090009
-      *  ASINCRONICA 8: VALIDACION                             *        00100009
-      *                                                        *        00110009
-      **********************************************************        00120009
-       ENVIRONMENT DIVISION.                                            00130009
-       INPUT-OUTPUT SECTION.                                            00140009
-       FILE-CONTROL.                                                    00150009
-             SELECT NOVCLI   ASSIGN DNOVCLI                             00160009
-                    FILE STATUS IS FS-NOVCLI.                           00170009
-                                                                        00180009
-             SELECT S1GRAB   ASSIGN DDGRAB                              00190009
-                    FILE STATUS IS FS-S1GRAB.                           00200009
-                                                                        00210009
-             SELECT S2ERRR   ASSIGN DDERRR                              00220009
-                    FILE STATUS IS FS-S2ERRR.                           00230009
-                                                                        00240009
-       DATA DIVISION.                                                   00250009
-       FILE SECTION.                                                    00260009
-       FD NOVCLI                                                        00270009
-            BLOCK CONTAINS 0 RECORDS                                    00280009
-            RECORDING MODE IS F.                                        00290009
-                                                                        00300009
-       01 REG-NOVCLI    PIC X(50).                                      00310009
-                                                                        00320009
-       FD S1GRAB                                                        00330009
-            BLOCK CONTAINS 0 RECORDS                                    00340009
-            RECORDING MODE IS F.                                        00350009
-                                                                        00360009
-       01 REG-S1GRAB     PIC X(55).                                     00370009
-                                                                        00380009
-       FD S2ERRR                                                        00390009
-            BLOCK CONTAINS 0 RECORDS                                    00400009
-            RECORDING MODE IS F.                                        00410009
-                                                                        00420009
-       01 REG-S2ERRR     PIC X(55).                                     00430009
-                                                                        00440009
-      **************************************                            00450009
-       WORKING-STORAGE SECTION.                                         00460009
-      **************************************                            00470009
-       77  FILLER        PIC X(26) VALUE '* INICIO WORKING-STORAGE *'.  00480009
-                                                                        00490009
-      **************************************                            00500009
-      * FILE STATUS                                                     00510009
-      **************************************                            00520009
-                                                                        00530009
-       77  FS-NOVCLI      PIC XX    VALUE SPACES.                       00540009
-           88  FS-NOVCLI-FIN        VALUE '10'.                         00550009
-                                                                        00560009
-       77  FS-S1GRAB      PIC XX    VALUE SPACES.                       00570009
-           88  FS-S1GRAB-FIN        VALUE '10'.                         00580009
-                                                                        00590009
-       77  FS-S2ERRR      PIC XX    VALUE SPACES.                       00600009
-           88  FS-S2ERRR-FIN        VALUE '10'.                         00610009
-                                                                        00620009
-      ***************************************************************** 00630009
-      * CONTADOR DE TOTALES                                             00640009
-      ***************************************************************** 00630009
-       77  WS-CANT-LEIDOS          PIC 9(5)      VALUE ZEROS.           00650009
-       77  WS-EDIT-LEIDOS          PIC ZZZ9      VALUE ZEROS.           00660009
-       77  WS-CANT-GRAB            PIC 9(5)      VALUE ZEROS.           00670009
-       77  WS-EDIT-GRAB            PIC ZZZ9      VALUE ZEROS.           00680009
-       77  WS-CANT-ERRR            PIC 9(5)      VALUE ZEROS.           00690009
-       77  WS-EDIT-ERRR            PIC ZZZ9      VALUE ZEROS.           00700009
+       IDENTIFICATION DIVISION.                                         
+       PROGRAM-ID PGMVAC7C.                                             
+       AUTHOR.        D. CAZABAT.                                       
+       INSTALLATION.  CURSO CODEKI.                                     
+       DATE-WRITTEN.  30/04/2025.                                       
+       DATE-COMPILED. 30/04/2025.                                       
+      **********************************************************        
+      *                                                        *        
+      *  OBJETIVO: PRACTICA CODIFICACION COBOL                 *        
+      *  ASINCRONICA 8: VALIDACION                             *        
+      *                                                        *        
+      **********************************************************        
+       ENVIRONMENT DIVISION.                                            
+       INPUT-OUTPUT SECTION.                                            
+       FILE-CONTROL.                                                    
+             SELECT NOVCLI   ASSIGN DNOVCLI                             
+                    FILE STATUS IS FS-NOVCLI.                           
+                                                                        
+             SELECT S1GRAB   ASSIGN DDGRAB                              
+                    FILE STATUS IS FS-S1GRAB.                           
+                                                                        
+             SELECT S2ERRR   ASSIGN DDERRR                              
+                    FILE STATUS IS FS-S2ERRR.                           
+                                                                        
+       DATA DIVISION.                                                   
+       FILE SECTION.                                                    
+       FD NOVCLI                                                        
+            BLOCK CONTAINS 0 RECORDS                                    
+            RECORDING MODE IS F.                                        
+                                                                        
+       01 REG-NOVCLI    PIC X(50).                                      
+                                                                        
+       FD S1GRAB                                                        
+            BLOCK CONTAINS 0 RECORDS                                    
+            RECORDING MODE IS F.                                        
+                                                                        
+       01 REG-S1GRAB     PIC X(55).                                     
+                                                                        
+       FD S2ERRR                                                        
+            BLOCK CONTAINS 0 RECORDS                                    
+            RECORDING MODE IS F.                                        
+                                                                        
+       01 REG-S2ERRR     PIC X(55).                                     
+                                                                        
+      **************************************                            
+       WORKING-STORAGE SECTION.                                         
+      **************************************                            
+       77  FILLER        PIC X(26) VALUE '* INICIO WORKING-STORAGE *'.  
+                                                                        
+      **************************************                            
+      * FILE STATUS                                                     
+      **************************************                            
+                                                                        
+       77  FS-NOVCLI      PIC XX    VALUE SPACES.                       
+           88  FS-NOVCLI-FIN        VALUE '10'.                         
+                                                                        
+       77  FS-S1GRAB      PIC XX    VALUE SPACES.                       
+           88  FS-S1GRAB-FIN        VALUE '10'.                         
+                                                                        
+       77  FS-S2ERRR      PIC XX    VALUE SPACES.                       
+           88  FS-S2ERRR-FIN        VALUE '10'.                         
+                                                                        
+      ***************************************************************** 
+      * CONTADOR DE TOTALES                                             
+      ***************************************************************** 
+       77  WS-CANT-LEIDOS          PIC 9(5)      VALUE ZEROS.           
+       77  WS-EDIT-LEIDOS          PIC ZZZ9      VALUE ZEROS.           
+       77  WS-CANT-GRAB            PIC 9(5)      VALUE ZEROS.           
+       77  WS-EDIT-GRAB            PIC ZZZ9      VALUE ZEROS.           
+       77  WS-CANT-ERRR            PIC 9(5)      VALUE ZEROS.           
+       77  WS-EDIT-ERRR            PIC ZZZ9      VALUE ZEROS.           
        77  WS-LINEA-SEPARACION     PIC X(40) 
            VALUE '----------------------------------------'.
 
-      ***************************************************************** 00630009
+      ***************************************************************** 
       * VARIABLES DE CONTROL DE ERRORES                                 
-      ***************************************************************** 00630009
-       77  WS-ERROR-FECHA          PIC X(50)     VALUE SPACES.          00710009
-       77  WS-ERROR-TPDOC          PIC X(50)     VALUE SPACES.          00720009
-       77  WS-ERROR-SUCUR          PIC X(50)     VALUE SPACES.          00730009
-       77  WS-ERROR-TPCTA          PIC X(50)     VALUE SPACES.          00740009
+      ***************************************************************** 
+       77  WS-ERROR-FECHA          PIC X(50)     VALUE SPACES.          
+       77  WS-ERROR-TPDOC          PIC X(50)     VALUE SPACES.          
+       77  WS-ERROR-SUCUR          PIC X(50)     VALUE SPACES.          
+       77  WS-ERROR-TPCTA          PIC X(50)     VALUE SPACES.          
 
-      ********     FECHA DE PROCESO     *****************************   00750009
+      ********     FECHA DE PROCESO     *****************************   
        77 WS-FECHA-AAAAMMDD        PIC X(8).
-       77 WS-FECHA-NUMERO          PIC 9(8).                            00760009
+       77 WS-FECHA-NUMERO          PIC 9(8).                            
        77 WS-FECHA-AAAA            PIC X(4).
        77 WS-FECHA-NUMDESDE        PIC 9(8)      VALUE ZEROS.
        77 WS-FECHA-NUMHASTA        PIC 9(8)      VALUE ZEROS.
-       01  WS-FECHA.                                                    00770009
-           05 WS-FECHA-AA          PIC 9(2).                            00780009
-           05 WS-FECHA-MM          PIC 9(2).                            00790009
-           05 WS-FECHA-DD          PIC 9(2).                            00800009
-                                                                        00810009
-       01  WS-FECHA-VALIDA         PIC X(1) VALUE 'S'.                  00820009
-           88 FECHA-VALIDA                  VALUE 'S'.                  00830009
-           88 FECHA-NO-VALIDA               VALUE 'N'.                  00840009
-                                                                        00850009
-       01  WS-DIAS-POR-MES.                                             00860009
-           05 WS-DIAS-MES             PIC 9(2) OCCURS 12 TIMES.         00870009
-                                                                        00880009
-       01  WS-AUX.                                                      00890009
-           05 WS-RESTO                PIC 9(4).                         00900009
-           05 WS-RESTO-CUATRO         PIC 9(4).                         00910009
-           05 WS-RESTO-CIEN           PIC 9(4).                         00920009
-           05 WS-RESTO-CUATROCIENTOS  PIC 9(4).                         00930009
-      *************  BANDERA DE PROCESAD DE REGISTRO  **************    00940009
-       01  WS-PROCESAR-REG      PIC X VALUE 'N'.                        00950009
-           88 WS-PROCESAR-SI    VALUE 'S'.                              00960009
-           88 WS-PROCESAR-NO    VALUE 'N'.                              00970009
-      ***************************************************************.  00980009
-       01  FILLER        PIC X(26) VALUE '* FINAL  WORKING-STORAGE *'.  00990009
-      ***************************************************************.  01000009
-                                                                        01010009
-      ***************  FORMATO DE ENTRADA DE DATOS **************       01020009
-               COPY CPNOVCLI.                                           01030009
-      ***************  FORMATO DE SALIDA DE DATOS ***************       01040009
-               COPY CPNCLIV.                                            01050009
-                                                                        01060009
-       PROCEDURE DIVISION.                                              01070009
-      **************************************                            01080009
-      *                                    *                            01090009
-      *  CUERPO PRINCIPAL DEL PROGRAMA     *                            01100009
-      *                                    *                            01110009
-      **************************************                            01120009
-       MAIN-PROGRAM.                                                    01130009
-                                                                        01140009
-           PERFORM 1000-INICIO   THRU    1000-INICIO-F                  01150009
-                                                                        01160009
-           PERFORM 2000-PROCESO  THRU    2000-PROCESO-F                 01170009
-                   UNTIL FS-NOVCLI-FIN                                  01180009
-                                                                        01190009
-           PERFORM 3000-FINAL    THRU    3000-FINAL-F                   01200009
-           .                                                            01210009
-       F-MAIN-PROGRAM. GOBACK.                                          01220009
-                                                                        01230009
-      **************************************                            01240009
-      *                                    *                            01250009
-      *  CUERPO INICIO APERTURA ARCHIVOS   *                            01260009
-      *                                    *                            01270009
-      **************************************                            01280009
-       1000-INICIO.                                                     01290009
-           ACCEPT WS-FECHA FROM DATE.                                   01300009
+       01  WS-FECHA.                                                    
+           05 WS-FECHA-AA          PIC 9(2).                            
+           05 WS-FECHA-MM          PIC 9(2).                            
+           05 WS-FECHA-DD          PIC 9(2).                            
+                                                                        
+       01  WS-FECHA-VALIDA         PIC X(1) VALUE 'S'.                  
+           88 FECHA-VALIDA                  VALUE 'S'.                  
+           88 FECHA-NO-VALIDA               VALUE 'N'.                  
+                                                                        
+       01  WS-DIAS-POR-MES.                                             
+           05 WS-DIAS-MES             PIC 9(2) OCCURS 12 TIMES.         
+                                                                        
+       01  WS-AUX.                                                      
+           05 WS-RESTO                PIC 9(4).                         
+           05 WS-RESTO-CUATRO         PIC 9(4).                         
+           05 WS-RESTO-CIEN           PIC 9(4).                         
+           05 WS-RESTO-CUATROCIENTOS  PIC 9(4).                         
+      *************  BANDERA DE PROCESAD DE REGISTRO  **************    
+       01  WS-PROCESAR-REG      PIC X VALUE 'N'.                        
+           88 WS-PROCESAR-SI    VALUE 'S'.                              
+           88 WS-PROCESAR-NO    VALUE 'N'.                              
+      ***************************************************************.  
+       01  FILLER        PIC X(26) VALUE '* FINAL  WORKING-STORAGE *'.  
+      ***************************************************************.  
+                                                                        
+      ***************  FORMATO DE ENTRADA DE DATOS **************       
+               COPY CPNOVCLI.                                           
+      ***************  FORMATO DE SALIDA DE DATOS ***************       
+               COPY CPNCLIV.                                            
+                                                                        
+       PROCEDURE DIVISION.                                              
+      **************************************                            
+      *                                    *                            
+      *  CUERPO PRINCIPAL DEL PROGRAMA     *                            
+      *                                    *                            
+      **************************************                            
+       MAIN-PROGRAM.                                                    
+                                                                        
+           PERFORM 1000-INICIO   THRU    1000-INICIO-F                  
+                                                                        
+           PERFORM 2000-PROCESO  THRU    2000-PROCESO-F                 
+                   UNTIL FS-NOVCLI-FIN                                  
+                                                                        
+           PERFORM 3000-FINAL    THRU    3000-FINAL-F                   
+           .                                                            
+       F-MAIN-PROGRAM. GOBACK.                                          
+                                                                        
+      **************************************                            
+      *                                    *                            
+      *  CUERPO INICIO APERTURA ARCHIVOS   *                            
+      *                                    *                            
+      **************************************                            
+       1000-INICIO.                                                     
+           ACCEPT WS-FECHA FROM DATE.                                   
            MOVE '20' TO WS-FECHA-AAAA(1:2)
            MOVE WS-FECHA-AA TO WS-FECHA-AAAA(3:2)
-           DISPLAY 'FECHA DE PROCESO: 
-              WS-FECHA-DD '/' WS-FECHA-MM '/' WS-FECHA-AAAA
+           DISPLAY 'FECHA DE PROCESO : '
+           WS-FECHA-DD '/' WS-FECHA-MM '/' WS-FECHA-AAAA
            DISPLAY WS-LINEA-SEPARACION 
                                                                         
            OPEN INPUT  NOVCLI                                           
