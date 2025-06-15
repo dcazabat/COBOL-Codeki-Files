@@ -1,0 +1,28 @@
+//KC03C7C2 JOB (ACCOUNT),'DANIEL'
+//*-------------------------------------------------------------------
+//* PASO 0: BORRA EL DATASET SI EXISTE
+//*-------------------------------------------------------------------
+//DELETE   EXEC PGM=IDCAMS
+//SYSPRINT DD SYSOUT=*
+//SYSIN    DD *
+  DELETE KC03C7C.CURSOS.SPOOL.SPUFI
+  SET MAXCC = 0
+/*
+//*-------------------------------------------------------------------
+//* PASO 1: EJECUTA CONSULTA SQL Y CREA NUEVO DATASET
+//*-------------------------------------------------------------------
+//STEP01   EXEC PGM=IKJEFT01,DYNAMNBR=20
+//STEPLIB  DD DSN=DSNA10.SDSNLOAD,DISP=SHR
+//         DD DSN=DSNA10.RUNLIB.LOAD,DISP=SHR
+//SYSTSPRT DD SYSOUT=*
+//SYSPRINT DD SYSOUT=*
+//SYSUDUMP DD SYSOUT=*
+//SYSIN    DD *
+SELECT * FROM TBCURCTA
+FETCH FIRST 20 ROWS ONLY;
+/*
+//SYSTSIN  DD *
+  DSN SYSTEM(DBDG)
+  RUN PROGRAM(DSNTEP2) PLAN(DSNTEP71)
+  END
+/*
