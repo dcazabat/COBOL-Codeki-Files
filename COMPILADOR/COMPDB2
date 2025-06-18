@@ -1,0 +1,13 @@
+//COMPDB2  JOB CLASS=A,MSGCLASS=O,MSGLEVEL=(1,1),NOTIFY=&SYSUID
+//***********************************************
+//*   COMPILADOR COBOL/DB2 BATCH                *
+//*   ALUMLIB DIGITAR SU USERID ALUMNO          *
+//*   GOPGM DIGITAR SU PROGRAM-ID               *
+//*   SI SE DESEA USAR COPY SACAR ASTERISCO     *
+//*      A COBOL.SYSLIB                         *
+//***********************************************
+//STEP1  EXEC COMPDB2,
+//       ALUMLIB=ITP.CURSOS,
+//       GOPGM=PGMDB201
+//*PC.SYSLIB DD DSN=ALUNNNN.CURSOS.SRCLIB.DATA,DISP=SHR
+//*COBOL.SYSLIB DD DSN=ALUNNNN.COPYLIB,DISP=SHR

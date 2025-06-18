@@ -1,238 +1,237 @@
-       CBL TEST                                                         00001000
-       IDENTIFICATION DIVISION.                                         00002000
-      *                                                        *        00003000
-       PROGRAM-ID. PGMDB22.                                             00004000
-      **********************************************************        00005000
-      *                                                        *        00006000
-      *  PROGRAMA PARA SQL EMBEBIDO                            *        00007000
-      *                                                        *        00016500
-      **********************************************************        00016800
-      *      MANTENIMIENTO DE PROGRAMA                         *        00016900
-      **********************************************************        00017000
-      *  FECHA   *    DETALLE        * COD *                            00018000
-      **************************************                            00019000
-      *          *                   *     *                            00019100
-      *          *                   *     *                            00019200
-      **************************************                            00019300
-       ENVIRONMENT DIVISION.                                            00019400
-       CONFIGURATION SECTION.                                           00019500
-       SPECIAL-NAMES.                                                   00019600
-           DECIMAL-POINT IS COMMA.                                      00019700
-                                                                        00019800
-       INPUT-OUTPUT SECTION.                                            00019900
-       FILE-CONTROL.                                                    00020000
-                                                                        00020600
-             SELECT SALIDA  ASSIGN DDSALE                               00021000
-             FILE STATUS IS WS-CODE-SAL.                                00022300
-                                                                        00022400
-       DATA DIVISION.                                                   00022500
-       FILE SECTION.                                                    00022600
-       FD SALIDA                                                        00040100
-             BLOCK CONTAINS 0 RECORDS                                   00040200
-             RECORDING MODE IS F.                                       00040300
-                                                                        00040400
-       01 REG-SALIDA      PIC X(80).                                    00040500
-                                                                        00040600
-      **************************************                            00040700
-       WORKING-STORAGE SECTION.                                         00040800
-      **************************************                            00040900
-       77  FILLER        PIC X(26) VALUE '* INICIO WORKING-STORAGE *'.  00041000
-                                                                        00041100
-       77  WS-CODE-SAL      PIC XX    VALUE SPACES.                     00041200
-       77  WS-TOT-GRABADOS  PIC 9(3)  VALUE ZEROS.                      00041300
-       01  WS-FLAG-FIN      PIC X.                                      00041400
-           88  WS-SI-PROCESO      VALUE ' '.                            00041500
-           88  WS-FIN-PROCESO     VALUE 'F'.                            00041600
-                                                                        00052800
-       01 WS-TITULO.                                                    00052900
-          03  FILLER               PIC X(10)    VALUE SPACES.           00053000
-          03  FILLER               PIC X(53)    VALUE                   00053100
-           ' SALDO         TIPCUEN       NROCUEN     SUCURSAL    '.     00053200
-          03  FILLER               PIC X(17)    VALUE SPACES.           00053300
-                                                                        00053400
-                                                                        00053700
-      *****************************************                         00053800
-      *         LAYOUT TABLA CUENTAS          *                         00053900
-      *                                       *                         00054900
-      *****************************************                         00055000
-       01 WS-REG-SALIDA.                                                00055100
-                                                                        00055200
-           03  FILLER              PIC X(10)     VALUE SPACES.          00055300
-           03  REG-TIPCUEN         PIC 9(02)     VALUE ZEROS.           00055400
-           03  REG-NROCUEN         PIC 9(05)     VALUE ZEROS.           00055500
-           03  FILLER              PIC X(05)     VALUE SPACES.          00055600
-           03  REG-SUCUEN          PIC 9(02)     VALUE ZEROS.           00055700
-           03  FILLER              PIC X(05)     VALUE SPACES.          00055800
-           03  REG-NROCLI          PIC 9(03)     VALUE ZEROS.           00055900
-           03  FILLER              PIC X(05)     VALUE SPACES.          00056000
-           03  REG-SALDO           PIC -Z(09).99   VALUE ZEROS.         00056100
-           03  FILLER              PIC X(05)     VALUE SPACES.          00056200
-           03  REG-FECSAL          PIC X(08)     VALUE SPACES.          00056300
-           03  FILLER              PIC X(07)     VALUE SPACES.          00056400
-                                                                        00056500
-       77  FILLER        PIC X(26) VALUE '* VARIABLES SQL          *'.  00056600
-       77  WS-SQLCODE    PIC +++999 USAGE DISPLAY VALUE ZEROS.          00056700
-                                                                        00056800
-            EXEC SQL                                                    00056900
-              INCLUDE SQLCA                                             00057000
-            END-EXEC.                                                   00057100
-                                                                        00057200
-            EXEC SQL                                                    00057300
-              INCLUDE TBCURCTA                                          00057400
-            END-EXEC.                                                   00057500
-                                                                        00057600
-            EXEC SQL                                                    00057700
-              DECLARE ITEM_CURSOR CURSOR                                00057800
-              FOR                                                       00057900
-              SELECT SALDO,                                             00058000
-                     TIPCUEN,                                           00058100
-                     NROCUEN,                                           00058200
-                     SUCUEN                                             00058300
-                                                                        00058400
-                 FROM  KC02787.TBCURCTA                                 00058500
-                  WHERE TIPCUEN < '3'                                   00058602
-                  ORDER BY SUCUEN ASC, TIPCUEN DESC                     00058700
-            END-EXEC.                                                   00058800
-                                                                        00058900
-       77  FILLER        PIC X(26) VALUE '* FINAL  WORKING-STORAGE *'.  00059000
-                                                                        00059100
-      ***************************************************************.  00059200
-       PROCEDURE DIVISION.                                              00059300
-      **************************************                            00059400
-      *                                    *                            00059500
-      *  CUERPO PRINCIPAL DEL PROGRAMA     *                            00059600
-      *                                    *                            00059700
-      **************************************                            00059800
-       MAIN-PROGRAM.                                                    00059900
-                                                                        00060000
-           PERFORM 1000-I-INICIO   THRU                                 00060100
-                   1000-F-INICIO.                                       00060200
-                                                                        00060300
-           PERFORM 2000-I-PROCESO  THRU                                 00060400
-                   2000-F-PROCESO        UNTIL WS-FIN-PROCESO.          00060500
-                                                                        00060600
-           PERFORM 9999-I-FINAL    THRU                                 00060700
-                   9999-F-FINAL.                                        00060800
-                                                                        00060900
-       F-MAIN-PROGRAM. GOBACK.                                          00061000
-                                                                        00061100
-      **************************************                            00061200
-      *                                    *                            00061300
-      *  CUERPO INICIO APERTURA ARCHIVOS   *                            00061400
-      *                                    *                            00061500
-      **************************************                            00061600
-       1000-I-INICIO.                                                   00061700
-           SET WS-SI-PROCESO TO TRUE.                                   00061800
-                                                                        00072400
-           OPEN OUTPUT SALIDA.                                          00072500
-           IF WS-CODE-SAL    IS NOT EQUAL '00'                          00072600
-              DISPLAY '* ERROR EN OPEN SALIDA  = ' WS-CODE-SAL          00072700
-              MOVE 9999 TO RETURN-CODE                                  00072800
-              SET  WS-FIN-PROCESO TO TRUE                               00072900
-           END-IF.                                                      00073000
-                                                                        00074000
-           WRITE REG-SALIDA     FROM WS-TITULO.                         00075000
-           IF WS-CODE-SAL    IS NOT EQUAL '00'                          00075100
-              DISPLAY '* ERROR EN WRITE SALIDA  = ' WS-CODE-SAL         00075200
-              MOVE 9999 TO RETURN-CODE                                  00075300
-              SET  WS-FIN-PROCESO TO TRUE                               00075400
-           END-IF.                                                      00075500
-                                                                        00075600
-           EXEC SQL                                                     00075700
-              OPEN ITEM_CURSOR                                          00075800
-           END-EXEC.                                                    00075900
-                                                                        00076000
-           IF SQLCODE NOT EQUAL ZEROS                                   00076100
-              MOVE SQLCODE   TO WS-SQLCODE                              00076200
-              DISPLAY '* ERROR OPEN CURSOR      = ' WS-SQLCODE          00076300
-              MOVE 9999 TO RETURN-CODE                                  00076400
-              SET  WS-FIN-PROCESO TO TRUE                               00076500
-           END-IF.                                                      00076600
-                                                                        00076700
-                                                                        00076900
-       1000-F-INICIO.   EXIT.                                           00077000
-                                                                        00077100
-      **************************************                            00077500
-      *                                    *                            00077600
-      *  CUERPO PRINCIPAL DEL PROGRAMA     *                            00077700
-      *                                    *                            00077800
-      **************************************                            00077900
-       2000-I-PROCESO.                                                  00078000
-                                                                        00079000
-           EXEC SQL                                                     00081300
-              FETCH  ITEM_CURSOR                                        00081400
-                     INTO                                               00081500
-                        :DCLTBCURCTA.SALDO,                             00081601
-                        :DCLTBCURCTA.TIPCUEN,                           00081701
-                        :DCLTBCURCTA.NROCUEN,                           00081801
-                        :DCLTBCURCTA.SUCUEN                             00081901
-           END-EXEC.                                                    00082000
-                                                                        00082100
-                                                                        00082200
-           EVALUATE TRUE                                                00082300
-             WHEN SQLCODE EQUAL ZEROS                                   00082400
-                DISPLAY 'ACCESO DB2 OK '                                00082500
-                MOVE SALDO   TO REG-SALDO                               00082600
-                MOVE TIPCUEN TO REG-TIPCUEN                             00082700
-                MOVE NROCUEN TO REG-NROCUEN                             00082800
-                MOVE SUCUEN  TO REG-SUCUEN                              00082900
-                PERFORM 3000-I-GRABAR          THRU                     00083000
-                        3000-F-GRABAR                                   00083100
-                                                                        00083200
-             WHEN SQLCODE EQUAL +100                                    00083300
-                SET WS-FIN-PROCESO TO TRUE                              00083400
-                                                                        00083500
-             WHEN OTHER                                                 00083600
-                MOVE SQLCODE TO WS-SQLCODE                              00083700
-                DISPLAY 'ERROR FETCH CURSOR: '   WS-SQLCODE             00083800
-                SET WS-FIN-PROCESO TO TRUE                              00083900
-           END-EVALUATE.                                                00084000
-                                                                        00084100
-       2000-F-PROCESO. EXIT.                                            00085000
-                                                                        00085100
-      **************************************                            00085200
-      *                                    *                            00085300
-      *  GRABAR SALIDA                     *                            00085400
-      *                                    *                            00085500
-      **************************************                            00086000
-       3000-I-GRABAR.                                                   00087000
-                                                                        00088000
-           WRITE REG-SALIDA     FROM WS-REG-SALIDA.                     00089000
-           ADD  1      TO  WS-TOT-GRABADOS.                             00089100
-                                                                        00090000
-       3000-F-GRABAR.   EXIT.                                           00090100
-                                                                        00090200
-                                                                        00090900
-      **************************************                            00091000
-      *                                    *                            00091100
-      *  CUERPO FINAL CIERRE DE FILES      *                            00091200
-      *                                    *                            00091300
-      **************************************                            00091400
-       9999-I-FINAL.                                                    00091500
-           EXEC SQL                                                     00091600
-              CLOSE ITEM_CURSOR                                         00091700
-           END-EXEC.                                                    00091800
-                                                                        00091900
-           IF SQLCODE NOT EQUAL ZEROS                                   00092000
-              MOVE SQLCODE TO WS-SQLCODE                                00092100
-              DISPLAY '* ERROR CLOSE CURSOR      = ' WS-SQLCODE         00092200
-              MOVE 9999 TO RETURN-CODE                                  00092300
-           END-IF.                                                      00092500
-                                                                        00092600
-                                                                        00093000
-           CLOSE SALIDA                                                 00093300
-              IF WS-CODE-SAL  IS NOT EQUAL '00'                         00093400
-                DISPLAY '* ERROR EN CLOSE SALIDA  = '                   00093500
-                                            WS-CODE-SAL                 00093600
-                MOVE 9999 TO RETURN-CODE                                00093700
-             END-IF.                                                    00093900
-                                                                        00094000
-      **************************************                            00094100
-      *   MOSTRAR TOTALES DE CONTROL                                    00094200
-      **************************************                            00094300
-                                                                        00094400
-           DISPLAY 'TOTAL GRABADOS: '    WS-TOT-GRABADOS.               00094500
-                                                                        00094900
-       9999-F-FINAL.                                                    00095000
-           EXIT.                                                        00096000
-      *                                                                 00097000
+       IDENTIFICATION DIVISION.
+      *                                                        *
+       PROGRAM-ID. PGMDB22.
+      **********************************************************
+      *                                                        *
+      *  PROGRAMA PARA SQL EMBEBIDO                            *
+      *                                                        *
+      **********************************************************
+      *      MANTENIMIENTO DE PROGRAMA                         *
+      **********************************************************
+      *  FECHA   *    DETALLE        * COD *
+      **************************************
+      *          *                   *     *
+      *          *                   *     *
+      **************************************
+       ENVIRONMENT DIVISION.
+       CONFIGURATION SECTION.
+       SPECIAL-NAMES.
+           DECIMAL-POINT IS COMMA.
+
+       INPUT-OUTPUT SECTION.
+       FILE-CONTROL.
+
+             SELECT SALIDA  ASSIGN DDSALE
+             FILE STATUS IS WS-CODE-SAL.
+
+       DATA DIVISION.
+       FILE SECTION.
+       FD SALIDA
+             BLOCK CONTAINS 0 RECORDS
+             RECORDING MODE IS F.
+
+       01 REG-SALIDA      PIC X(80).
+
+      **************************************
+       WORKING-STORAGE SECTION.
+      **************************************
+       77  FILLER        PIC X(26) VALUE '* INICIO WORKING-STORAGE *'.
+
+       77  WS-CODE-SAL      PIC XX    VALUE SPACES.
+       77  WS-TOT-GRABADOS  PIC 9(3)  VALUE ZEROS.
+       01  WS-FLAG-FIN      PIC X.
+           88  WS-SI-PROCESO      VALUE ' '.
+           88  WS-FIN-PROCESO     VALUE 'F'.
+
+       01 WS-TITULO.
+          03  FILLER               PIC X(10)    VALUE SPACES.
+          03  FILLER               PIC X(53)    VALUE
+           ' SALDO         TIPCUEN       NROCUEN     SUCURSAL    '.
+          03  FILLER               PIC X(17)    VALUE SPACES.
+
+
+      *****************************************
+      *         LAYOUT TABLA CUENTAS          *
+      *                                       *
+      *****************************************
+       01 WS-REG-SALIDA.
+
+           03  FILLER              PIC X(10)     VALUE SPACES.
+           03  REG-TIPCUEN         PIC 9(02)     VALUE ZEROS.
+           03  REG-NROCUEN         PIC 9(05)     VALUE ZEROS.
+           03  FILLER              PIC X(05)     VALUE SPACES.
+           03  REG-SUCUEN          PIC 9(02)     VALUE ZEROS.
+           03  FILLER              PIC X(05)     VALUE SPACES.
+           03  REG-NROCLI          PIC 9(03)     VALUE ZEROS.
+           03  FILLER              PIC X(05)     VALUE SPACES.
+           03  REG-SALDO           PIC -Z(09).99 VALUE ZEROS.
+           03  FILLER              PIC X(05)     VALUE SPACES.
+           03  REG-FECSAL          PIC X(08)     VALUE SPACES.
+           03  FILLER              PIC X(07)     VALUE SPACES.
+
+       77  FILLER        PIC X(26) VALUE '* VARIABLES SQL          *'.
+       77  WS-SQLCODE    PIC +++999 USAGE DISPLAY VALUE ZEROS.
+
+            EXEC SQL
+              INCLUDE SQLCA
+            END-EXEC.
+
+            EXEC SQL
+              INCLUDE TBCURCTA
+            END-EXEC.
+
+            EXEC SQL
+              DECLARE ITEM_CURSOR CURSOR
+              FOR
+              SELECT SALDO,
+                     TIPCUEN,
+                     NROCUEN,
+                     SUCUEN
+
+                 FROM  KC02787.TBCURCTA
+                  WHERE TIPCUEN < '3'
+                  ORDER BY SUCUEN ASC, TIPCUEN DESC
+            END-EXEC.
+
+       77  FILLER        PIC X(26) VALUE '* FINAL  WORKING-STORAGE *'.
+
+      ***************************************************************.
+       PROCEDURE DIVISION.
+      **************************************
+      *                                    *
+      *  CUERPO PRINCIPAL DEL PROGRAMA     *
+      *                                    *
+      **************************************
+       MAIN-PROGRAM.
+
+           PERFORM 1000-I-INICIO   THRU
+                   1000-F-INICIO.
+
+           PERFORM 2000-I-PROCESO  THRU
+                   2000-F-PROCESO        UNTIL WS-FIN-PROCESO.
+
+           PERFORM 9999-I-FINAL    THRU
+                   9999-F-FINAL.
+
+       F-MAIN-PROGRAM. GOBACK.
+
+      **************************************
+      *                                    *
+      *  CUERPO INICIO APERTURA ARCHIVOS   *
+      *                                    *
+      **************************************
+       1000-I-INICIO.
+           SET WS-SI-PROCESO TO TRUE.
+
+           OPEN OUTPUT SALIDA.
+           IF WS-CODE-SAL    IS NOT EQUAL '00'
+              DISPLAY '* ERROR EN OPEN SALIDA  = ' WS-CODE-SAL
+              MOVE 9999 TO RETURN-CODE
+              SET  WS-FIN-PROCESO TO TRUE
+           END-IF.
+
+           WRITE REG-SALIDA     FROM WS-TITULO.
+           IF WS-CODE-SAL    IS NOT EQUAL '00'
+              DISPLAY '* ERROR EN WRITE SALIDA  = ' WS-CODE-SAL
+              MOVE 9999 TO RETURN-CODE
+              SET  WS-FIN-PROCESO TO TRUE
+           END-IF.
+
+           EXEC SQL
+              OPEN ITEM_CURSOR
+           END-EXEC.
+
+           IF SQLCODE NOT EQUAL ZEROS
+              MOVE SQLCODE   TO WS-SQLCODE
+              DISPLAY '* ERROR OPEN CURSOR      = ' WS-SQLCODE
+              MOVE 9999 TO RETURN-CODE
+              SET  WS-FIN-PROCESO TO TRUE
+           END-IF.
+
+
+       1000-F-INICIO.   EXIT.
+
+      **************************************
+      *                                    *
+      *  CUERPO PRINCIPAL DEL PROGRAMA     *
+      *                                    *
+      **************************************
+       2000-I-PROCESO.
+
+           EXEC SQL
+              FETCH  ITEM_CURSOR
+                     INTO
+                        :DCLTBCURCTA.WT-SALDO,
+                        :DCLTBCURCTA.WT-TIPCUEN,
+                        :DCLTBCURCTA.WT-NROCUEN,
+                        :DCLTBCURCTA.WT-SUCUEN
+           END-EXEC.
+
+
+           EVALUATE TRUE
+             WHEN SQLCODE EQUAL ZEROS
+                DISPLAY 'ACCESO DB2 OK '
+                MOVE WT-SALDO   TO REG-SALDO
+                MOVE WT-TIPCUEN TO REG-TIPCUEN
+                MOVE WT-NROCUEN TO REG-NROCUEN
+                MOVE WT-SUCUEN  TO REG-SUCUEN
+                PERFORM 3000-I-GRABAR 
+                   THRU 3000-F-GRABAR
+
+             WHEN SQLCODE EQUAL +100
+                SET WS-FIN-PROCESO TO TRUE
+
+             WHEN OTHER
+                MOVE SQLCODE TO WS-SQLCODE
+                DISPLAY 'ERROR FETCH CURSOR: '   WS-SQLCODE
+                SET WS-FIN-PROCESO TO TRUE
+           END-EVALUATE.
+
+       2000-F-PROCESO. EXIT.
+
+      **************************************
+      *                                    *
+      *  GRABAR SALIDA                     *
+      *                                    *
+      **************************************
+       3000-I-GRABAR.
+
+           WRITE REG-SALIDA     FROM WS-REG-SALIDA.
+           ADD  1      TO  WS-TOT-GRABADOS.
+
+       3000-F-GRABAR.   EXIT.
+
+
+      **************************************
+      *                                    *
+      *  CUERPO FINAL CIERRE DE FILES      *
+      *                                    *
+      **************************************
+       9999-I-FINAL.
+           EXEC SQL
+              CLOSE ITEM_CURSOR
+           END-EXEC.
+
+           IF SQLCODE NOT EQUAL ZEROS
+              MOVE SQLCODE TO WS-SQLCODE
+              DISPLAY '* ERROR CLOSE CURSOR      = ' WS-SQLCODE
+              MOVE 9999 TO RETURN-CODE
+           END-IF.
+
+
+           CLOSE SALIDA
+              IF WS-CODE-SAL  IS NOT EQUAL '00'
+                DISPLAY '* ERROR EN CLOSE SALIDA  = '
+                                            WS-CODE-SAL
+                MOVE 9999 TO RETURN-CODE
+             END-IF.
+
+      **************************************
+      *   MOSTRAR TOTALES DE CONTROL
+      **************************************
+
+           DISPLAY 'TOTAL GRABADOS: '    WS-TOT-GRABADOS.
+
+       9999-F-FINAL.
+           EXIT.
+      *

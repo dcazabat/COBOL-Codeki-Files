@@ -1,0 +1,151 @@
+       IDENTIFICATION DIVISION.
+        PROGRAM-ID PGMDB210.
+      **************************************
+      *                                    *
+      *  PROGRAMA DE PRUEBA DE COMPILADOR  *
+      *  A SU VEZ SIRVE COMO MODELO DB2    *
+      *                                    *
+      **************************************
+       ENVIRONMENT DIVISION.
+       INPUT-OUTPUT SECTION.
+       FILE-CONTROL.
+             SELECT SALIDA  ASSIGN DDSALID
+                    FILE STATUS IS WS-SAL-CODE.
+       DATA DIVISION.
+       FILE SECTION.
+       FD SALIDA
+            BLOCK CONTAINS 0 RECORDS
+            RECORDING MODE IS F.
+       01 REG-SALIDA     PIC X(80).
+
+       WORKING-STORAGE SECTION.
+
+       77  FILLER        PIC X(26) VALUE '* INICIO WORKING-STORAGE *'.
+       77  FILLER        PIC X(26) VALUE '* CODIGOS RETORNO FILES  *'.
+       77  NOT-FOUND     PIC S9(9) COMP VALUE  +100.
+       77  WS-SQLCODE    PIC S9(09) VALUE ZEROS.
+       77  WS-SAL-CODE   PIC XX    VALUE SPACES.
+       77  FILLER        PIC X(26) VALUE '* DESCRIPCION SQLCA      *'.
+
+      *****************************************************
+      * LAYOUT DEL REGISTRO DE CUENTAS                    *
+      *****************************************************
+           EXEC SQL  INCLUDE TBCURCTA   END-EXEC.
+
+      *****************************************************
+      * LAYOUT DEL REGISTRO DE CLIENTES                   *
+      *****************************************************
+           EXEC SQL  INCLUDE TBCURCLI   END-EXEC.
+
+       77  FILLER        PIC X(26) VALUE '* LAYOUT SALIDA TITULOS  *'.
+       01  WS-TITULOS.
+           02 FILLER     PIC X(6)   VALUE 'PROYNO'.
+           02 FILLER     PIC X(26)  VALUE '   DESCRIPCION PROYECTO   '.
+           02 FILLER     PIC X(8)   VALUE '    HORA'.
+
+       01  FILLER        PIC X(26) VALUE '* LAYOUT SALIDA DETALLE  *'.
+       01  WS-DETALLE.
+           02 WS-SAL-NUM PIC X(5)   VALUE SPACES.
+           02 FILLER     PIC X      VALUE SPACES.
+           02 WS-SAL-DES PIC X(30)  VALUE SPACES.
+           02 FILLER     PIC X      VALUE SPACES.
+           02 WS-SAL-HOR    PIC X(3)   VALUE SPACES.
+
+       77 WS-REG-SALIDA     PIC X(80).
+
+      *****************************************************
+      * SQLCA COMMUNICATION AREA CON EL DB2               *
+      *****************************************************
+           EXEC SQL INCLUDE SQLCA  END-EXEC.
+
+       01  FILLER        PIC X(26) VALUE '* FINAL  WORKING-STORAGE *'.
+      *****************************************************
+       PROCEDURE DIVISION.
+      **************************************
+      *                                    *
+      *  CUERPO PRINCIPAL DEL PROGRAMA     *
+      *                                    *
+      **************************************
+       0000-MAIN-PROCESS.
+
+           PERFORM 1000-INICIO  THRU F-1000-INICIO.
+
+           PERFORM 2000-PROCESO THRU F-2000-PROCESO.
+
+           PERFORM 9999-FINAL   THRU F-9999-FINAL.
+
+           GOBACK.
+
+      **************************************
+      *                                    *
+      *  CUERPO INICIO APERTURA FILES      *
+      *                                    *
+      **************************************
+       1000-INICIO.
+           OPEN OUTPUT SALIDA.
+
+           IF WS-SAL-CODE IS NOT EQUAL '00'
+              DISPLAY '* ERROR EN OPEN SALIDA  = ' WS-SAL-CODE
+              MOVE 3333 TO RETURN-CODE
+              PERFORM 9999-FINAL THRU F-9999-FINAL
+           END-IF.
+
+           MOVE WS-TITULOS TO WS-REG-SALIDA.
+           WRITE REG-SALIDA FROM WS-REG-SALIDA.
+
+           IF WS-SAL-CODE IS NOT EQUAL '00'
+              DISPLAY '* ERROR EN WRITE SALIDA TITULOS  = ' WS-SAL-CODE
+              MOVE 3333 TO RETURN-CODE
+              PERFORM 9999-FINAL THRU F-9999-FINAL
+           END-IF.
+
+       F-1000-INICIO. EXIT.
+
+      **************************************
+      *                                    *
+      *  CUERPO PRINCIPAL DE PROCESOS      *
+      *  LECTURA TABLA TBCURCTA            *
+      *  GRABACION SALIDA CON LOS CAMPOS   *
+      *            NROCLI                  *
+      *                                    *
+      **************************************
+       2000-PROCESO.
+      *****************************************************
+      * LISTAR EL PRIMER PROYECTO DE LA INSTALACION       *
+      *****************************************************
+                EXEC SQL SELECT TIPCUEN, NROCUEN, NROCLI
+                     INTO :WT-TIPCUEN, :WT-NROCUEN, :WT-NROCLI
+                     FROM KC02787.TBCURCTA
+                     WHERE  NROCLI = 123
+                END-EXEC.
+
+                IF SQLCODE = NOT-FOUND
+                   DISPLAY 'TABLA    VAC�A: '
+                ELSE
+                    IF SQLCODE = 0
+                      DISPLAY 'NROCLI   = ' WT-NROCLI
+                      MOVE WS-DETALLE  TO WS-REG-SALIDA
+                      WRITE REG-SALIDA FROM WS-REG-SALIDA
+                    ELSE
+                      MOVE SQLCODE TO WS-SQLCODE
+                      DISPLAY 'ERROR DB2 '  WS-SQLCODE
+                    END-IF
+                END-IF.
+
+       F-2000-PROCESO. EXIT.
+
+      **************************************
+      *                                    *
+      *  CUERPO FINAL CIERRE DE SALIDA     *
+      *                                    *
+      **************************************
+       9999-FINAL.
+           CLOSE SALIDA.
+
+           IF WS-SAL-CODE IS NOT EQUAL '00'
+              DISPLAY '* ERROR EN CLOSE SALIDA  = ' WS-SAL-CODE
+              MOVE 9999 TO RETURN-CODE
+           END-IF.
+
+       F-9999-FINAL.  EXIT.
+

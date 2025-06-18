@@ -1,0 +1,86 @@
+      ******************************************************************
+      * COPY DE ARCHIVO DE NOVEDADES (SIN VALIDAR) DE CLIENTES         *
+      *                                                                *
+      * LARGO REGISTRO 242 BYTES                                       *
+      *                                                                *
+      * NOMBRE FISICO KC03XXX.NOVECLI                                  *
+      *                                                                *
+      *   INTEGRIDAD REFERENCIAL CON CUENTAS A TRAVˆS DE NRO CLIENTE   *
+      ******************************************************************
+       01  WN-TBCLIE.
+      *    *************************************************************
+      *                       TIPO_NOVEDAD
+      *    VALIDO = AL
+           10 WN-CLI-TIPO-NOVEDAD
+              PIC X(2).
+      *    *************************************************************
+
+      *    *************************************************************
+      *                       TIPO_DOCUMENTO
+      *    VALIDOS = DU, PA, LE, LC
+           10 WN-CLI-TIPO-DOCUMENTO
+              PIC X(2).
+      *    *************************************************************
+      *                       NRO_DOCUMENTO
+      *    DOS PRIMEROS D²GITOS =NRO ALUMNO
+      *    SIGUIENTES 9    DIGITOS = NRO ASCENDENTE A PARTIR DE 1 POR
+      *    CADA REGISTRO DADO DE ALTA
+           10 WN-CLI-NRO-DOCUMENTO
+              PIC  9(11).
+      *    *************************************************************
+      *                       NRO_CLIENTE
+      *    DOS PRIMEROS D²GITOS =NRO ALUMNO
+      *    SIGUIENTES 3    DIGITOS = NRO ASCENDENTE A PARTIR DE 1 POR
+      *    CADA REGISTRO DADO DE ALTA
+           10 WN-CLI-NRO-CLIENTE   PIC  9(5).
+      *    *************************************************************
+      *                       NOMBRE_CLIENTE
+           10 WN-CLI-NOMBRE-CLIENTE
+              PIC X(30).
+      *    *************************************************************
+      *                       APELLIDO_CLIENTE
+           10 WN-CLI-APELLIDO-CLIENTE
+              PIC X(30).
+      *    *************************************************************
+      *                       DOMICILIO
+           10 WN-CLI-DOMICILIO     PIC X(30).
+      *    *************************************************************
+      *                       CIUDAD
+           10 WN-CLI-CIUDAD        PIC X(30).
+      *    *************************************************************
+      *                       CODIGO_POSTAL
+           10 WN-CLI-CODIGO-POSTAL
+              PIC X(8).
+      *    *************************************************************
+      *                       NACIONALIDAD
+           10 WN-CLI-NACIONALIDAD  PIC X(30).
+      *    *************************************************************
+      *                       FECHA_DE_ALTA
+      *    FORMATO AAAA/MM/DD
+           10 WN-CLI-FECHA-DE-ALTA
+              PIC X(10).
+      *    *************************************************************
+      *                       FECHA_DE_BAJA
+           10 WN-CLI-FECHA-DE-BAJA
+      *    FORMATO AAAA/MM/DD
+              PIC X(10).
+      *    *************************************************************
+      *                       ESTADO_CIVIL
+      *    VALIDOS: SO; VI; CA; DI; UC
+           10 WN-CLI-ESTADO-CIVIL  PIC X(2).
+      *    *************************************************************
+      *                       SEXO
+      *    VALIDOS: F ; M ; O ;
+           10 WN-CLI-SEXO          PIC X(2).
+      *    *************************************************************
+      *                       CORREO_ELECTRONICO
+           10 WN-CLI-CORREO-ELECTRONICO
+              PIC X(30).
+      *    *************************************************************
+      *                       FECHA_NACIMIENTO
+           10 WN-CLI-FECHA-NACIMIENTO
+      *    FORMATO AAAA/MM/DD
+              PIC X(10).
+      ******************************************************************
+      * THE NUMBER OF COLUMNS DESCRIBED BY THIS DECLARATION IS 15      *
+      ******************************************************************

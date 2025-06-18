@@ -1,0 +1,20 @@
+//ALUXXXXB JOB CLASS=A,MSGCLASS=O,MSGLEVEL=(1,1),NOTIFY=&SYSUID         00010015
+//JOBLIB  DD  DSN=DSN910.SDSNLOAD,DISP=SHR                              00020002
+//STEP1   EXEC PGM=IKJEFT01,DYNAMNBR=20,COND=(4,LT)                     00030002
+//****************************************************                  00031012
+//*                                                  *                  00032016
+//* DBRMLIB  DD  DSN=ALUMLIB.CURSOS.DBRMLIB,DISP=SHR *                  00033012
+//*                                                  *                  00034016
+//****************************************************                  00035012
+//DBRMLIB  DD  DSN=ALUXXXX.CURSOS.DBRMLIB,DISP=SHR                      00036015
+//SYSTSPRT DD SYSOUT=*                                                  00040002
+//SYSTSIN  DD *                                                         00050002
+  DSN SYSTEM(DB9G)                                                      00060002
+  RUN  PROGRAM(DSNTIAD) PLAN(DSNTIA91) -                                00070002
+       LIB('DSN910.DB9G.RUNLIB.LOAD')                                   00080002
+  BIND PLAN(PGMDB2XX) MEMBER(PBMDB2XX) +                                00081015
+      CURRENTDATA(NO) ACT(REP) ISO(CS) ENCODING(EBCDIC)                 00082005
+  END                                                                   00085007
+//SYSPRINT DD SYSOUT=*                                                  00090002
+//SYSUDUMP DD SYSOUT=*                                                  00100002
+//SYSIN    DD *                                                         00110002
