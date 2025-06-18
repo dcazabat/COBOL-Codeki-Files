@@ -13,14 +13,11 @@ propertyGroups:
       - name: syslocallib
         type: local
         locations:
-          - './copylib'
-          - './'
+          - '**/copylib'
+          - '**/DCLGEN'
           - './src/copylib'
       - name: syslib
         type: mvs
         locations:
+          - 'KC03C7C.CURSOS.DCLGEN'
           - 'KC03C7C.CURSOS.COPYLIB'
-      - name: alicelib
-        type: mvs
-        locations:
-          - 'KC02788.ALU9999.COPYLIB'
