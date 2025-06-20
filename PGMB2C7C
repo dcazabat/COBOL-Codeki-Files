@@ -41,6 +41,17 @@
            COPY TBVCLIEN.
 
        WORKING-STORAGE SECTION.
+      * Variables de fecha y hora
+       01  WS-CURRENT-DATE.
+           05 WS-DATE.
+              10 WS-YEAR              PIC 9(4).
+              10 WS-MONTH             PIC 9(2).
+              10 WS-DAY               PIC 9(2).
+           05 WS-TIME.
+              10 WS-HOUR              PIC 9(2).
+              10 WS-MINUTE            PIC 9(2).
+              10 WS-SECOND            PIC 9(2).
+              10 WS-HUNDREDTH         PIC 9(2).
       * Variables de control
        01  WS-STATUS.
            05 SW-FS-ENTRADA           PIC X(02).
@@ -52,6 +63,12 @@
               10 WS-LEIDOS        PIC 9(06) VALUE ZEROS.
               10 WS-INSERTADOS    PIC 9(06) VALUE ZEROS.
               10 WS-ERRORES       PIC 9(06) VALUE ZEROS.
+
+       01  WS-HEADERS.
+           05 WS-HEAD1             PIC X(50) VALUE ALL '*'.
+           05 WS-HEAD2             PIC X(50) VALUE 
+              'LISTADO DE NOVEDADES DE CLIENTES'.
+           05 WS-HEAD3             PIC X(50) VALUE ALL '-'.
 
       * DCLGEN de la tabla
            EXEC SQL INCLUDE TBCURCLI END-EXEC.
@@ -67,6 +84,19 @@
 
        1000-INICIO.
            INITIALIZE WS-CONTADORES
+
+           *> Obtener fecha y hora actual
+           *> y formatear para visualización
+           MOVE FUNCTION CURRENT-DATE TO WS-CURRENT-DATE
+           DISPLAY WS-HEAD1 
+           DISPLAY WS-HEAD2
+           DISPLAY 'FECHA DE EJECUCION: ' 
+              WS-YEAR '/' WS-MONTH '/' WS-DAY
+           DISPLAY 'HORA DE EJECUCION:  ' 
+              WS-HOUR ':' WS-MINUTE ':' WS-SECOND
+           DISPLAY WS-HEAD1 
+
+           *> Abrir archivo de entrada
            OPEN INPUT ENTRADA
            IF NOT SW-FS-OK
               DISPLAY 'ERROR AL ABRIR ARCHIVO DE ENTRADA: ' 
@@ -134,11 +164,12 @@
 |
        3000-FINAL.
            CLOSE ENTRADA
-           DISPLAY '----------------------------------------'
+           DISPLAY WS-HEAD1
+           DISPLAY WS-HEAD3
            DISPLAY 'RESUMEN DEL PROCESAMIENTO'
-           DISPLAY '----------------------------------------'
+           DISPLAY WS-HEAD3
            DISPLAY 'CANTIDAD NOVEDADES LEIDAS     : ' WS-LEIDOS
            DISPLAY 'CANTIDAD NOVEDADES INSERTADAS : ' WS-INSERTADOS
            DISPLAY 'CANTIDAD NOVEDADES ERRONEAS   : ' WS-ERRORES
-           DISPLAY '----------------------------------------'.
+           DISPLAY WS-HEAD3.
 

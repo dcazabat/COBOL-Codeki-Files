@@ -3,11 +3,6 @@
 //***************************************************************
 //* EJECUCIÓN DEL PROGRAMA DE INSERCIÓN DE CLIENTES             *
 //***************************************************************
-//STEP1    EXEC PGM=IDCAMS,COND=(8,LT)
-//SYSPRINT DD SYSOUT=*
-//SYSIN    DD *
-     DELETE   KC03C7C.CURSOS.SPOOL.PGMB2C7C
-     SET MAXCC=0
 //STEP12   EXEC PGM=IKJEFT01,DYNAMNBR=20
 //SYSTSPRT DD SYSOUT=*
 //NOVECLI  DD DSN=KC03C7C.NOVECLI.KSDS.VSAM,DISP=SHR
@@ -18,7 +13,7 @@
   END
 //SYSOUT   DD DSN=KC03C7C.CURSOS.SPOOL.PGMB2C7C,
 //            DCB=(LRECL=133,BLKSIZE=1330,RECFM=FBA),
-//            SPACE=(TRK,(1,1),RLSE),DISP=(,CATLG)
+//            SPACE=(TRK,(1,1),RLSE),DISP=(MOD,CATLG,KEEP)
 //SYSPRINT DD SYSOUT=*
 //SYSUDUMP DD SYSOUT=*
 /*
