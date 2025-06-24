@@ -1,5 +1,5 @@
        IDENTIFICATION DIVISION.
-       PROGRAM-ID. PGMB2C7C.
+       PROGRAM-ID. PGMDB227.
        AUTHOR.        D. CAZABAT.
        INSTALLATION.  CURSO CODEKI.
        DATE-WRITTEN.  20/06/2025.
@@ -91,7 +91,7 @@
            DISPLAY WS-HEAD1 
            DISPLAY WS-HEAD2
            DISPLAY 'FECHA DE EJECUCION: ' 
-              WS-YEAR '/' WS-MONTH '/' WS-DAY
+              WS-YEAR '-' WS-MONTH '-' WS-DAY
            DISPLAY 'HORA DE EJECUCION:  ' 
               WS-HOUR ':' WS-MINUTE ':' WS-SECOND
            DISPLAY WS-HEAD1 

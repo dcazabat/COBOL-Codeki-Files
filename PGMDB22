@@ -1,3 +1,4 @@
+       CBL TEST
        IDENTIFICATION DIVISION.
       *                                                        *
        PROGRAM-ID. PGMDB22.
@@ -64,7 +65,7 @@
            03  FILLER              PIC X(05)     VALUE SPACES.
            03  REG-NROCLI          PIC 9(03)     VALUE ZEROS.
            03  FILLER              PIC X(05)     VALUE SPACES.
-           03  REG-SALDO           PIC -Z(09).99 VALUE ZEROS.
+           03  REG-SALDO           PIC -Z(09).99   VALUE ZEROS.
            03  FILLER              PIC X(05)     VALUE SPACES.
            03  REG-FECSAL          PIC X(08)     VALUE SPACES.
            03  FILLER              PIC X(07)     VALUE SPACES.
@@ -161,22 +162,22 @@
            EXEC SQL
               FETCH  ITEM_CURSOR
                      INTO
-                        :DCLTBCURCTA.WT-SALDO,
-                        :DCLTBCURCTA.WT-TIPCUEN,
-                        :DCLTBCURCTA.WT-NROCUEN,
-                        :DCLTBCURCTA.WT-SUCUEN
+                        :DCLTBCURCTA.SALDO,
+                        :DCLTBCURCTA.TIPCUEN,
+                        :DCLTBCURCTA.NROCUEN,
+                        :DCLTBCURCTA.SUCUEN
            END-EXEC.
 
 
            EVALUATE TRUE
              WHEN SQLCODE EQUAL ZEROS
                 DISPLAY 'ACCESO DB2 OK '
-                MOVE WT-SALDO   TO REG-SALDO
-                MOVE WT-TIPCUEN TO REG-TIPCUEN
-                MOVE WT-NROCUEN TO REG-NROCUEN
-                MOVE WT-SUCUEN  TO REG-SUCUEN
-                PERFORM 3000-I-GRABAR 
-                   THRU 3000-F-GRABAR
+                MOVE SALDO   TO REG-SALDO
+                MOVE TIPCUEN TO REG-TIPCUEN
+                MOVE NROCUEN TO REG-NROCUEN
+                MOVE SUCUEN  TO REG-SUCUEN
+                PERFORM 3000-I-GRABAR          THRU
+                        3000-F-GRABAR
 
              WHEN SQLCODE EQUAL +100
                 SET WS-FIN-PROCESO TO TRUE

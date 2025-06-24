@@ -1,12 +1,25 @@
        IDENTIFICATION DIVISION.                                         
-        PROGRAM-ID PGMDB201.                                            
-      **************************************                            
-      *                                    *                            
-      *  PROGRAMA DE PRUEBA DE COMPILADOR  *                            
-      *  A SU VEZ SIRVE COMO MODELO DB2    *                            
-      *                                    *                            
-      **************************************                            
-       ENVIRONMENT DIVISION.                                            
+       PROGRAM-ID PGMDB226.    
+       AUTHOR.        D. CAZABAT.
+       INSTALLATION.  CURSO CODEKI.
+       DATE-WRITTEN.  20/06/2025.
+       DATE-COMPILED. 20/06/2025.
+       SECURITY.      UNCLASSIFIED.                                           
+      ********************************************************
+      *                                                      *
+      *  SINCRONICA 26: DB2                                  *
+      *  ============================                        *
+      *                                                      *
+      *  SE MUESTRAN LOS DATOS DEL CLIENTE 10 DESDE UN SQL   *
+      *  EMBEBIDO EN EL PROGRAMA COBOL                       *
+      *                                                      *
+      ********************************************************                       
+       ENVIRONMENT DIVISION.     
+                                                                            
+       CONFIGURATION SECTION.                                           
+       SPECIAL-NAMES.                                                   
+           DECIMAL-POINT IS COMMA.  
+
        INPUT-OUTPUT SECTION.                                            
        FILE-CONTROL.                                                    
              SELECT SALIDA  ASSIGN DDSALID                              
@@ -16,7 +29,7 @@
        FD SALIDA                                                        
             BLOCK CONTAINS 0 RECORDS                                    
             RECORDING MODE IS F.                                        
-       01 REG-SALIDA     PIC X(40).                                     
+       01 REG-SALIDA     PIC X(80).                                     
                                                                         
        WORKING-STORAGE SECTION.                                         
                                                                         
@@ -25,52 +38,36 @@
        77  NOT-FOUND     PIC S9(9) COMP VALUE  +100.                    
        77  WS-SAL-CODE   PIC XX    VALUE SPACES.                        
        77  FILLER        PIC X(26) VALUE '* DESCRIPCION SQLCA      *'.  
-       77  SQLCODE       PIC S9(9) COMP VALUE +0. *> Agregado para DB2
                                                                         
       *****************************************************             
-      * LAYOUT DEL REGISTRO PROYECTO                      *             
+      * LAYOUT DEL REGISTRO DE CUENTAS                    *             
       *****************************************************             
-       01  PROYECTO.                                                    
-           02  PROYNO    PIC X(5).
-           02  PROYNAME  PIC X(30).
-           02  PROYHORA  PIC X(3).
+           EXEC SQL INCLUDE TBCURCTA   END-EXEC.                       
 
-       77  FILLER        PIC X(26) VALUE '* LAYOUT SALIDA TITULOS  *'.
-
+       77  FILLER        PIC X(26)  VALUE '* LAYOUT SALIDA TITULOS  *'.  
        01  WS-TITULOS.                                                  
-           02 FILLER     PIC X(6)   VALUE 'PROYNO'.                     
-           02 FILLER     PIC X(26)  VALUE '   DESCRIPCION PROYECTO   '. 
-           02 FILLER     PIC X(8)   VALUE '    HORA'.                   
-
-       77  FILLER        PIC X(26) VALUE '* LAYOUT SALIDA DETALLE  *'.
-
+           02 FILLER     PIC X(08)  VALUE 'TPCUENTA'.                     
+           02 FILLER     PIC X(16)  VALUE ' NUM CUENTA'. 
+           02 FILLER     PIC X(15)  VALUE ' NUMCLIENTE'.                   
+                                                                        
+       01  FILLER        PIC X(26)  VALUE '* LAYOUT SALIDA DETALLE  *'.  
        01  WS-DETALLE.                                                  
-           02 WS-SAL-NUM PIC X(5)   VALUE SPACES.                       
-           02 FILLER     PIC X      VALUE SPACES.                       
-           02 WS-SAL-DES PIC X(30)  VALUE SPACES.                       
-           02 FILLER     PIC X      VALUE SPACES.                       
-           02 WS-SAL-HOR PIC X(3)   VALUE SPACES.                    
-
-       77  WS-REG-SALIDA PIC X(40).                                  
-
+           02 FILLER             PIC X(03)  VALUE SPACES.                       
+           02 WS-TIPCUEN-EDIT    PIC X(02)  VALUE SPACES.                       
+           02 FILLER             PIC X(02)  VALUE SPACES.                       
+           02 WS-NROCUEN-EDIT    PIC ZZZZ9  VALUE SPACES.                       
+           02 FILLER             PIC X(02)  VALUE SPACES.                       
+           02 WS-NROCLI-EDIT     PIC ZZ9    VALUE SPACES.                    
+                                                                        
+       77 WS-REG-SALIDA     PIC X(80).        
+                                                                        
       *****************************************************             
       * SQLCA COMMUNICATION AREA CON EL DB2               *             
       *****************************************************             
-      *    EXEC SQL INCLUDE SQLCA  END-EXEC.                            
-
-            EXEC SQL                                                    
-              INCLUDE SQLCA                                             
-            END-EXEC.                                                   
-
+           EXEC SQL INCLUDE SQLCA  END-EXEC.                            
+                                                                        
+       01  FILLER        PIC X(26) VALUE '* FINAL  WORKING-STORAGE *'.  
       *****************************************************             
-      * DEFINICION DE TABLA DB2 A LA CUAL SE ACCEDE       *             
-      *****************************************************             
-            EXEC SQL                                                    
-              INCLUDE TBCURCTA                                          
-            END-EXEC.                                                   
-
-       77  FILLER        PIC X(26) VALUE '* FINAL  WORKING-STORAGE *'.  
-
        PROCEDURE DIVISION.                                              
       **************************************                            
       *                                    *                            
@@ -115,46 +112,36 @@
       **************************************                            
       *                                    *                            
       *  CUERPO PRINCIPAL DE PROCESOS      *                            
-      *  LECTURA TABLA PROYECTOS TBAL99PR  *                            
+      *  LECTURA TABLA TBCURCTA            *                            
       *  GRABACION SALIDA CON LOS CAMPOS   *                            
-      *            PROYNO NUMERO DE PROY   *                            
-      *            PROYNAME NOMBRE DEL PROY*                            
-      *            PROYHORA CANT. HORAS    *                            
+      *            NROCLI                  *                            
       *                                    *                            
       **************************************                            
        2000-PROCESO.                                                    
       *****************************************************             
       * LISTAR EL PRIMER PROYECTO DE LA INSTALACION       *             
       *****************************************************             
-      *         EXEC SQL SELECT PROYNO, PROYNAME, PROYHORA              
-      *              INTO :PROYECTO.PROYNO, :PROYECTO.PROYNAME,         
-      *                   :PROYECTO.PROYHORA                            
-      *              FROM OWNER.TBAL99PR                                
-      *                                ONLY 1                           
-      *         END-EXEC.                                               
-                                                                        
-                EXEC SQL SELECT PROYNO, PROYNAME, PROYHORA                      
-                     INTO :PROYECTO.PROYNO, :PROYECTO.PROYNAME,
-                          :PROYECTO.PROYHORA
-                     FROM KC02787.TBCURCTA
-                     FETCH FIRST 1 ROW ONLY                           
-                END-EXEC.                                               
-                                                                        
+                EXEC SQL SELECT TIPCUEN, NROCUEN, NROCLI                
+                     INTO :WT-TIPCUEN, :WT-NROCUEN, :WT-NROCLI          
+                     FROM KC02787.TBCURCTA                              
+                     WHERE NROCLI = 10                           
+                END-EXEC.
+
                 IF SQLCODE = NOT-FOUND                                  
-                   DISPLAY 'PROYECTO VACIO: '                           
+                   DISPLAY 'TABLA VACIA: '                           
                 ELSE                                                    
-                    IF SQLCODE = 0                                      
-                      DISPLAY 'PROYNO   = '    PROYNO                   
-                      DISPLAY 'PROYNAME = '    PROYNAME                 
-                      DISPLAY 'PROYHORA = '    PROYHORA                   
-                      MOVE PROYNO   TO WS-SAL-NUM                       
-                      MOVE PROYNAME TO WS-SAL-DES                       
-                      MOVE PROYHORA TO WS-SAL-HOR                       
+                   IF SQLCODE = 0
+                      MOVE WT-TIPCUEN TO WS-TIPCUEN-EDIT 
+                      MOVE WT-NROCUEN TO WS-NROCUEN-EDIT 
+                      MOVE WT-NROCLI  TO WS-NROCLI-EDIT 
                       MOVE WS-DETALLE  TO WS-REG-SALIDA                 
+                      DISPLAY 'NROCLI   = ' WS-NROCLI-EDIT
+                      DISPLAY 'TIPCUEN  = ' WS-TIPCUEN-EDIT
+                      DISPLAY 'NROCUEN  = ' WS-NROCUEN-EDIT
                       WRITE REG-SALIDA FROM WS-REG-SALIDA               
-                    ELSE                                                
-                         DISPLAY 'ERROR DB2'                            
-                    END-IF                                                  
+                   ELSE                                                
+                      DISPLAY 'ERROR DB2 = ' SQLCODE
+                   END-IF                                                  
                 END-IF.                                                 
                                                                         
        F-2000-PROCESO. EXIT.                                            

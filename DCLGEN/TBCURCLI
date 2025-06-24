@@ -1,4 +1,4 @@
-******************************************************************
+      ******************************************************************
       * DCLGEN TABLE(KC02787.TBCURCLI)                                 *
       *        LIBRARY(KC03C7C.CURSOS.DCLGEN(TBCURCLI))                *
       *        ACTION(REPLACE)                                         *
@@ -20,15 +20,15 @@
       * COBOL DECLARATION FOR TABLE KC02787.TBCURCLI                   *
       ******************************************************************
        01  DCLTBCURCLI.
+      *                       TIPDOC
            10 WS-TIPDOC            PIC X(2).
+      *                       NRODOC
            10 WS-NRODOC            PIC S9(11)V USAGE COMP-3.
+      *                       NROCLI
            10 WS-NROCLI            PIC S9(3)V USAGE COMP-3.
+      *                       NOMAPE
            10 WS-NOMAPE            PIC X(30).
-           10 WS-FECNAC            PIC X(10).
-           10 WS-SEXO              PIC X(1).
-      ******************************************************************
-      * THE NUMBER OF COLUMNS DESCRIBED BY THIS DECLARATION IS 6       *
-      ******************************************************************
+      *                       FECNAC
            10 WS-FECNAC            PIC X(10).
       *                       SEXO
            10 WS-SEXO              PIC X(1).

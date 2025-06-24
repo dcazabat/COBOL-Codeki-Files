@@ -1,0 +1,15 @@
+--
+--    INNER JOIN
+             SELECT A.TIPCUEN,
+                    A.NROCUEN,
+                    A.SUCUEN,
+                    A.NROCLI,
+                    B.NOMAPE,
+                    A.SALDO,
+                    A.FECSAL
+                FROM  KC02787.TBCURCTA A
+                     INNER JOIN
+                       KC02787.TBCURCLI B
+                    ON  A.NROCLI = B.NROCLI
+                    WHERE A.SALDO > 0
+             ;

@@ -1,0 +1,4 @@
+SELECT NAME AS COLUMN_NAME                                              00010002
+FROM SYSIBM.SYSCOLUMNS                                                  00020002
+WHERE TBCREATOR = 'KC02787'                                             00030002
+ORDER BY COLNO;                                                         00050002
