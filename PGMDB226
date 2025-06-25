@@ -122,7 +122,7 @@
       * LISTAR EL PRIMER PROYECTO DE LA INSTALACION       *             
       *****************************************************             
                 EXEC SQL SELECT TIPCUEN, NROCUEN, NROCLI                
-                     INTO :WT-TIPCUEN, :WT-NROCUEN, :WT-NROCLI          
+                     INTO :WS-TIPCUEN, :WS-NROCUEN, :WS-NROCLI          
                      FROM KC02787.TBCURCTA                              
                      WHERE NROCLI = 10                           
                 END-EXEC.
@@ -131,9 +131,9 @@
                    DISPLAY 'TABLA VACIA: '                           
                 ELSE                                                    
                    IF SQLCODE = 0
-                      MOVE WT-TIPCUEN TO WS-TIPCUEN-EDIT 
-                      MOVE WT-NROCUEN TO WS-NROCUEN-EDIT 
-                      MOVE WT-NROCLI  TO WS-NROCLI-EDIT 
+                      MOVE WS-TIPCUEN TO WS-TIPCUEN-EDIT 
+                      MOVE WS-NROCUEN TO WS-NROCUEN-EDIT 
+                      MOVE WS-NROCLI  TO WS-NROCLI-EDIT 
                       MOVE WS-DETALLE  TO WS-REG-SALIDA                 
                       DISPLAY 'NROCLI   = ' WS-NROCLI-EDIT
                       DISPLAY 'TIPCUEN  = ' WS-TIPCUEN-EDIT

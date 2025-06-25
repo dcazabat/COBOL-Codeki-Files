@@ -1,0 +1,296 @@
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. PGMDB228.
+       AUTHOR.        D. CAZABAT.
+       INSTALLATION.  CURSO CODEKI.
+       DATE-WRITTEN.  20/06/2025.
+       DATE-COMPILED. 20/06/2025.
+       SECURITY.      UNCLASSIFIED.                                             
+      ********************************************************
+      *                                                      *
+      *  SINCRONICA 28: DB2                                  *
+      *  ============================                        *
+      *                                                      *
+      *  DEBERÁN GENERAR LISTADO DE CLIENTES CON SALIDA      *
+      *  IMPRESA A UN ARCHIVO, TOMANDO LOS DATOS DESDE UN    *
+      *  CURSOR QUE SE INSERTA DESDE OTRO ARCHIVO.           *
+      *                                                      *
+      ********************************************************
+       ENVIRONMENT DIVISION.
+       CONFIGURATION SECTION.
+       SPECIAL-NAMES.
+           DECIMAL-POINT IS COMMA.
+
+       INPUT-OUTPUT SECTION.
+       FILE-CONTROL.
+             SELECT SALIDA  ASSIGN DDSALE
+             FILE STATUS IS SW-FS-SALIDA.
+
+       DATA DIVISION.
+       FILE SECTION.
+       FD SALIDA
+             BLOCK CONTAINS 0 RECORDS
+             RECORDING MODE IS F.
+
+       01 REG-SALIDA      PIC X(80).
+
+       WORKING-STORAGE SECTION.
+      * Variables de fecha y hora
+       01  WS-CURRENT-DATE.
+           05 WS-DATE.
+              10 WS-YEAR              PIC 9(4).
+              10 WS-MONTH             PIC 9(2).
+              10 WS-DAY               PIC 9(2).
+           05 WS-TIME.
+              10 WS-HOUR              PIC 9(2).
+              10 WS-MINUTE            PIC 9(2).
+              10 WS-SECOND            PIC 9(2).
+              10 WS-HUNDREDTH         PIC 9(2).
+      
+      * Variables de control
+       01  WS-STATUS.
+           05 SW-FS-SALIDA           PIC X(02).
+              88 SW-FS-OK            VALUE '00'.
+              88 SW-FS-EOF           VALUE '10'.
+              88 SW-FS-NOK           VALUE '01' THRU '09'
+                                         '11' THRU '99'.
+       77  WS-TOT-LEIDOS    PIC 9(3)  VALUE ZEROS.
+       77  WS-TOT-GRABADOS  PIC 9(3)  VALUE ZEROS.
+       77  WS-LINEAS-PAG    PIC 99    VALUE ZEROS.
+       01  WS-FLAG-FIN      PIC X.
+           88  WS-SI-PROCESO      VALUE ' '.
+           88  WS-FIN-PROCESO     VALUE 'F'.
+
+       01  WS-FECHA.
+           03  WS-DIA   PIC 99.
+           03  FILLER   PIC X         VALUE '-'.
+           03  WS-MES   PIC 99.
+           03  FILLER   PIC X         VALUE '-'.
+           03  WS-ANIO  PIC 9999.
+
+       01  WS-TITULO-PRINCIPAL.
+           03  FILLER              PIC X(50)     
+               VALUE 'LISTADO DE CLIENTES CON SALDO MAYOR A CERO '.
+           03  FILLER              PIC X(15)     
+               VALUE ' - FECHA:'.
+           03  WS-FECHA-FORM       PIC X(10).
+           03  FILLER              PIC X(20)     VALUE SPACES.
+
+       01  WS-LINEA-GUIONES.
+           03  FILLER              PIC X(80)     VALUE ALL '-'.
+
+       01  WS-TITULO.
+           03  FILLER   PIC X(02)     VALUE '| '.
+           03  FILLER   PIC X(02)     VALUE 'TP'.
+           03  FILLER   PIC X(02)     VALUE SPACES.
+           03  FILLER   PIC X(05)     VALUE 'NRCTA'.
+           03  FILLER   PIC X(02)     VALUE SPACES.
+           03  FILLER   PIC X(05)     VALUE 'SUCUR'.
+           03  FILLER   PIC X(02)     VALUE SPACES.
+           03  FILLER   PIC X(09)     VALUE 'SALDO'.
+           03  FILLER   PIC X(02)     VALUE ' |'.
+
+       01  WS-HEADERS.
+           05 WS-HEAD1             PIC X(50) VALUE ALL '*'.
+           05 WS-HEAD2             PIC X(50) VALUE 
+              'LISTADO DE CLIENTES CON SALDO MAYOR A CERO'.
+           05 WS-HEAD3             PIC X(50) VALUE ALL '-'.
+
+      *****************************************
+      *         LAYOUT TABLA CUENTAS          *
+      *****************************************
+       01 WS-REG-SALIDA.
+           03  FILLER        PIC X(02)      VALUE SPACES.
+           03  REG-TIPCUEN   PIC Z9         VALUE ZEROS.
+           03  FILLER        PIC X(2)       VALUE SPACES.
+           03  REG-NROCUEN   PIC 9(05)      VALUE ZEROS.
+           03  FILLER        PIC X(02)      VALUE SPACES.
+           03  REG-SUCUEN    PIC Z9         VALUE ZEROS.
+           03  FILLER        PIC X(02)      VALUE SPACES.
+           03  REG-SALDO     PIC -Z(09).99  VALUE ZEROS. 
+           03  FILLER        PIC X(02)      VALUE SPACES.
+
+      * SQLCA COMMUNICATION AREA
+           EXEC SQL INCLUDE SQLCA END-EXEC.
+
+      * DCLGEN de la tabla
+           EXEC SQL INCLUDE TBCURCLI END-EXEC.
+           EXEC SQL INCLUDE TBCURCTA END-EXEC.
+
+      *******************************************************************
+      * DECLARACION DE LAS VARIABLES HOST Y CURSOR                      *
+      ******************************************************************
+           EXEC SQL 
+              DECLARE SPUFJOIN CURSOR 
+              FOR
+                 SELECT A.TIPCUEN, 
+                        A.NROCUEN, 
+                        A.SUCUEN, 
+                        A.NROCLI,
+                        B.NOMAPE,
+                        A.SALDO, 
+                        A.FECSAL
+                 FROM  KC02787.TBCURCTA A 
+                 INNER JOIN KC02787.TBCURCLI B 
+                 ON  A.NROCLI = B.NROCLI 
+                 WHERE A.SALDO > 0 
+           END-EXEC.
+
+       77  FILLER  PIC X(30) VALUE '* FINAL  WORKING-STORAGE *'.
+
+      ***************************************************************.
+       PROCEDURE DIVISION.
+      **************************************
+      *                                    *
+      *  CUERPO PRINCIPAL DEL PROGRAMA     *
+      *                                    *
+      **************************************
+       MAIN-PROGRAM.
+           PERFORM 1000-I-INICIO.
+           PERFORM 2000-I-PROCESO UNTIL WS-FIN-PROCESO.
+           PERFORM 9999-I-FINAL.
+           GOBACK.
+
+      **************************************
+      *                                    *
+      *  CUERPO INICIO APERTURA ARCHIVOS   *
+      *                                    *
+      **************************************
+       1000-I-INICIO.
+           SET WS-SI-PROCESO TO TRUE.
+
+           OPEN OUTPUT SALIDA.
+           IF NOT SW-FS-OK
+              DISPLAY '* ERROR EN OPEN SALIDA  = ' SW-FS-SALIDA
+              MOVE 9999 TO RETURN-CODE
+              SET  WS-FIN-PROCESO TO TRUE
+           END-IF.
+
+           IF NOT SW-FS-OK
+              DISPLAY '* ERROR EN WRITE SALIDA  = ' SW-FS-SALIDA
+              MOVE 9999 TO RETURN-CODE
+              SET  WS-FIN-PROCESO TO TRUE
+           END-IF.
+
+           PERFORM 1100-I-WRITE-TITULO
+
+           EXEC SQL
+              OPEN SPUFJOIN
+           END-EXEC.
+
+           EVALUATE SQLCODE
+              WHEN 0
+                 CONTINUE
+              WHEN OTHER
+                 DISPLAY 'ERROR SQL: ' SQLCODE ' - APERTURA CURSOR'
+                 MOVE 9999 TO RETURN-CODE
+                 SET WS-FIN-PROCESO TO TRUE
+           END-EVALUATE.
+
+      ***************************************
+      *                                     *
+      *  TITULOS DEL LA PAGINA DEL PROGRAMA *
+      *                                     *
+      ***************************************
+
+       1100-I-WRITE-TITULO.
+           MOVE FUNCTION CURRENT-DATE TO WS-CURRENT-DATE
+           *> Armado par Display de SPOOL
+           DISPLAY WS-HEAD1 
+           DISPLAY WS-HEAD2
+           DISPLAY 'FECHA DE EJECUCION: ' 
+              WS-YEAR '-' WS-MONTH '-' WS-DAY
+           DISPLAY 'HORA DE EJECUCION:  ' 
+              WS-HOUR ':' WS-MINUTE ':' WS-SECOND
+           DISPLAY WS-HEAD1
+
+           *> Armado para el archivo de salida 
+           MOVE WS-DAY TO WS-FECHA-FORM(1:2)
+           MOVE '/' TO WS-FECHA-FORM(3:1)
+           MOVE WS-MONTH TO WS-FECHA-FORM(4:2)
+           MOVE '/' TO WS-FECHA-FORM(6:1)
+           MOVE WS-YEAR TO WS-FECHA-FORM(7:4)
+           WRITE REG-SALIDA FROM WS-LINEA-GUIONES
+           WRITE REG-SALIDA FROM WS-TITULO-PRINCIPAL
+           WRITE REG-SALIDA FROM WS-LINEA-GUIONES
+           WRITE REG-SALIDA FROM WS-TITULO
+           WRITE REG-SALIDA FROM WS-LINEA-GUIONES.
+
+      **************************************
+      *                                    *
+      *  CUERPO PRINCIPAL DEL PROGRAMA     *
+      *                                    *
+      **************************************
+       2000-I-PROCESO.
+
+           EXEC SQL
+              FETCH SPUFJOIN
+              INTO :WS-TIPCUEN,
+                   :WS-NROCUEN,
+                   :WS-SUCUEN,
+                   :WS-NROCLI,
+                   :WT-NOMAPE,
+                   :WS-SALDO,
+                   :WS-FECSAL
+           END-EXEC
+
+           EVALUATE SQLCODE
+              WHEN 0
+                 ADD 1 TO WS-TOT-LEIDOS
+                    MOVE WS-TIPCUEN TO REG-TIPCUEN
+                    MOVE WS-NROCUEN TO REG-NROCUEN
+                    MOVE WS-SUCUEN  TO REG-SUCUEN
+                    MOVE WS-SALDO   TO REG-SALDO
+                 *> Grabar el registro en el archivo de salida
+                 IF SW-FS-OK
+                    WRITE REG-SALIDA FROM WS-REG-SALIDA
+                    ADD 1 TO WS-TOT-GRABADOS
+                    ADD 1 TO WS-LINEAS-PAG
+                    IF WS-LINEAS-PAG EQUAL 10
+                       MOVE ZEROS TO WS-LINEAS-PAG
+                       PERFORM 1100-I-WRITE-TITULO
+                    END-IF
+                 ELSE
+                    DISPLAY '* ERROR EN WRITE SALIDA = ' SW-FS-SALIDA
+                    MOVE 9999 TO RETURN-CODE
+                    SET WS-FIN-PROCESO TO TRUE
+                 END-IF
+
+              WHEN +100
+                 SET WS-FIN-PROCESO TO TRUE
+              WHEN OTHER
+                 DISPLAY 'ERROR SQL: ' SQLCODE ' - CUENTA: ' 
+                         REG-NROCUEN
+                 SET WS-FIN-PROCESO TO TRUE
+           END-EVALUATE.
+
+      **************************************
+      *                                    *
+      *  CUERPO FINAL CIERRE DE FILES      *
+      *                                    *
+      **************************************
+       9999-I-FINAL.
+           EXEC SQL
+              CLOSE SPUFJOIN
+           END-EXEC.
+
+           EVALUATE SQLCODE
+              WHEN 0
+                 CONTINUE
+              WHEN OTHER
+                 DISPLAY 'ERROR SQL: ' SQLCODE ' - CIERRE CURSOR'
+                 MOVE 9999 TO RETURN-CODE
+           END-EVALUATE.
+
+           CLOSE SALIDA
+           IF NOT SW-FS-OK
+              DISPLAY '* ERROR EN CLOSE SALIDA  = ' SW-FS-SALIDA
+              MOVE 9999 TO RETURN-CODE
+           END-IF.
+
+      **************************************
+      *   MOSTRAR TOTALES DE CONTROL
+      **************************************
+           DISPLAY 'CANTIDAD REGISTROS LEIDOS   : ' WS-TOT-LEIDOS
+           DISPLAY 'CANTIDAD REGISTROS IMPRESOS : ' WS-TOT-GRABADOS
+           EXIT.
+      *

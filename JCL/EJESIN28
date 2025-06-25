@@ -1,0 +1,30 @@
+//KC03XXXD JOB CLASS=A,MSGCLASS=O,MSGLEVEL=(1,1),NOTIFY=&SYSUID,        00010000
+//         RESTART=STEP2                                                00020000
+//JOBLIB  DD  DSN=DSND10.SDSNLOAD,DISP=SHR                              00030000
+//***************************************************************       00040000
+//* EJECUTAR STEP1 SOLO LA PRIMERA VEZ PARA DEFINIR SALIDA      *       00050000
+//***************************************************************       00060000
+//*                                                                     00070000
+//STEP1    EXEC PGM=IEFBR14                                             00080000
+//DD1      DD DSN=KC03XXX.SALIDA,UNIT=SYSDA,                            00090000
+//            DCB=(LRECL=80,BLKSIZE=8000,RECFM=FB),                     00100000
+//            SPACE=(TRK,(1,1),RLSE),DISP=(,CATLG)                      00110000
+//*                                                                     00120000
+//***************************************************************       00130000
+//*      EJECUTAR PROGRAMA COBOL CON SQL EMBEBIDO               *       00140000
+//***************************************************************       00150000
+//*                                                                     00160000
+//STEP2    EXEC PGM=IKJEFT01,DYNAMNBR=20,COND=(4,LT)                    00170000
+//SYSTSPRT DD SYSOUT=*                                                  00180000
+//DDSALE   DD DSN=KC03XXX.SALIDA,DISP=SHR                               00190000
+//SYSOUT   DD SYSOUT=*                                                  00200000
+//SYSTSIN  DD *                                                         00210000
+  DSN SYSTEM(DBDG)                                                      00220000
+  RUN  PROGRAM(PGMSIN28) PLAN(CURSOXXX) +                               00230000
+      LIB('KC03XXX.CURSOS.PGMLIB')                                      00240000
+  END                                                                   00250000
+//SYSPRINT DD SYSOUT=*                                                  00260000
+//SYSUDUMP DD SYSOUT=*                                                  00270000
+//SYSIN    DD *                                                         00280000
+//*                                                                     00290000
+//                                                                      00300000
