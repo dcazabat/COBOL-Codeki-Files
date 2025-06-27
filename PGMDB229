@@ -1,0 +1,268 @@
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. PGMDB229.
+       AUTHOR.        D. CAZABAT.
+       INSTALLATION.  CURSO CODEKI.
+       DATE-WRITTEN.  25/06/2025.
+       DATE-COMPILED. 25/06/2025.
+       SECURITY.      UNCLASSIFIED.                                             
+      ********************************************************
+      *                                                      *
+      *  SINCRONICA 29: DB2                                  *
+      *  ============================                        *
+      *                                                      *
+      *  DEBERÁN GENERAR ARCHIVO DE NOVEDADES DE CLIENTES    *
+      *  EL CUAL SE DEBE PROCESAR E INGRESA ESO DATOS EN     *
+      *  LA TABLA DE CLIENTES, YA SEA ALTA O MODIFICACION    *
+      *                                                      *
+      *  EL ARCHIVO DE ENTRADA DEBE SER UN ARCHIVO VSAM      *
+      *  GENERADO POR EL JCL EJENOVKS                        *
+      ********************************************************
+       ENVIRONMENT DIVISION.
+       CONFIGURATION SECTION.
+
+       SPECIAL-NAMES.
+           DECIMAL-POINT IS COMMA.
+           
+       INPUT-OUTPUT SECTION.
+       FILE-CONTROL.
+           SELECT ENTRADA
+               ASSIGN TO NOVECLI
+               ORGANIZATION IS INDEXED
+               ACCESS MODE IS SEQUENTIAL
+               RECORD KEY IS REG-KEY
+               FILE STATUS IS SW-FS-ENTRADA.
+
+       DATA DIVISION.
+       FILE SECTION.
+       FD  ENTRADA.
+       01 REG-KEY.
+           03 K-WK-CLI-TIPO-NOVEDAD    PIC X(02).
+           03 K-WK-CLI-TIPO-DOCUMENTO  PIC X(02).
+           03 K-WK-CLI-NRO-DOCUMENTO   PIC 9(11).
+           COPY TBVCLIEN.
+
+       WORKING-STORAGE SECTION.
+      * Variables de fecha y hora
+       01  WS-CURRENT-DATE.
+           05 WS-DATE.
+              10 WS-YEAR              PIC 9(4).
+              10 WS-MONTH             PIC 9(2).
+              10 WS-DAY               PIC 9(2).
+           05 WS-TIME.
+              10 WS-HOUR              PIC 9(2).
+              10 WS-MINUTE            PIC 9(2).
+              10 WS-SECOND            PIC 9(2).
+              10 WS-HUNDREDTH         PIC 9(2).
+      * Variables de control
+       01  WS-STATUS.
+           05 SW-FS-ENTRADA           PIC X(02).
+              88 SW-FS-OK             VALUE '00'.
+              88 SW-FS-EOF            VALUE '10'.
+              88 SW-FS-NOK            VALUE '01' THRU '09'
+                                          '11' THRU '99'.
+           05 WS-CONTADORES.
+              10 WS-LEIDOS        PIC 9(06) VALUE ZEROS.
+              10 WS-INSERTADOS    PIC 9(06) VALUE ZEROS.
+              10 WS-ACTUALIZADOS  PIC 9(06) VALUE ZEROS.
+              10 WS-ERRORES       PIC 9(06) VALUE ZEROS.
+              10 WS-TOTALES       PIC 9(06) VALUE ZEROS.
+
+       01  WS-HEADERS.
+           05 WS-HEAD1             PIC X(50) VALUE ALL '*'.
+           05 WS-HEAD2             PIC X(50) VALUE 
+              'LISTADO DE NOVEDADES DE CLIENTES'.
+           05 WS-HEAD3             PIC X(50) VALUE ALL '-'.
+
+      * DCLGEN de la tabla
+           EXEC SQL INCLUDE TBCURCLI END-EXEC.
+      * SQLCA COMMUNICATION AREA
+           EXEC SQL INCLUDE SQLCA END-EXEC.
+
+       PROCEDURE DIVISION.
+       0000-MAIN.
+           PERFORM 1000-INICIO
+           PERFORM 2000-PROCESO
+           PERFORM 3000-FINAL
+           GOBACK.
+
+       1000-INICIO.
+           INITIALIZE WS-CONTADORES
+
+           *> Obtener fecha y hora actual
+           *> y formatear para visualización
+           MOVE FUNCTION CURRENT-DATE TO WS-CURRENT-DATE
+           DISPLAY WS-HEAD1 
+           DISPLAY WS-HEAD2
+           DISPLAY 'FECHA DE EJECUCION: ' 
+              WS-YEAR '-' WS-MONTH '-' WS-DAY
+           DISPLAY 'HORA DE EJECUCION:  ' 
+              WS-HOUR ':' WS-MINUTE ':' WS-SECOND
+           DISPLAY WS-HEAD1 
+
+           *> Abrir archivo de entrada
+           OPEN INPUT ENTRADA
+           IF NOT SW-FS-OK
+              DISPLAY 'ERROR AL ABRIR ARCHIVO DE ENTRADA: ' 
+                       SW-FS-ENTRADA
+              MOVE 9999 TO RETURN-CODE
+              GOBACK
+           END-IF
+           PERFORM 2100-LEER-ENTRADA.
+
+       2000-PROCESO.
+           PERFORM UNTIL SW-FS-EOF
+              ADD 1 TO WS-TOTALES
+              IF WK-CLI-TIPO-NOVEDAD = 'AL'
+                 PERFORM 2200-INSERTAR-REGISTRO
+              ELSE IF WK-CLI-TIPO-NOVEDAD = 'MO'
+                 PERFORM 2300-ACTUALIZAR-REGISTRO
+              ELSE
+                 ADD 1 TO WS-ERRORES
+                 DISPLAY 'ERROR: TIPO DE NOVEDAD INVALIDO - DOC: ' 
+                         WK-CLI-NRO-DOCUMENTO
+              END-IF
+              PERFORM 2100-LEER-ENTRADA
+           END-PERFORM.
+
+       2100-LEER-ENTRADA.
+           READ ENTRADA
+           AT END 
+              SET SW-FS-EOF TO TRUE
+           NOT AT END
+              ADD 1 TO WS-LEIDOS
+           END-READ
+           IF SW-FS-NOK
+              DISPLAY 'ERROR LECTURA ARCHIVO: ' SW-FS-ENTRADA
+              MOVE 9999 TO RETURN-CODE
+              GOBACK
+           END-IF.
+
+       2200-INSERTAR-REGISTRO.
+           *> Verificar si el cliente ya existe
+           EXEC SQL
+              SELECT 1
+              INTO :WS-STATUS
+              FROM KC02787.TBCURCLI
+              WHERE NROCLI = :WT-NROCLI
+           END-EXEC
+
+           EVALUATE SQLCODE
+              WHEN 0
+                 *> Cliente ya existe, registrar error
+                 ADD 1 TO WS-ERRORES
+                 DISPLAY 'ERROR: CLIENTE YA EXISTE - NROCLI: ' 
+                         WK-CLI-NRO-CLIENTE
+                 GOBACK
+              WHEN +100
+                 *> Cliente no existe, continuar con el INSERT
+              WHEN OTHER
+                 *> Error en la consulta
+                 ADD 1 TO WS-ERRORES
+                 DISPLAY 'ERROR SQL EN VERIFICACION: ' SQLCODE
+                 GOBACK
+           END-EVALUATE
+
+           *> Realizar el INSERT si el cliente no existe
+           IF WK-CLI-TIPO-NOVEDAD = 'AL'
+              AND (WK-CLI-TIPO-DOCUMENTO = 'DU'
+                   OR WK-CLI-TIPO-DOCUMENTO = 'PA'
+                   OR WK-CLI-TIPO-DOCUMENTO = 'LE'
+                   OR WK-CLI-TIPO-DOCUMENTO = 'LC')
+              AND FUNCTION 
+                 TEST-DATE-YYYYMMDD(WK-CLI-FECHA-NACIMIENTO) = 0
+              AND (WK-CLI-SEXO = 'FE'
+                   OR WK-CLI-SEXO = 'MA'
+                   OR WK-CLI-SEXO = 'OT')
+              AND WK-CLI-NRO-DOCUMENTO NOT = SPACES
+              AND WK-CLI-NRO-CLIENTE NOT = SPACES
+              AND WK-CLI-NOMBRE-CLIENTE NOT = SPACES
+              AND WK-CLI-APELLIDO-CLIENTE NOT = SPACES
+           THEN
+              EXEC SQL
+                 INSERT INTO KC02787.TBCURCLI
+                   (TIPDOC, NRODOC, NROCLI, NOMAPE, FECNAC, SEXO)
+                 VALUES
+                   (:WT-TIPDOC, :WT-NRODOC, :WT-NROCLI, 
+                    :WT-NOMAPE, :WT-FECNAC, :WT-SEXO)
+              END-EXEC
+              EVALUATE SQLCODE
+                 WHEN 0
+                    ADD 1 TO WS-INSERTADOS
+                 WHEN -803
+                    ADD 1 TO WS-ERRORES
+                    DISPLAY 'ERROR: CLAVE DUPLICADA - DOC: ' 
+                            WK-CLI-NRO-DOCUMENTO
+                 WHEN OTHER
+                    ADD 1 TO WS-ERRORES
+                    DISPLAY 'ERROR SQL: ' SQLCODE ' - DOC: ' 
+                            WK-CLI-NRO-DOCUMENTO
+              END-EVALUATE
+           ELSE
+              ADD 1 TO WS-ERRORES
+              DISPLAY 'ERROR VALIDACION: DATOS INVALIDOS - DOC: ' 
+                      WK-CLI-NRO-DOCUMENTO
+           END-IF.
+
+       2300-ACTUALIZAR-REGISTRO.
+           IF WK-CLI-TIPO-NOVEDAD = 'MO'
+              AND (WK-CLI-TIPO-DOCUMENTO = 'DU'
+                   OR WK-CLI-TIPO-DOCUMENTO = 'PA'
+                   OR WK-CLI-TIPO-DOCUMENTO = 'LE'
+                   OR WK-CLI-TIPO-DOCUMENTO = 'LC')
+              AND FUNCTION 
+                 TEST-DATE-YYYYMMDD(WK-CLI-FECHA-NACIMIENTO) = 0
+              AND (WK-CLI-SEXO = 'FE'
+                   OR WK-CLI-SEXO = 'MA'
+                   OR WK-CLI-SEXO = 'OT')
+           THEN
+              *> Preparar valores para la actualización
+              IF WK-CLI-NOMBRE-CLIENTE NOT = SPACES
+                 MOVE WK-CLI-NOMBRE-CLIENTE TO WT-NOMAPE
+              END-IF
+              IF WK-CLI-FECHA-NACIMIENTO NOT = SPACES
+                 MOVE WK-CLI-FECHA-NACIMIENTO TO WT-FECNAC
+              END-IF
+              IF WK-CLI-SEXO NOT = SPACES
+                 MOVE WK-CLI-SEXO TO WT-SEXO
+              END-IF
+
+              EXEC SQL
+                 UPDATE KC02787.TBCURCLI
+                 SET NOMAPE = :WT-NOMAPE,
+                     FECNAC = :WT-FECNAC,
+                     SEXO   = :WT-SEXO
+                 WHERE TIPDOC = :WT-TIPDOC
+                   AND NRODOC = :WT-NRODOC
+              END-EXEC
+
+              EVALUATE SQLCODE
+                 WHEN 0
+                    ADD 1 TO WS-ACTUALIZADOS
+                 WHEN +100
+                    ADD 1 TO WS-ERRORES
+                    DISPLAY 'ERROR: REGISTRO NO EXISTE - DOC: ' 
+                            WK-CLI-NRO-DOCUMENTO
+                 WHEN OTHER
+                    ADD 1 TO WS-ERRORES
+                    DISPLAY 'ERROR SQL: ' SQLCODE ' - DOC: ' 
+                            WK-CLI-NRO-DOCUMENTO
+              END-EVALUATE
+           ELSE
+              ADD 1 TO WS-ERRORES
+              DISPLAY 'ERROR VALIDACION: DATOS INVALIDOS - DOC: ' 
+                      WK-CLI-NRO-DOCUMENTO
+           END-IF.
+
+       3000-FINAL.
+           CLOSE ENTRADA
+           DISPLAY WS-HEAD1
+           DISPLAY WS-HEAD3
+           DISPLAY 'RESUMEN DEL PROCESAMIENTO'
+           DISPLAY WS-HEAD3
+           DISPLAY 'CANTIDAD NOVEDADES LEIDAS     : ' WS-LEIDOS
+           DISPLAY 'CANTIDAD NOVEDADES INSERTADAS : ' WS-INSERTADOS
+           DISPLAY 'CANTIDAD NOVEDADES ACTUALIZADAS: ' WS-ACTUALIZADOS
+           DISPLAY 'CANTIDAD NOVEDADES ERRONEAS   : ' WS-ERRORES
+           DISPLAY 'CANTIDAD TOTAL PROCESADAS     : ' WS-TOTALES
+           DISPLAY WS-HEAD3.
+

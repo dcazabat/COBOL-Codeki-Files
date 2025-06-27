@@ -1,0 +1,222 @@
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. PGMB2C7C.
+       AUTHOR.        D. CAZABAT.
+       INSTALLATION.  CURSO CODEKI.
+       DATE-WRITTEN.  27/06/2025.
+       DATE-COMPILED. 27/06/2025.
+       SECURITY.      UNCLASSIFIED.                                             
+      ********************************************************
+      *                                                      *
+      *  ASINCRONICA 16: DB2 - CORTE DE CONTROL              *
+      *  ======================================              *
+      *                                                      *
+      *  DEBERÁN GENERAR LISTADO DE CUENTAS POR SUCURSAL     *
+      *  SALIDA POR DISPLAY CON CORTE DE CONTROL POR SUCUEN  *
+      *                                                      *
+      ********************************************************
+       ENVIRONMENT DIVISION.
+       CONFIGURATION SECTION.
+       SPECIAL-NAMES.
+           DECIMAL-POINT IS COMMA.
+
+       DATA DIVISION.
+
+       WORKING-STORAGE SECTION.
+      * Variables de fecha y hora
+       01  WS-CURRENT-DATE.
+           05 WS-DATE.
+              10 WS-YEAR              PIC 9(4).
+              10 WS-MONTH             PIC 9(2).
+              10 WS-DAY               PIC 9(2).
+           05 WS-TIME.
+              10 WS-HOUR              PIC 9(2).
+              10 WS-MINUTE            PIC 9(2).
+              10 WS-SECOND            PIC 9(2).
+              10 WS-HUNDREDTH         PIC 9(2).
+      
+      * Variables de control
+       77  WS-TOT-LEIDOS              PIC 9(3)  VALUE ZEROS.
+       77  WS-TOT-LEIDOS-DISP         PIC Z(3).
+       77  WS-CUENTAS-SUCURSAL        PIC 9(3)  VALUE ZEROS.
+       77  WS-CUENTAS-SUCURSAL-DISP   PIC Z(3).
+       77  WS-SUCURSAL-ACTUAL         PIC 9(2)  VALUE ZEROS.
+       77  WS-SUCURSAL-ACTUAL-DISP    PIC Z(2).
+
+       01  WS-FLAG-FIN      PIC X.
+           88  WS-SI-PROCESO      VALUE ' '.
+           88  WS-FIN-PROCESO     VALUE 'F'.
+
+       01  WS-FECHA.
+           03  WS-DIA   PIC 99.
+           03  FILLER   PIC X         VALUE '-'.
+           03  WS-MES   PIC 99.
+           03  FILLER   PIC X         VALUE '-'.
+           03  WS-ANIO  PIC 9999.
+
+       01  WS-HEADERS.
+           05 WS-HEAD1             PIC X(50) VALUE ALL '*'.
+           05 WS-HEAD2             PIC X(50) VALUE 
+              'LISTADO DE CUENTAS POR SUCURSAL'.
+           05 WS-HEAD3             PIC X(50) VALUE ALL '-'.
+
+      * SQLCA COMMUNICATION AREA
+           EXEC SQL INCLUDE SQLCA END-EXEC.
+
+      * DCLGEN de la tabla
+           EXEC SQL INCLUDE TBCURCLI END-EXEC.
+           EXEC SQL INCLUDE TBCURCTA END-EXEC.
+
+      *******************************************************************
+      * DECLARACION DE LAS VARIABLES HOST Y CURSOR                      *
+      ******************************************************************
+           EXEC SQL 
+              DECLARE SPUFJOIN CURSOR 
+              FOR
+                 SELECT A.TIPCUEN, 
+                        A.NROCUEN, 
+                        A.SUCUEN, 
+                        A.NROCLI,
+                        B.NOMAPE,
+                        A.SALDO, 
+                        A.FECSAL
+                 FROM  KC02787.TBCURCTA A 
+                 INNER JOIN KC02787.TBCURCLI B 
+                 ON  A.NROCLI = B.NROCLI 
+                 ORDER BY A.SUCUEN
+      *          WHERE A.SALDO > 0 
+           END-EXEC.
+
+       77  FILLER  PIC X(30) VALUE '* FINAL  WORKING-STORAGE *'.
+
+      ***************************************************************.
+       PROCEDURE DIVISION.
+      **************************************
+      *                                    *
+      *  CUERPO PRINCIPAL DEL PROGRAMA     *
+      *                                    *
+      **************************************
+       MAIN-PROGRAM.
+           PERFORM 1000-I-INICIO.
+           PERFORM 2000-I-PROCESO UNTIL WS-FIN-PROCESO.
+           PERFORM 9999-I-FINAL.
+           GOBACK.
+
+      **************************************
+      *                                    *
+      *  CUERPO INICIO APERTURA ARCHIVOS   *
+      *                                    *
+      **************************************
+       1000-I-INICIO.
+           SET WS-SI-PROCESO TO TRUE.
+
+           PERFORM 1100-I-WRITE-TITULO
+
+           EXEC SQL
+              OPEN SPUFJOIN
+           END-EXEC.
+
+           EVALUATE SQLCODE
+              WHEN 0
+                 CONTINUE
+              WHEN OTHER
+                 DISPLAY 'ERROR SQL: ' SQLCODE ' - APERTURA CURSOR'
+                 MOVE 9999 TO RETURN-CODE
+                 SET WS-FIN-PROCESO TO TRUE
+           END-EVALUATE.
+
+      ***************************************
+      *                                     *
+      *  TITULOS DEL LA PAGINA DEL PROGRAMA *
+      *                                     *
+      ***************************************
+
+       1100-I-WRITE-TITULO.
+           MOVE FUNCTION CURRENT-DATE TO WS-CURRENT-DATE
+           *> Armado par Display de SPOOL
+           DISPLAY WS-HEAD1 
+           DISPLAY WS-HEAD2
+           DISPLAY 'FECHA DE EJECUCION: ' 
+              WS-DAY '/' WS-MONTH '/' WS-YEAR 
+           DISPLAY 'HORA DE EJECUCION:  ' 
+              WS-HOUR ':' WS-MINUTE ':' WS-SECOND
+           DISPLAY WS-HEAD1 
+           DISPLAY WS-HEAD3.
+
+      **************************************
+      *                                    *
+      *  CUERPO PRINCIPAL DEL PROGRAMA     *
+      *                                    *
+      **************************************
+       2000-I-PROCESO.
+
+           EXEC SQL
+              FETCH SPUFJOIN
+              INTO :WS-TIPCUEN,
+                   :WS-NROCUEN,
+                   :WS-SUCUEN,
+                   :WS-NROCLI,
+                   :WT-NOMAPE,
+                   :WS-SALDO,
+                   :WS-FECSAL
+           END-EXEC
+
+           EVALUATE SQLCODE
+              WHEN 0
+                 ADD 1 TO WS-TOT-LEIDOS
+                 IF WS-SUCUEN NOT EQUAL WS-SUCURSAL-ACTUAL
+                    IF WS-SUCURSAL-ACTUAL NOT EQUAL ZEROS
+                       MOVE WS-SUCURSAL-ACTUAL 
+                          TO WS-SUCURSAL-ACTUAL-DISP
+                       DISPLAY 'SUCURSAL: ' WS-SUCURSAL-ACTUAL-DISP
+                       MOVE WS-CUENTAS-SUCURSAL 
+                          TO WS-CUENTAS-SUCURSAL-DISP
+                       DISPLAY '   CANTIDAD DE CUENTAS: ' 
+                          WS-CUENTAS-SUCURSAL-DISP
+                       DISPLAY ' '
+                    END-IF
+                    MOVE WS-SUCUEN TO WS-SUCURSAL-ACTUAL
+                    MOVE ZEROS TO WS-CUENTAS-SUCURSAL
+                 END-IF
+                 ADD 1 TO WS-CUENTAS-SUCURSAL
+
+              WHEN +100
+                 IF WS-SUCURSAL-ACTUAL NOT EQUAL ZEROS
+                     MOVE WS-SUCURSAL-ACTUAL 
+                         TO WS-SUCURSAL-ACTUAL-DISP
+                    DISPLAY 'SUCURSAL: ' WS-SUCURSAL-ACTUAL-DISP
+                    MOVE WS-CUENTAS-SUCURSAL 
+                       TO WS-CUENTAS-SUCURSAL-DISP
+                    DISPLAY '   CANTIDAD DE CUENTAS: ' 
+                       WS-CUENTAS-SUCURSAL-DISP
+                 END-IF
+                 DISPLAY WS-HEAD3 
+                 MOVE WS-TOT-LEIDOS TO WS-TOT-LEIDOS-DISP
+                 DISPLAY 'CANTIDAD TOTAL DE CUENTAS: ' 
+                    WS-TOT-LEIDOS-DISP
+                 DISPLAY WS-HEAD1 
+                 SET WS-FIN-PROCESO TO TRUE
+
+              WHEN OTHER
+                 DISPLAY 'ERROR SQL: ' SQLCODE ' - CUENTA: ' WS-NROCUEN
+                 SET WS-FIN-PROCESO TO TRUE
+           END-EVALUATE.
+
+      **************************************
+      *                                    *
+      *  CUERPO FINAL CIERRE DE FILES      *
+      *                                    *
+      **************************************
+       9999-I-FINAL.
+           EXEC SQL
+              CLOSE SPUFJOIN
+           END-EXEC.
+
+           EVALUATE SQLCODE
+              WHEN 0
+                 CONTINUE
+              WHEN OTHER
+                 DISPLAY 'ERROR SQL: ' SQLCODE ' - CIERRE CURSOR'
+                 MOVE 9999 TO RETURN-CODE
+           END-EVALUATE.
+           EXIT.
+      *
