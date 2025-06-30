@@ -1,7 +1,7 @@
 //KC03C7CE JOB CLASS=A,MSGCLASS=O,MSGLEVEL=(1,1),NOTIFY=&SYSUID
 //JOBLIB  DD  DSN=DSND10.SDSNLOAD,DISP=SHR
 //***************************************************************
-//* EJECUCICN DEL PROGRAMA DE INSERCICN DE CLIENTES             *
+//* EJECUCION DEL PROGRAMA DE INSERCION DE CLIENTES             *
 //***************************************************************
 //STEP1    EXEC PGM=IKJEFT01,DYNAMNBR=20
 //SYSTSPRT DD SYSOUT=*
