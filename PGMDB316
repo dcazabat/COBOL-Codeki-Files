@@ -56,7 +56,7 @@
       * SQLCA COMMUNICATION AREA
            EXEC SQL INCLUDE SQLCA END-EXEC.
 
-      * DCLGEN de la tabla
+      * DCLGEN de la tabla - NO HARIAN FALTA!!??
            EXEC SQL INCLUDE TBCURCLI END-EXEC.
            EXEC SQL INCLUDE TBCURCTA END-EXEC.
 
