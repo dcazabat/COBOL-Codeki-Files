@@ -1,0 +1,40 @@
+//KC03C7CE JOB CLASS=A,MSGCLASS=O,MSGLEVEL=(1,1),NOTIFY=&SYSUID
+//JOBLIB  DD  DSN=DSND10.SDSNLOAD,DISP=SHR
+//***************************************************************
+//* PASO QUE ELIMINA EL ARCHIVO SI EXISTE                       *
+//***************************************************************
+//STEP1    EXEC PGM=IDCAMS
+//SYSPRINT DD SYSOUT=*
+//SYSIN    DD *
+  DELETE   KC03C7C.NOVCTA.SORT
+  SET MAXCC = 0
+//*************************************************
+//*     SORT POR WS-TIPCUEN Y WS-NROCUEN        *
+//*************************************************
+//STEP2     EXEC PGM=SORT,COND=(0,NE,STEP1)
+//SYSOUT    DD SYSOUT=*
+//SORTIN    DD DSN=KC03C7C.NOVCTA,DISP=SHR
+//SORTOUT   DD DSN=KC03C7C.NOVCTA.SORT,DISP=(,CATLG),
+//          UNIT=SYSDA,VOL=SER=ZASWO1,
+//          DCB=(LRECL=23,BLKSIZE=2300,RECFM=FB),
+//          SPACE=(TRK,(1,1),RLSE)
+//SYSIN     DD *
+ SORT       FIELDS=(1,2,CH,A,3,3,BI,A)
+//***************************************************************
+//*      EJECUTAR PROGRAMA COBOL CON SQL EMBEBIDO               *
+//***************************************************************
+//STEP3    EXEC PGM=IKJEFT01,DYNAMNBR=20,COND=(0,NE,STEP2)
+//SYSTSPRT DD SYSOUT=*
+//DDENTRA  DD DSN=KC03C7C.NOVCTA.SORT,DISP=SHR
+//SYSTSIN  DD *
+  DSN SYSTEM(DBDG)
+  RUN  PROGRAM(PGMDB231) PLAN(CURSOC7C) +
+      LIB('KC03C7C.CURSOS.PGMLIB')
+  END
+//SYSOUT   DD DSN=KC03C7C.CURSOS.SPOOL.PGMDB231,
+//            DCB=(LRECL=133,BLKSIZE=1330,RECFM=FBA),
+//            SPACE=(TRK,(1,1),RLSE),DISP=(MOD,CATLG,KEEP)
+//SYSPRINT DD SYSOUT=*
+//SYSUDUMP DD SYSOUT=*
+//SYSIN    DD *
+//*

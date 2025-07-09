@@ -42,7 +42,7 @@
                                                                         
        77  FILLER       PIC X(26) VALUE '* LAYOUT ENTRADA MESES   *'.   
       **************************************                            
-               COPY CORTE.                                             
+           COPY CORTE.
       **************************************                            
                                                                         
       ********  TOTAL IMPORTES X SUCURSAL ******                        
@@ -86,8 +86,7 @@
               THRU F-2000-PROCESO                   
               UNTIL WS-FIN-LECTURA.                                
                                                                         
-           PERFORM 9999-FINAL 
-              THRU F-9999-FINAL.                    
+           PERFORM 9999-FINAL.
                                                                         
        F-MAIN-PROGRAM. GOBACK.                                          
                                                                         
@@ -99,7 +98,7 @@
        1000-INICIO.                                                     
            ACCEPT WS-FECHA FROM DATE.                                   
            DISPLAY 'FECHA DE PROCESO: ' 
-              WS-FECHA-DD '/' WS-FECHA-MM '/' WS-FECHA-AA                                     
+              WS-FECHA-DD '/' WS-FECHA-MM '/' WS-FECHA-AA
                                                                         
            SET WS-NO-FIN-LECTURA TO TRUE.                               
                                                                         
@@ -146,25 +145,23 @@
       *  LECTURA FILE INPUT CLASIFICADO    *                            
       *                                    *                            
       **************************************                            
-       2000-PROCESO.                                                    
       *************************************************
       *                                               *
       ***  LECTURA DE REGISTRO ENTRADA CLASIFICADO  ***
       *                                               *
       *************************************************
+       2000-PROCESO.                                                    
            READ ENTRADA INTO WS-REG-SUCURSAL                            
                         AT END SET WS-FIN-LECTURA TO TRUE.              
                                                                         
            EVALUATE WS-ENT-CODE                                         
              WHEN '00'                                                  
                 ADD 1 TO WS-CANT-LEIDAS                                
-                PERFORM 2200-SEGUIR-PROCESO                                  
-                   THRU F-2200-SEGUIR-PROCESO                        
+                PERFORM 2200-SEGUIR-PROCESO
                                                                         
              WHEN '10'                                                 
                 SET WS-FIN-LECTURA TO TRUE                                
                 PERFORM 2100-ULTIMO-REGISTRO                              
-                   THRU  F-2100-ULTIMO-REGISTRO                           
                                                                         
              WHEN OTHER                                                   
                 DISPLAY '* ERROR EN LECTURA ENTRADA = ' WS-ENT-CODE       
@@ -181,7 +178,6 @@
       **************************************                            
        2100-ULTIMO-REGISTRO.                                            
            PERFORM 2230-CORTE-SUCURSAL                                  
-              THRU F-2230-CORTE-SUCURSAL                         
                                                                         
            MOVE WS-TOTAL-GENERAL TO WS-EDIT-GENERAL                     
            DISPLAY ' '                                                  
@@ -189,15 +185,14 @@
            DISPLAY 'TOTAL GENERAL: ' WS-EDIT-GENERAL                    
            DISPLAY ' '                                                  
            MOVE WS-CANT-LEIDAS TO WS-EDIT-LEIDAS                       
-           DISPLAY 'REGISTROS PROCESADOS: ' WS-EDIT-LEIDAS              
-       F-2100-ULTIMO-REGISTRO. EXIT.                                    
+           DISPLAY 'REGISTROS PROCESADOS: ' WS-EDIT-LEIDAS.              
                                                                         
       **************************************                            
       *                                    *                            
       *  SEGUIR PROCESO                    *                            
       *                                    *                            
-      **************************************                                                                   
-       2200-SEGUIR-PROCESO.                                             
+      **************************************
+       2200-SEGUIR-PROCESO.
            DISPLAY '*****************************************'          
            DISPLAY 'SUCURSAL: ' WS-SUCURSAL-ANT
            MOVE WS-CANT-LEIDAS TO WS-EDIT-LEIDAS
@@ -207,24 +202,18 @@
                  ADD WS-SUC-IMPORTE TO WS-TOTAL-TIPO-CUENTA             
               ELSE                                                      
                  PERFORM 2240-CORTE-TIPO-CUENTA                         
-                    THRU F-2240-CORTE-TIPO-CUENTA                       
                  ADD WS-SUC-IMPORTE TO WS-TOTAL-TIPO-CUENTA             
                  MOVE WS-SUC-TIPC1 TO WS-TIPO-CUENTA-ANT                
               END-IF                                                    
            ELSE                                                         
               PERFORM 2240-CORTE-TIPO-CUENTA                            
-                 THRU F-2240-CORTE-TIPO-CUENTA                          
               PERFORM 2230-CORTE-SUCURSAL                               
-                 THRU F-2230-CORTE-SUCURSAL                             
               ADD WS-SUC-IMPORTE TO WS-TOTAL-TIPO-CUENTA                
               MOVE WS-SUC-TIPC1 TO WS-TIPO-CUENTA-ANT                   
-           END-IF.                                                      
-       F-2200-SEGUIR-PROCESO. EXIT.                                     
+           END-IF.
 
        2230-CORTE-SUCURSAL.                                             
-
            PERFORM 2240-CORTE-TIPO-CUENTA                               
-              THRU F-2240-CORTE-TIPO-CUENTA                             
            MOVE WS-TOTAL-SUCURSAL TO WS-EDIT-TOTAL                      
            ADD WS-TOTAL-SUCURSAL TO WS-TOTAL-GENERAL                    
                                                                         
@@ -232,8 +221,7 @@
            DISPLAY '*****************************************'          
                                                                         
            MOVE WS-SUC-NRO      TO WS-SUCURSAL-ANT                      
-           MOVE ZEROS           TO WS-TOTAL-SUCURSAL                    
-       F-2230-CORTE-SUCURSAL. EXIT.                                     
+           MOVE ZEROS           TO WS-TOTAL-SUCURSAL.
 
        2240-CORTE-TIPO-CUENTA.                                          
            MOVE WS-TOTAL-TIPO-CUENTA TO WS-EDIT-TIPO-CUENTA             
@@ -242,8 +230,7 @@
            DISPLAY ' TIPO CUENTA: ' WS-TIPO-CUENTA-ANT
                    ' TOTAL: ' WS-EDIT-TIPO-CUENTA                     
                                                                         
-           MOVE ZEROS TO WS-TOTAL-TIPO-CUENTA                           
-       F-2240-CORTE-TIPO-CUENTA. EXIT.                                  
+           MOVE ZEROS TO WS-TOTAL-TIPO-CUENTA.
 
       **************************************                            
       *                                    *                            
@@ -259,5 +246,4 @@
                 MOVE 9999 TO RETURN-CODE                                
                 SET WS-FIN-LECTURA TO TRUE                              
              END-IF.                                                    
-       F-9999-FINAL. EXIT.
 

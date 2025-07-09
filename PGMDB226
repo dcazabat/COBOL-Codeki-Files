@@ -13,7 +13,7 @@
       *  SE MUESTRAN LOS DATOS DEL CLIENTE 10 DESDE UN SQL   *
       *  EMBEBIDO EN EL PROGRAMA COBOL                       *
       *                                                      *
-      ********************************************************                       
+      ********************************************************
        ENVIRONMENT DIVISION.     
                                                                             
        CONFIGURATION SECTION.                                           

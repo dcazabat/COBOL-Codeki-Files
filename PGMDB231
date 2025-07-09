@@ -1,0 +1,311 @@
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. PGMDB231.
+       AUTHOR.        D. CAZABAT.
+       INSTALLATION.  CURSO CODEKI.
+       DATE-WRITTEN.  03/07/2025.
+       DATE-COMPILED. 03/07/2025.
+       SECURITY.      UNCLASSIFIED.                                             
+      ********************************************************
+      *                                                      *
+      *  SINCRONICA 31: DB2 - APAREO                         *
+      *  ======================================              *
+      *                                                      *
+      *  eleccionar todos las columnas de la tabla           *
+      *  KC02787.TBCURCTA SOLO para la sucursal 1            *
+      *  con ORDER BY TIPCUEN y aparear con el archivo       *
+      *  POR WS-TIPCUEN                                      * 
+      *                                                      *
+      ********************************************************
+       ENVIRONMENT DIVISION.
+       CONFIGURATION SECTION.
+       SPECIAL-NAMES.
+           DECIMAL-POINT IS COMMA.
+       
+       INPUT-OUTPUT SECTION.
+       FILE-CONTROL.                                                    
+             SELECT ENTRADA ASSIGN DDENTRA                              
+                    FILE STATUS IS WS-ENT-CODE.                         
+                                                                        
+       DATA DIVISION.                                                   
+       FILE SECTION.                                                    
+       FD ENTRADA                                                      
+            BLOCK CONTAINS 0 RECORDS                                    
+            RECORDING MODE IS F.                                        
+                                                                        
+       01 REG-ENTRADA               PIC X(23).      
+       
+       WORKING-STORAGE SECTION.
+      * Variables host para SQL embebido de movimiento
+       77 WS-TIPCUEN-SQL   PIC X(2).
+       77 WS-NROCUEN-SQL   PIC S9(5) COMP-3.
+       77 WS-NROCLI-SQL    PIC S9(3) COMP-3.
+       77 WS-TOT-LEIDOS-PROCESADOS     PIC 9(6)  VALUE ZEROS.
+      * Variables aux. para CUENTAS SIN NOVEDAD (evitar ambigüedad)
+       77 WS-DB2-TIPCUEN   PIC X(2) VALUE SPACES.
+       77 WS-DB2-NROCUEN   PIC S9(5) COMP-3 VALUE 0.
+       77 WS-DB2-NROCLI    PIC S9(3) COMP-3 VALUE 0.
+       77 WS-DB2-SALDO     PIC S9(5)V9(2) COMP-3 VALUE 0.
+       77 WS-ENCONTRADO-MOV PIC X VALUE 'N'.
+      ******************************************************************
+      *  COPY LIBS Y VARIABLES DE CONTROL DEL PROGRAMA                 *
+      ******************************************************************
+      * Variables de fecha y hora
+       77 WS-ENT-CODE               PIC XX    VALUE SPACES.                     
+                                                                        
+       01 WS-STATUS-FIN             PIC X.
+          88 WS-FIN-LECTURA                   VALUE 'Y'.
+          88 WS-NO-FIN-LECTURA                VALUE 'N'.
+       
+       01 WS-CURRENT-DATE.
+          10 WS-YEAR             PIC 9(4).
+          10 WS-MONTH            PIC 9(2).
+          10 WS-DAY              PIC 9(2).
+          10 WS-HOUR             PIC 9(2).
+          10 WS-MINUTE           PIC 9(2).
+          10 WS-SECOND           PIC 9(2).
+      
+       77 WS-TOT-LEIDOS-ARCHIVO     PIC 9(6)  VALUE ZEROS.
+       77 WS-TOT-APAREADOS          PIC 9(6)  VALUE ZEROS.
+       77 WS-TOT-NO-ENCONTRADOS     PIC 9(6)  VALUE ZEROS.
+       77 WS-TOT-SIN-NOVEDAD        PIC 9(6)  VALUE ZEROS.
+       77 WS-TOT-SALDO-APAREADOS    PIC S9(13)V99 COMP-3 VALUE 0.
+       77 WS-TOT-SALDO-APAREADOS-D  PIC -ZZZ.ZZZ.ZZ9,99.
+
+      * Variables auxiliares para SQL embebido
+       77 WS-SALDO-ACTUALIZADO    PIC S9(11)V99 COMP-3 VALUE 0.
+
+      *
+       01 WS-FLAG-FIN               PIC X.
+          88 WS-SI-PROCESO                    VALUE ' '.
+          88 WS-FIN-PROCESO                   VALUE 'F'.
+
+       01 WS-HEADERS.
+          05 WS-HEAD1               PIC X(50) VALUE ALL '*'.
+          05 WS-HEAD2               PIC X(50) VALUE
+                'LISTADO DE CUENTAS POR SUCURSAL'.
+          05 WS-HEAD3               PIC X(50) VALUE ALL '-'.
+
+      * SQLCA COMMUNICATION AREA
+           EXEC SQL INCLUDE SQLCA END-EXEC.
+
+      * DCLGEN de la tabla
+           EXEC SQL INCLUDE TBCURCTA END-EXEC.
+           EXEC SQL INCLUDE TBCURCLI END-EXEC.
+      
+      * Incluir la copylib del archivo de entrada a recorrer
+       COPY NOVCTA.
+
+
+
+       77 FILLER PIC X(30) VALUE '* FINAL  WORKING-STORAGE *'.
+
+      ***************************************************************.
+       PROCEDURE DIVISION.
+      **************************************
+      *                                    *
+      *  CUERPO PRINCIPAL DEL PROGRAMA     *
+      *                                    *
+      **************************************
+       MAIN-PROGRAM.
+           PERFORM 1000-I-INICIO.
+           PERFORM 2000-I-PROCESO UNTIL WS-FIN-PROCESO.
+           PERFORM 9999-I-FINAL.
+           GOBACK.
+
+      **************************************
+      *                                    *
+      *  CUERPO INICIO APERTURA ARCHIVOS   *
+      *                                    *
+      **************************************
+       1000-I-INICIO.
+           SET WS-SI-PROCESO TO TRUE.
+           SET WS-NO-FIN-LECTURA TO TRUE.
+
+           PERFORM 1100-I-WRITE-TITULO.
+
+           OPEN INPUT ENTRADA.
+           
+           EVALUATE WS-ENT-CODE
+           WHEN '00'
+                CONTINUE
+           WHEN OTHER
+                DISPLAY 'ERROR APERTURA ARCHIVO: ' WS-ENT-CODE
+                MOVE 9999 TO RETURN-CODE
+                SET WS-FIN-PROCESO TO TRUE
+           END-EVALUATE.
+
+           IF WS-SI-PROCESO
+              PERFORM 1200-I-LEER-ARCHIVO
+           END-IF.
+       
+       1100-I-WRITE-TITULO.
+           MOVE FUNCTION CURRENT-DATE TO WS-CURRENT-DATE
+           *> Armado par Display de SPOOL
+           DISPLAY WS-HEAD1 
+           DISPLAY WS-HEAD2
+           DISPLAY 'FECHA DE EJECUCION: ' 
+              WS-DAY '/' WS-MONTH '/' WS-YEAR 
+           DISPLAY 'HORA DE EJECUCION:  ' 
+              WS-HOUR ':' WS-MINUTE ':' WS-SECOND
+           DISPLAY WS-HEAD1 
+           DISPLAY WS-HEAD3.
+
+      **************************************
+      *                                    *
+      *  LECTURA INICIAL ARCHIVO           *
+      *                                    *
+      **************************************
+       1200-I-LEER-ARCHIVO.
+           READ ENTRADA INTO WS-REG-CTA.
+           EVALUATE WS-ENT-CODE
+           WHEN '00'
+                ADD 1 TO WS-TOT-LEIDOS-ARCHIVO
+           WHEN '10'
+                SET WS-FIN-LECTURA TO TRUE
+           WHEN OTHER
+                DISPLAY 'ERROR LECTURA ARCHIVO: ' WS-ENT-CODE
+                SET WS-FIN-PROCESO TO TRUE
+           END-EVALUATE.
+
+      **************************************
+      *                                    *
+      *  CUERPO PRINCIPAL DEL PROGRAMA     *
+      *                                    *
+      **************************************
+       2000-I-PROCESO.
+           IF WS-FIN-LECTURA
+              SET WS-FIN-PROCESO TO TRUE
+           ELSE
+              IF WS-SUCUEN OF WS-REG-CTA = 1
+                 ADD 1 TO WS-TOT-LEIDOS-PROCESADOS
+                 PERFORM 2100-I-PROCESAR-MOVIMIENTO
+              END-IF
+           END-IF.
+
+      **************************************
+      *                                    *
+      *  PROCESO DE MOVIMIENTO             *
+      *                                    *
+      **************************************
+       2100-I-PROCESAR-MOVIMIENTO.
+           *> Buscar detalle de cta y cliente para el movimiento actual
+           MOVE WS-TIPCUEN OF WS-REG-CTA TO WS-TIPCUEN-SQL
+           MOVE WS-NROCUEN OF WS-REG-CTA TO WS-NROCUEN-SQL
+           EXEC SQL
+              SELECT *
+                INTO :DCLTBCURCTA
+                FROM KC02787.TBCURCTA
+                WHERE TIPCUEN = :WS-TIPCUEN-SQL
+                  AND NROCUEN = :WS-NROCUEN-SQL
+           END-EXEC.
+           
+           EVALUATE SQLCODE
+              WHEN 0
+                 *> Busca los datos del cliente en la base de clientes
+                 MOVE WS-NROCLI OF WS-REG-CTA TO WS-NROCLI-SQL
+                 EXEC SQL
+                    SELECT NOMAPE
+                      INTO :WT-NOMAPE
+                      FROM KC02787.TBCURCLI
+                      WHERE NROCLI = :WS-NROCLI-SQL
+                 END-EXEC
+                 IF SQLCODE = 0
+                    COMPUTE WS-SALDO-ACTUALIZADO = 
+                      WS-SALDO OF DCLTBCURCTA + WS-SALDO OF WS-REG-CTA
+                    ADD 1 TO WS-TOT-APAREADOS
+                    ADD WS-SALDO-ACTUALIZADO TO WS-TOT-SALDO-APAREADOS
+                    DISPLAY 'TIPO DE CUENTA: ' WS-TIPCUEN OF DCLTBCURCTA
+                    DISPLAY 'NRO CUENTA: ' WS-NROCUEN OF DCLTBCURCTA
+                    DISPLAY 'NROCLI: ' WS-NROCLI OF DCLTBCURCTA
+                    DISPLAY 'NOMBRE CLIENTE: ' WT-NOMAPE OF DCLTBCURCLI
+                    DISPLAY 'SALDO ACTUALIZADO: ' WS-SALDO-ACTUALIZADO
+                    DISPLAY ' '
+                 ELSE
+                    ADD 1 TO WS-TOT-NO-ENCONTRADOS
+                    DISPLAY 'Cliente no encontrado: ' WS-NROCLI-SQL
+                 END-IF
+              WHEN 100
+                 DISPLAY 'NOVEDAD NO ENCONTRADA - TIPO: ' WS-TIPCUEN-SQL
+                 DISPLAY ' NRO: ' WS-NROCUEN-SQL
+                 ADD 1 TO WS-TOT-NO-ENCONTRADOS
+              WHEN OTHER
+                 DISPLAY '*ERROR SQL: ' SQLCODE ' - BUSQUEDA CUENTA *'
+                 SET WS-FIN-PROCESO TO TRUE
+           END-EVALUATE.
+
+           PERFORM 1200-I-LEER-ARCHIVO.
+
+
+      **************************************
+      *                                    *
+      *  CUERPO FINAL CIERRE DE FILES      *
+      *                                    *
+      **************************************
+       9999-I-FINAL.
+           CLOSE ENTRADA.
+
+           *> Recorrer todas las cuentas y buscar si tuvieron movimiento
+           EXEC SQL DECLARE C1 CURSOR FOR
+                SELECT TIPCUEN, NROCUEN, NROCLI, SALDO
+                  FROM KC02787.TBCURCTA
+           END-EXEC.
+           EXEC SQL OPEN C1 END-EXEC.
+           PERFORM FETCH-CUENTAS-SIN-NOVEDAD
+              UNTIL SQLCODE NOT = 0
+           EXEC SQL CLOSE C1 END-EXEC.
+
+           MOVE WS-TOT-SALDO-APAREADOS TO WS-TOT-SALDO-APAREADOS-D.
+           DISPLAY WS-HEAD3.
+           DISPLAY 'TOTALES GENERALES:'.
+           DISPLAY 'SALDO ACTUALIZADO TOTAL: ' WS-TOT-SALDO-APAREADOS-D.
+           DISPLAY 'LEIDOS ARCHIVO: ' WS-TOT-LEIDOS-ARCHIVO.
+           DISPLAY 'LEIDOS Y PROCESADOS (SUCUEN=1): ' 
+              WS-TOT-LEIDOS-PROCESADOS.
+           DISPLAY 'ENCONTRADOS (APAREADOS): ' WS-TOT-APAREADOS.
+           DISPLAY 'NO ENCONTRADOS: ' WS-TOT-NO-ENCONTRADOS.
+           DISPLAY 'SIN NOVEDAD: ' WS-TOT-SIN-NOVEDAD.
+           DISPLAY WS-HEAD1.
+           EXIT.
+
+      *---------------------------------------------*
+      *  FETCH Y BUSQUEDA DE CUENTAS SIN NOVEDAD   *
+      *---------------------------------------------*
+       FETCH-CUENTAS-SIN-NOVEDAD.
+           EXEC SQL
+                FETCH C1 
+                INTO :WS-DB2-TIPCUEN,
+                     :WS-DB2-NROCUEN, 
+                     :WS-DB2-NROCLI, 
+                     :WS-DB2-SALDO
+           END-EXEC.
+           IF SQLCODE = 0
+              PERFORM BUSCAR-MOVIMIENTO-CUENTA
+           END-IF.
+           EXIT.
+
+       BUSCAR-MOVIMIENTO-CUENTA.
+           OPEN INPUT ENTRADA.
+           MOVE 'N' TO WS-ENCONTRADO-MOV.
+           MOVE SPACES TO WS-ENT-CODE.
+           PERFORM UNTIL WS-ENT-CODE = '10'
+              READ ENTRADA INTO WS-REG-CTA
+              EVALUATE WS-ENT-CODE
+                 WHEN '00'
+                    IF WS-TIPCUEN OF WS-REG-CTA = WS-DB2-TIPCUEN
+                       AND WS-NROCUEN OF WS-REG-CTA = WS-DB2-NROCUEN
+                       MOVE 'S' TO WS-ENCONTRADO-MOV
+                       EXIT PERFORM
+                    END-IF
+                 WHEN '10'
+                    CONTINUE
+                 WHEN OTHER
+                    CONTINUE
+              END-EVALUATE
+           END-PERFORM
+           CLOSE ENTRADA.
+           IF WS-ENCONTRADO-MOV = 'N'
+              DISPLAY 'CUENTA SIN NOVEDAD - TIPO: ' WS-DB2-TIPCUEN
+              DISPLAY 'NRO: ' WS-DB2-NROCUEN
+              ADD 1 TO WS-TOT-SIN-NOVEDAD
+           END-IF.
+           EXIT.

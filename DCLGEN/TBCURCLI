@@ -3,7 +3,7 @@
       *        LIBRARY(KC03C7C.CURSOS.DCLGEN(TBCURCLI))                *
       *        ACTION(REPLACE)                                         *
       *        LANGUAGE(COBOL)                                         *
-      *        NAMES(WS-)                                              *
+      *        NAMES(WT-)                                              *
       *        QUOTE                                                   *
       *        COLSUFFIX(YES)                                          *
       * ... IS THE DCLGEN COMMAND THAT MADE THE FOLLOWING STATEMENTS   *
@@ -21,17 +21,17 @@
       ******************************************************************
        01  DCLTBCURCLI.
       *                       TIPDOC
-           10 WS-TIPDOC            PIC X(2).
+           10 WT-TIPDOC            PIC X(2).
       *                       NRODOC
-           10 WS-NRODOC            PIC S9(11)V USAGE COMP-3.
+           10 WT-NRODOC            PIC S9(11)V USAGE COMP-3.
       *                       NROCLI
-           10 WS-NROCLI            PIC S9(3)V USAGE COMP-3.
+           10 WT-NROCLI            PIC S9(3)V USAGE COMP-3.
       *                       NOMAPE
-           10 WS-NOMAPE            PIC X(30).
+           10 WT-NOMAPE            PIC X(30).
       *                       FECNAC
-           10 WS-FECNAC            PIC X(10).
+           10 WT-FECNAC            PIC X(10).
       *                       SEXO
-           10 WS-SEXO              PIC X(1).
+           10 WT-SEXO              PIC X(1).
       ******************************************************************
       * THE NUMBER OF COLUMNS DESCRIBED BY THIS DECLARATION IS 6       *
       ******************************************************************

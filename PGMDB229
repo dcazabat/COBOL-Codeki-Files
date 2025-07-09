@@ -115,16 +115,18 @@
               ADD 1 TO WS-TOTALES
               IF NOV-TIP-NOV = 'AL'
                  PERFORM 2200-INSERTAR-REGISTRO
-              ELSE IF NOV-TIP-NOV = 'MO'
-                 PERFORM 2300-ACTUALIZAR-REGISTRO
-              ELSE
-                 ADD 1 TO WS-ERRORES
-                 DISPLAY 'ERROR: TIPO DE NOVEDAD INVALIDO - DOC: ' 
-                         NOV-NRO-DOC
+              ELSE 
+                 IF NOV-TIP-NOV = 'MO'
+                    PERFORM 2300-ACTUALIZAR-REGISTRO
+                 ELSE
+                    ADD 1 TO WS-ERRORES
+                    DISPLAY 'ERROR: TIPO DE NOVEDAD INVALIDO - DOC: ' 
+                            NOV-NRO-DOC
+                 END-IF
               END-IF
               PERFORM 2100-LEER-ENTRADA
            END-PERFORM.
-
+       
        2100-LEER-ENTRADA.
            READ ENTRADA
            AT END 

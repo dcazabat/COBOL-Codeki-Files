@@ -3,7 +3,7 @@
       *        LIBRARY(KC03C7C.CURSOS.DCLGEN(TBCURCTA))                *
       *        ACTION(REPLACE)                                         *
       *        LANGUAGE(COBOL)                                         *
-      *        NAMES(WT-)                                              *
+      *        NAMES(WS-)                                              *
       *        QUOTE                                                   *
       *        COLSUFFIX(YES)                                          *
       * ... IS THE DCLGEN COMMAND THAT MADE THE FOLLOWING STATEMENTS   *
@@ -21,17 +21,17 @@
       ******************************************************************
        01  DCLTBCURCTA.
       *                       TIPCUEN
-           10 WT-TIPCUEN           PIC X(2).
+           10 WS-TIPCUEN           PIC X(2).
       *                       NROCUEN
-           10 WT-NROCUEN           PIC S9(5)V USAGE COMP-3.
+           10 WS-NROCUEN           PIC S9(5)V USAGE COMP-3.
       *                       SUCUEN
-           10 WT-SUCUEN            PIC S9(2)V USAGE COMP-3.
+           10 WS-SUCUEN            PIC S9(2)V USAGE COMP-3.
       *                       NROCLI
-           10 WT-NROCLI            PIC S9(3)V USAGE COMP-3.
+           10 WS-NROCLI            PIC S9(3)V USAGE COMP-3.
       *                       SALDO
-           10 WT-SALDO             PIC S9(5)V9(2) USAGE COMP-3.
+           10 WS-SALDO             PIC S9(5)V9(2) USAGE COMP-3.
       *                       FECSAL
-           10 WT-FECSAL            PIC X(10).
+           10 WS-FECSAL            PIC X(10).
       ******************************************************************
       * THE NUMBER OF COLUMNS DESCRIBED BY THIS DECLARATION IS 6       *
       ******************************************************************
