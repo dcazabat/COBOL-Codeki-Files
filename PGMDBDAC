@@ -1,0 +1,470 @@
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. PGMDBDAC.
+       AUTHOR.        D. CAZABAT.
+       INSTALLATION.  CURSO CODEKI.
+       DATE-WRITTEN.  12/07/2025.
+       DATE-COMPILED. 12/07/2025.
+       SECURITY.      UNCLASSIFIED.                                             
+      ********************************************************
+      *                                                      *
+      *  DOBLE CORTE DE CONTROL : DB2                        *
+      *  ============================                        *
+      *                                                      *
+      *  LEE LOS REGISTROS DE TBCRUCTA ORDENADOS POR         *
+      *  SUCUEN Y TIPCUEN PARA REALIZAR LOS SUBTOTALES DE    *
+      *  LOS SALDOS POR CADA CORTE DE CONTROL Y TOTAL GRAL   *
+      *                                                      *
+      ********************************************************
+       ENVIRONMENT DIVISION.
+       CONFIGURATION SECTION.
+       SPECIAL-NAMES.
+           DECIMAL-POINT IS COMMA.
+
+       INPUT-OUTPUT SECTION.
+       FILE-CONTROL.
+             SELECT SALIDA  ASSIGN DDSALE
+             FILE STATUS IS SW-FS-SALIDA.
+
+       DATA DIVISION.
+       FILE SECTION.
+       FD SALIDA
+             BLOCK CONTAINS 0 RECORDS
+             RECORDING MODE IS F.
+
+       01 REG-SALIDA      PIC X(80).
+
+       WORKING-STORAGE SECTION.
+      * Variables de fecha y hora
+       01  WS-CURRENT-DATE.
+           05 WS-DATE.
+              10 WS-YEAR              PIC 9(4).
+              10 WS-MONTH             PIC 9(2).
+              10 WS-DAY               PIC 9(2).
+           05 WS-TIME.
+              10 WS-HOUR              PIC 9(2).
+              10 WS-MINUTE            PIC 9(2).
+              10 WS-SECOND            PIC 9(2).
+              10 WS-HUNDREDTH         PIC 9(2).
+      
+      * Variables de control
+       01  WS-STATUS.
+           05 SW-FS-SALIDA           PIC X(02).
+              88 SW-FS-OK            VALUE '00'.
+              88 SW-FS-EOF           VALUE '10'.
+              88 SW-FS-NOK           VALUE '01' THRU '09'
+                                           '11' THRU '99'.
+       77  WS-LINEAS-PAG             PIC 99    VALUE ZEROS.
+       01  WS-FLAG-FIN               PIC X.
+           88  WS-SI-PROCESO               VALUE ' '.
+           88  WS-FIN-PROCESO              VALUE 'F'.
+
+      * Variables de Estados Anteriores
+       01  WS-ESTADOS-ANTERIORES.
+           05 WS-TIPCUEN-ANTERIOR      PIC X(02) VALUE SPACES.
+           05 WS-SUCUEN-ANTERIOR       PIC S9(2)V USAGE COMP-3 VALUE 0.
+
+      * Variables CONTADORES
+       01  WS-CONTADORES-CORTE.
+           05 WS-CONT-TIPCUEN            PIC 9(3) VALUE ZEROS.
+           05 WS-CONT-TIPCUEN-DISP       PIC ZZZ.
+           05 WS-CONT-SUCCUEN            PIC 9(3) VALUE ZEROS.
+           05 WS-CONT-SUCCUEN-DISP       PIC ZZZ.
+           05 WS-CONT-TOTALLEI           PIC 9(3) VALUE ZEROS.
+           05 WS-CONT-TOTALLEI-DISP      PIC ZZZ.
+
+      * Variables sumarizadoras
+       01  WS-SUMARIZADORAS-CORTE.
+           05 WS-TOT-SALDOS-TIPCUEN      PIC S9(13)V99 COMP-3 VALUE 0.
+           05 WS-TOT-SALDOS-TIPCUEN-DISP PIC -$$.$$$.$$9,99.
+           05 WS-TOT-SALDOS-SUCCUEN      PIC S9(13)V99 COMP-3 VALUE 0.
+           05 WS-TOT-SALDOS-SUCCUEN-DISP PIC -$$.$$$.$$9,99.
+           05 WS-TOT-SALDOS              PIC S9(13)V99 COMP-3 VALUE 0.
+           05 WS-TOT-SALDOS-DISP         PIC -$$.$$$.$$9,99.
+      
+       77  WS-TOT-GRABADOS              PIC 9(3)  VALUE ZEROS.
+       77  WS-TOT-GRABADOS-DISP         PIC ZZZ.
+
+       01  WS-FECHA.
+           03  WS-DIA   PIC 99.
+           03  FILLER   PIC X         VALUE '-'.
+           03  WS-MES   PIC 99.
+           03  FILLER   PIC X         VALUE '-'.
+           03  WS-ANIO  PIC 9999.
+
+       01  WS-HEADERS.
+           05 WS-ASTERISCOS         PIC X(50) VALUE ALL '*'.
+           05 WS-TITULO             PIC X(50) VALUE 
+              'DOBLE CORTE DE CONTROL POR TIPCUEN Y SUCUEN'.
+           05 WS-GUIONES            PIC X(50) VALUE ALL '-'.
+
+
+      * SQLCA COMMUNICATION AREA
+           EXEC SQL INCLUDE SQLCA END-EXEC.
+
+      * DCLGEN de la tabla
+           EXEC SQL INCLUDE TBCURCLI END-EXEC.
+           EXEC SQL INCLUDE TBCURCTA END-EXEC.
+
+      *******************************************************************
+      * DECLARACION DE LAS VARIABLES HOST Y CURSOR                      *
+      ******************************************************************
+           EXEC SQL 
+              DECLARE CURSORCLI CURSOR 
+              FOR
+                 SELECT * 
+                 FROM KC02787.TBCURCTA 
+                 ORDER BY TIPCUEN, SUCUEN 
+           END-EXEC.
+
+       77  FILLER  PIC X(30) VALUE '* FINAL  WORKING-STORAGE *'.
+
+      ***************************************************************.
+       PROCEDURE DIVISION.
+      **************************************
+      *                                    *
+      *  CUERPO PRINCIPAL DEL PROGRAMA     *
+      *                                    *
+      **************************************
+       MAIN-PROGRAM.
+           PERFORM 1000-I-INICIO.
+           PERFORM 2000-I-PROCESO UNTIL WS-FIN-PROCESO.
+           PERFORM 9999-I-FINAL.
+           GOBACK.
+
+      **************************************
+      *                                    *
+      *  CUERPO INICIO APERTURA ARCHIVOS   *
+      *                                    *
+      **************************************
+       1000-I-INICIO.
+           SET WS-SI-PROCESO TO TRUE.
+
+           OPEN OUTPUT SALIDA.
+           IF NOT SW-FS-OK
+              DISPLAY '* ERROR EN OPEN SALIDA  = ' SW-FS-SALIDA
+              MOVE 9999 TO RETURN-CODE
+              SET  WS-FIN-PROCESO TO TRUE
+           END-IF.
+
+           IF NOT SW-FS-OK
+              DISPLAY '* ERROR EN WRITE SALIDA  = ' SW-FS-SALIDA
+              MOVE 9999 TO RETURN-CODE
+              SET  WS-FIN-PROCESO TO TRUE
+           END-IF.
+
+           PERFORM 1100-I-WRITE-DISPLAY
+           PERFORM 1200-I-WRITE-SALIDA
+
+           EXEC SQL
+              OPEN CURSORCLI
+           END-EXEC.
+
+           EVALUATE SQLCODE
+              WHEN 0
+                 CONTINUE
+              WHEN OTHER
+                 DISPLAY 'ERROR SQL: ' SQLCODE ' - APERTURA CURSOR'
+                 MOVE 9999 TO RETURN-CODE
+                 SET WS-FIN-PROCESO TO TRUE
+           END-EVALUATE.
+
+      ***************************************
+      *                                     *
+      *  TITULOS DEL LA PAGINA DEL PROGRAMA *
+      *  PARA DISPLAY EN PANTALLA           *
+      *                                     *
+      ***************************************
+
+       1100-I-WRITE-DISPLAY.
+           MOVE FUNCTION CURRENT-DATE TO WS-CURRENT-DATE
+           *> Armado par Display de SPOOL
+           DISPLAY WS-ASTERISCOS 
+           DISPLAY WS-TITULO
+           DISPLAY WS-GUIONES
+           DISPLAY 'FECHA DE EJECUCION: ' 
+              WS-YEAR '-' WS-MONTH '-' WS-DAY
+           DISPLAY 'HORA DE EJECUCION:  ' 
+              WS-HOUR ':' WS-MINUTE ':' WS-SECOND
+           DISPLAY WS-ASTERISCOS.
+
+      ***************************************
+      *                                     *
+      *  TITULOS DEL LA PAGINA DEL PROGRAMA *
+      *  PARA ARCHIVO DE SALIDA             *
+      *                                     *
+      ***************************************
+
+       1200-I-WRITE-SALIDA.
+           *> Armado para el archivo de salida 
+           WRITE REG-SALIDA FROM WS-GUIONES
+           WRITE REG-SALIDA FROM WS-TITULO 
+           WRITE REG-SALIDA FROM WS-GUIONES.
+
+      **************************************
+      *                                    *
+      *  CUERPO PRINCIPAL DEL PROGRAMA     *
+      *                                    *
+      **************************************
+       2000-I-PROCESO.
+
+           EXEC SQL
+              FETCH CURSORCLI
+              INTO :DCLTBCURCTA
+           END-EXEC
+
+           EVALUATE SQLCODE
+              WHEN 0
+                 ADD 1 TO WS-CONT-TOTALLEI
+                 
+                 *> Control de corte por TIPCUEN (primer nivel)
+                 IF WS-TIPCUEN NOT = WS-TIPCUEN-ANTERIOR
+                    *> Mostrar subtotales del tipo de cuenta anterior
+                    IF WS-TIPCUEN-ANTERIOR NOT = SPACES
+                       PERFORM 2100-CORTE-TIPCUEN
+                    END-IF
+                    
+                    *> Inicializar contadores y acumuladores de TIPCUEN
+                    MOVE 0 TO WS-CONT-TIPCUEN
+                    MOVE 0 TO WS-TOT-SALDOS-TIPCUEN
+                    MOVE WS-TIPCUEN TO WS-TIPCUEN-ANTERIOR
+                    
+                    *> Mostrar encabezado del nuevo TIPCUEN
+                    DISPLAY WS-GUIONES
+                    DISPLAY 'TIPO DE CUENTA: ' WS-TIPCUEN
+                    DISPLAY WS-GUIONES
+                    
+                    MOVE SPACES TO REG-SALIDA
+                    STRING 'TIPO DE CUENTA: ' 
+                           DELIMITED BY SIZE
+                           INTO REG-SALIDA
+                    WRITE REG-SALIDA
+                    
+                    *> Convertir WS-TIPCUEN a formato para mostrar
+                    MOVE WS-TIPCUEN TO REG-SALIDA(16:2)
+                    WRITE REG-SALIDA
+                    WRITE REG-SALIDA FROM WS-GUIONES
+                    ADD 2 TO WS-LINEAS-PAG
+                    
+                    *> Inicializar para SUCUEN ya que cambió el TIPCUEN
+                    MOVE 0 TO WS-SUCUEN-ANTERIOR
+                 END-IF
+                 
+                 *> Control de corte por SUCUEN (segundo nivel)
+                 IF WS-SUCUEN NOT = WS-SUCUEN-ANTERIOR
+                    *> Mostrar subtotales de la sucursal anterior
+                    IF WS-SUCUEN-ANTERIOR NOT = 0
+                       PERFORM 2200-CORTE-SUCUEN
+                    END-IF
+                    
+                    *> Inicializar contadores y acumuladores de SUCUEN
+                    MOVE 0 TO WS-CONT-SUCCUEN
+                    MOVE 0 TO WS-TOT-SALDOS-SUCCUEN
+                    MOVE WS-SUCUEN TO WS-SUCUEN-ANTERIOR
+                    
+                    *> Mostrar encabezado de la nueva SUCUEN
+                    DISPLAY '  SUCURSAL: ' WS-SUCUEN
+                    MOVE SPACES TO REG-SALIDA
+                    STRING '  SUCURSAL: ' 
+                           DELIMITED BY SIZE
+                           INTO REG-SALIDA
+                    WRITE REG-SALIDA
+                    
+                    *> Convertir WS-SUCUEN a formato para mostrar
+                    MOVE WS-SUCUEN TO REG-SALIDA(13:2)
+                    WRITE REG-SALIDA
+                    ADD 2 TO WS-LINEAS-PAG
+                 END-IF
+                 
+                 *> Procesar el registro actual
+                 ADD 1 TO WS-CONT-TIPCUEN
+                 ADD 1 TO WS-CONT-SUCCUEN
+                 ADD WS-SALDO  TO WS-TOT-SALDOS-TIPCUEN
+                 ADD WS-SALDO  TO WS-TOT-SALDOS-SUCCUEN
+                 ADD WS-SALDO  TO WS-TOT-SALDOS
+                 
+                 *> Grabar el registro en el archivo de salida
+                 MOVE SPACES TO REG-SALIDA
+                 STRING 'CUENTA: ' 
+                        DELIMITED BY SIZE
+                        INTO REG-SALIDA
+                 
+                 *> Convertir WS-NROCUEN a formato para mostrar
+                 MOVE WS-NROCUEN TO REG-SALIDA(9:8)
+                 
+                 STRING ' SALDO: '
+                        DELIMITED BY SIZE
+                        INTO REG-SALIDA(19:8)
+                 
+                 *> Convertir WS-SALDO a formato para mostrar
+                 MOVE WS-SALDO TO WS-TOT-SALDOS-DISP
+                 MOVE WS-TOT-SALDOS-DISP TO REG-SALIDA(27:16)
+                 WRITE REG-SALIDA
+                 ADD 1 TO WS-TOT-GRABADOS
+                 ADD 1 TO WS-LINEAS-PAG
+                 
+                 *> Control de salto de página
+                 IF WS-LINEAS-PAG > 40
+                    MOVE ZEROS TO WS-LINEAS-PAG
+                    PERFORM 1200-I-WRITE-SALIDA
+                 END-IF
+                 
+              WHEN +100
+                 *> Fin del archivo - procesar últimos cortes
+                 IF WS-CONT-TOTALLEI > 0
+                    *> Procesar el último SUCUEN
+                    IF WS-SUCUEN-ANTERIOR NOT = 0
+                       PERFORM 2200-CORTE-SUCUEN
+                    END-IF
+                    
+                    *> Procesar el último TIPCUEN
+                    IF WS-TIPCUEN-ANTERIOR NOT = SPACES
+                       PERFORM 2100-CORTE-TIPCUEN
+                    END-IF
+                 END-IF
+                 SET WS-FIN-PROCESO TO TRUE
+                 
+              WHEN OTHER
+                 DISPLAY 'ERROR SQL: ' SQLCODE
+                 SET WS-FIN-PROCESO TO TRUE
+           END-EVALUATE.
+
+      **************************************
+      *                                    *
+      *  CORTE POR TIPO DE CUENTA          *
+      *                                    *
+      **************************************
+       2100-CORTE-TIPCUEN.
+           DISPLAY WS-GUIONES
+           MOVE WS-TOT-SALDOS-TIPCUEN TO WS-TOT-SALDOS-TIPCUEN-DISP
+           MOVE WS-CONT-TIPCUEN TO WS-CONT-TIPCUEN-DISP
+           
+           DISPLAY 'TOTAL TIPO CUENTA ' WS-TIPCUEN-ANTERIOR ': ' 
+                  WS-TOT-SALDOS-TIPCUEN-DISP
+           DISPLAY 'CANTIDAD DE CUENTAS: ' WS-CONT-TIPCUEN-DISP
+           DISPLAY WS-GUIONES
+
+           MOVE SPACES TO REG-SALIDA
+           STRING 'TOTAL TIPO CUENTA ' 
+                  DELIMITED BY SIZE
+                  INTO REG-SALIDA
+           
+           MOVE WS-TIPCUEN-ANTERIOR TO REG-SALIDA(18:2)
+           STRING ': '
+                  DELIMITED BY SIZE
+                  INTO REG-SALIDA(20:2)
+           
+           MOVE WS-TOT-SALDOS-TIPCUEN-DISP TO REG-SALIDA(22:16)
+           WRITE REG-SALIDA
+           
+           MOVE SPACES TO REG-SALIDA
+           STRING 'CANTIDAD DE CUENTAS: ' 
+                  DELIMITED BY SIZE
+                  INTO REG-SALIDA
+           MOVE WS-CONT-TIPCUEN-DISP TO REG-SALIDA(21:3)
+           WRITE REG-SALIDA
+           
+           WRITE REG-SALIDA FROM WS-GUIONES
+           ADD 3 TO WS-LINEAS-PAG.
+
+      **************************************
+      *                                    *
+      *  CORTE POR SUCURSAL                *
+      *                                    *
+      **************************************
+       2200-CORTE-SUCUEN.
+           MOVE WS-TOT-SALDOS-SUCCUEN TO WS-TOT-SALDOS-SUCCUEN-DISP
+           MOVE WS-CONT-SUCCUEN TO WS-CONT-SUCCUEN-DISP
+           
+           DISPLAY '  TOTAL SUCURSAL ' WS-SUCUEN-ANTERIOR ': ' 
+                  WS-TOT-SALDOS-SUCCUEN-DISP
+           DISPLAY '  CANTIDAD DE CUENTAS: ' WS-CONT-SUCCUEN-DISP
+           DISPLAY WS-GUIONES
+           
+           MOVE SPACES TO REG-SALIDA
+           STRING '  TOTAL SUCURSAL ' 
+                  DELIMITED BY SIZE
+                  INTO REG-SALIDA
+                  
+           MOVE WS-SUCUEN-ANTERIOR TO REG-SALIDA(17:2)
+           STRING ': '
+                  DELIMITED BY SIZE
+                  INTO REG-SALIDA(19:2)
+                  
+           MOVE WS-TOT-SALDOS-SUCCUEN-DISP TO REG-SALIDA(21:16)
+           WRITE REG-SALIDA
+           
+           MOVE SPACES TO REG-SALIDA
+           STRING '  CANTIDAD DE CUENTAS: ' 
+                  DELIMITED BY SIZE
+                  INTO REG-SALIDA
+           MOVE WS-CONT-SUCCUEN-DISP TO REG-SALIDA(23:3)
+           WRITE REG-SALIDA
+           
+           WRITE REG-SALIDA FROM WS-GUIONES
+           ADD 3 TO WS-LINEAS-PAG.
+
+      **************************************
+      *                                    *
+      *  CUERPO FINAL y CIERRE DE FILES    *
+      *                                    *
+      **************************************
+       9999-I-FINAL.
+      **************************************
+      *   MOSTRAR TOTALES DE CONTROL
+      **************************************
+           DISPLAY ' '
+           DISPLAY WS-ASTERISCOS
+           DISPLAY WS-GUIONES
+           MOVE WS-TOT-SALDOS TO WS-TOT-SALDOS-DISP
+           DISPLAY 'SALDOS TOTALES : ' WS-TOT-SALDOS-DISP
+           MOVE WS-CONT-TOTALLEI TO WS-CONT-TOTALLEI-DISP
+           DISPLAY 'REGISTROS LEIDOS: ' WS-CONT-TOTALLEI-DISP
+           DISPLAY WS-GUIONES
+           DISPLAY WS-ASTERISCOS
+           
+           *> Mostrar en archivo de salida
+           STRING 'RESUMEN FINAL DE TOTALES'
+                  DELIMITED BY SIZE
+                  INTO REG-SALIDA
+           WRITE REG-SALIDA
+           WRITE REG-SALIDA FROM WS-GUIONES
+           
+           STRING 'SALDOS TOTALES: ' WS-TOT-SALDOS-DISP
+                  DELIMITED BY SIZE
+                  INTO REG-SALIDA
+           WRITE REG-SALIDA
+           
+           STRING 'REGISTROS LEIDOS: ' WS-CONT-TOTALLEI-DISP
+                  DELIMITED BY SIZE
+                  INTO REG-SALIDA
+           WRITE REG-SALIDA
+           
+           MOVE WS-TOT-GRABADOS TO WS-TOT-GRABADOS-DISP
+           STRING 'CANTIDAD REGISTROS IMPRESOS: ' WS-TOT-GRABADOS-DISP
+                  DELIMITED BY SIZE
+                  INTO REG-SALIDA
+           WRITE REG-SALIDA
+           WRITE REG-SALIDA FROM WS-ASTERISCOS
+
+      **************************************
+      *   CIERRE DE CURSOR Y ARCHIVOS
+      **************************************
+           EXEC SQL
+              CLOSE CURSORCLI
+           END-EXEC.
+
+           EVALUATE SQLCODE
+              WHEN 0
+                 CONTINUE
+              WHEN OTHER
+                 DISPLAY 'ERROR SQL: ' SQLCODE ' - CIERRE CURSOR'
+                 MOVE 9999 TO RETURN-CODE
+           END-EVALUATE.
+
+           CLOSE SALIDA
+           IF NOT SW-FS-OK
+              DISPLAY '* ERROR EN CLOSE SALIDA  = ' SW-FS-SALIDA
+              MOVE 9999 TO RETURN-CODE
+           END-IF.
+           EXIT.
+      *
