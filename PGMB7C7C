@@ -1,18 +1,19 @@
        IDENTIFICATION DIVISION.
-       PROGRAM-ID. PGMDB233.
+       PROGRAM-ID. PGMB7C7C.
        AUTHOR.        D. CAZABAT.
        INSTALLATION.  CURSO CODEKI.
-       DATE-WRITTEN.  09/07/2025.
-       DATE-COMPILED. 10/07/2025.
+       DATE-WRITTEN.  11/07/2025.
+       DATE-COMPILED. 11/07/2025.
        SECURITY.      UNCLASSIFIED.                                             
       ********************************************************
       *                                                      *
-      *  SINCRONICA 33: DB2                                  *
+      *  ASINCRONICA 18: DB2                                 *
       *  ============================                        *
       *                                                      *
       *  DEBERÁN GENERAR LISTADO DE CLIENTES CON SALIDA      *
       *  IMPRESA A UN ARCHIVO, TOMANDO LOS DATOS DESDE UN    *
-      *  CURSOR QUE SE GENERA DE UN LEFT JOIN DE 2 TABLAS    *
+      *  CURSOR QUE VALIDA CON UN SQL EMBEBIDO EN LA TABLA   *
+      *  TBCURCTA.                                           * 
       *                                                      *
       ********************************************************
        ENVIRONMENT DIVISION.
@@ -81,13 +82,10 @@
            03  WS-ANIO  PIC 9999.
 
        01  WS-HEADERS.
-           05 WS-HEAD1             PIC X(50) VALUE ALL '*'.
-           05 WS-HEAD2             PIC X(50) VALUE 
+           05 WS-HEAD1             PIC X(80) VALUE ALL '*'.
+           05 WS-HEAD2             PIC X(80) VALUE 
               'CLIENTES ENCONTRADOS EN TABLA CLIENTES '.
-           05 WS-HEAD3             PIC X(50) VALUE ALL '-'.
-
-       01  WS-LINEA-GUIONES.
-           03  FILLER              PIC X(80)     VALUE ALL '-'.
+           05 WS-HEAD3             PIC X(80) VALUE ALL '-'.
 
        01  WS-DATOS-NULOS.
            05 WS-TIPDOC-NULL       PIC S9(4) COMP-5.
@@ -134,17 +132,11 @@
       * DECLARACION DE LAS VARIABLES HOST Y CURSOR                      *
       ******************************************************************
            EXEC SQL 
-              DECLARE CURSORCLI CURSOR 
+              DECLARE CURSORCTA CURSOR 
               FOR
-                 SELECT A.NROCLI,
-                        B.TIPDOC,
-                        B.NRODOC,
-                        B.NOMAPE,
-                        A.SUCUEN,
-                        A.SALDO
+                 SELECT A.*
                  FROM KC02787.TBCURCTA A 
-                 LEFT OUTER JOIN KC02787.TBCURCLI B 
-                 ON A.NROCLI = B.NROCLI 
+                 ORDER BY A.NROCLI
            END-EXEC.
 
        77  FILLER  PIC X(30) VALUE '* FINAL  WORKING-STORAGE *'.
@@ -186,7 +178,7 @@
            PERFORM 1100-I-WRITE-TITULO
 
            EXEC SQL
-              OPEN CURSORCLI
+              OPEN CURSORCTA
            END-EXEC.
 
            EVALUATE SQLCODE
@@ -215,13 +207,14 @@
            DISPLAY 'HORA DE EJECUCION:  ' 
               WS-HOUR ':' WS-MINUTE ':' WS-SECOND
            DISPLAY WS-HEAD1
+           DISPLAY WS-TITULO
 
            *> Armado para el archivo de salida 
-           WRITE REG-SALIDA FROM WS-LINEA-GUIONES
+           WRITE REG-SALIDA FROM WS-HEAD3
            WRITE REG-SALIDA FROM WS-HEAD2 
-           WRITE REG-SALIDA FROM WS-LINEA-GUIONES
+           WRITE REG-SALIDA FROM WS-HEAD3
            WRITE REG-SALIDA FROM WS-TITULO
-           WRITE REG-SALIDA FROM WS-LINEA-GUIONES.
+           WRITE REG-SALIDA FROM WS-HEAD3.
 
       **************************************
       *                                    *
@@ -231,19 +224,25 @@
        2000-I-PROCESO.
 
            EXEC SQL
-              FETCH CURSORCLI
-              INTO :WS-NROCLI,
-                   :WT-TIPDOC :WS-TIPDOC-NULL,
-                   :WT-NRODOC :WS-NRODOC-NULL,
-                   :WT-NOMAPE :WS-NOMAPE-NULL,
-                   :WS-SUCUEN,
-                   :WS-SALDO
+              FETCH CURSORCTA
+              INTO :DCLTBCURCTA
            END-EXEC
 
            EVALUATE SQLCODE
               WHEN 0
                  ADD 1 TO WS-TOT-LEIDOS-TBCURCTA
-                 IF WS-NOMAPE-NULL IS EQUAL TO 0
+                 
+                 *> Ejecutamos el SQL Embebdido para validar el cliente
+                 EXEC SQL
+                     SELECT A.*
+                     INTO :DCLTBCURCLI
+                     FROM KC02787.TBCURCLI A
+                     WHERE A.NROCLI = :WS-NROCLI
+                 END-EXEC
+
+                 *> Evaluamos el resultado del SQL Embebido
+                 IF SQLCODE = 0
+                    *> Si el cliente existe, procesamos los datos
                     ADD 1 TO WS-TOT-LEIDOS-TBCURCLI
                     ADD 1 TO WS-ENCONTRADOS
                     ADD WS-SALDO TO WS-TOT-SALDOS
@@ -269,9 +268,10 @@
                        SET WS-FIN-PROCESO TO TRUE
                     END-IF
                  ELSE
+                    *> Si no se encuentra el cliente, lo registramos
                     DISPLAY WS-HEAD3
-                    DISPLAY 'CUENTA SIN CLIENTE EN TBCURCLI ' 
-                    DISPLAY 'NRO CLI' WS-NROCLI
+                    DISPLAY 'CUENTA SIN CLIENTE EN TBCURCLI // NRO CLI'
+                     WS-NROCLI
                     ADD 1 TO WS-NO-ENCONTRADOS
                  END-IF
 
@@ -290,7 +290,7 @@
       **************************************
        9999-I-FINAL.
            EXEC SQL
-              CLOSE CURSORCLI
+              CLOSE CURSORCTA
            END-EXEC.
 
            EVALUATE SQLCODE
