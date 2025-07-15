@@ -1,6 +1,6 @@
 # Programas de Práctica COBOL
 
-Este repositorio contiene varios programas COBOL y archivos relacionados para práctica y aprendizaje.
+Este repositorio contiene diversos programas COBOL y archivos relacionados para práctica, aprendizaje y referencia en entornos mainframe. Incluye ejemplos de procesamiento batch, manejo de archivos, bases de datos DB2, CICS y más.
 
 ## Archivos de Programa
 
@@ -33,6 +33,8 @@ Este repositorio contiene varios programas COBOL y archivos relacionados para pr
 
 ### Programas de Base de Datos (DB2)
 
+- `PGMB2C7C` - Programa DB2 con copybooks para estructura de datos
+- `PGMB7C7C` - Programa DB2 con procesamiento de cursores y copybooks
 - `PGMDB210` - Programa básico de conexión y consultas DB2
 - `PGMDB216` - Programa de consultas DB2 con joins
 - `PGMDB22` - Programa de operaciones básicas DB2
@@ -41,7 +43,10 @@ Este repositorio contiene varios programas COBOL y archivos relacionados para pr
 - `PGMDB228` - Programa de transacciones DB2
 - `PGMDB229` - Programa de stored procedures DB2
 - `PGMDB230` - Programa avanzado de DB2
+- `PGMDB231` - Programa de consultas complejas DB2
+- `PGMDB233` - Programa de manejo de errores DB2
 - `PGMDB316` - Programa de administración DB2
+- `PGMDBDAC` - Programa de acceso a datos DB2 personalizado
 - `JCLDB2XX` - JCL para ejecución de programas DB2
 
 ### Programas de Manejo de Archivos
@@ -56,17 +61,19 @@ Este repositorio contiene varios programas COBOL y archivos relacionados para pr
 
 ### Programas con Copybooks (Compilación C7C)
 
-- `PGM2CC7C` - Programa con copybooks de estructuras de datos
-- `PGM3CC7C` - Programa con copybooks avanzados
-- `PGMB2C7C` - Programa con copybooks de base de datos
-- `PGMCCC7C` - Programa con copybooks de control
-- `PGMDCC7C` - Programa con copybooks de validación de datos
-- `PGMIMC7C` - Programa con copybooks de importación
-- `PGMIMC7L` - Programa de importación con librerías
-- `PGMIMP7C` - Programa de impresión con copybooks
-- `PGMRUC7C` - Programa con copybooks de rutinas
-- `PGMVAC7C` - Programa con copybooks de validación avanzada
-- `PVAC7CV2` - Programa de validación versión 2
+Estos programas utilizan estructuras de datos reutilizables de la carpeta `/copylib`:
+
+- `PGM2CC7C` - Programa con copybooks de estructuras de datos básicas
+- `PGM3CC7C` - Programa con copybooks avanzados y procesamiento complejo
+- `PGMB2C7C` - Programa con copybooks de base de datos (DB2)
+- `PGMCCC7C` - Programa con copybooks de control y validación
+- `PGMDCC7C` - Programa con copybooks para validación de datos
+- `PGMIMC7C` - Programa con copybooks para importación de datos
+- `PGMIMC7L` - Programa de importación con librerías extendidas
+- `PGMIMP7C` - Programa de impresión con copybooks de formato
+- `PGMRUC7C` - Programa con copybooks de rutinas reutilizables
+- `PGMVAC7C` - Programa con copybooks para validación avanzada de datos
+- `PVAC7CV2` - Programa de validación versión 2 optimizada
 
 ### Programas de Ejemplo y Pruebas
 
@@ -98,18 +105,14 @@ Este repositorio contiene varios programas COBOL y archivos relacionados para pr
 
 ### `/ApareoDocu`
 
-Documentación adicional sobre procesos de apareo de archivos
-
-### `/Apareo`
-
 Documentación y recursos para apareo/fusión de archivos:
 
-- `ApareoEJ.pdf` - Documentación en formato PDF
-- `pgmapar.html.htm` - Documentación HTML explicando el proceso de fusión
-- `style1.css`, `style2.css`, `style3.css` - Hojas de estilo para documentación HTML
+- `ApareoEJ.pdf` - Documentación en formato PDF sobre ejemplos de apareo
+- `pgmapar.html.htm` - Documentación HTML detallada explicando el proceso de fusión
+- `style1.css`, `style2.css`, `style3.css` - Hojas de estilo para la documentación HTML
 - Archivos de diagramas:
-  - `deepseek_mermaid_20250510_1cf68b.mermaid`
-  - `deepseek_mermaid_20250510_8b3a62.png`
+  - `deepseek_mermaid_20250510_1cf68b.mermaid` - Diagrama de flujo en formato mermaid
+  - `deepseek_mermaid_20250510_8b3a62.png` - Representación visual del diagrama de flujo
 
 ### `/COMPILADOR`
 
@@ -125,22 +128,22 @@ Archivos relacionados con compilación:
 
 ### `/copylib`
 
-Biblioteca de copybooks COBOL que contiene estructuras comunes:
+Biblioteca de copybooks COBOL que contiene estructuras comunes reutilizables:
 
-- `CLICOB` - Copybook relacionado con clientes
-- `CLIENTE` - Definiciones de estructura de clientes
-- `CORTE` - Estructuras relacionadas con corte de control
-- `CPCLIE` - Copybook de procesamiento de clientes
-- `CPCLIENS` - Copybook de clientes múltiples
-- `CPDATOCD` - Copybook de datos codificados
-- `CPNCLIV` - Copybook de validación de clientes
-- `CPNOVCLI` - Copybook de nuevos clientes
-- `MOVIMCC` - Copybook relacionado con movimientos
-- `PRODUC` - Copybook de productos
-- `TBCLIENT` - Tabla de clientes
-- `TBCURCLI` - Tabla de cursos de clientes
-- `TBCURCTA` - Tabla de cuentas corrientes
-- `TBVCLIEN` - Tabla de validación de clientes
+- `CLICOB` - Copybook con estructura de datos de clientes para COBOL
+- `CLIENTE` - Definiciones de estructura detallada de clientes
+- `CORTE` - Estructuras relacionadas con corte de control y procesamiento por lotes
+- `CPCLIE` - Copybook de procesamiento de datos de clientes
+- `CPCLIENS` - Copybook para manejo de múltiples registros de clientes
+- `CPDATOCD` - Copybook de datos codificados y lookup tables
+- `CPNCLIV` - Copybook para validación de nuevos clientes
+- `CPNOVCLI` - Copybook para estructura de nuevos clientes
+- `MOVIMCC` - Copybook relacionado con movimientos y transacciones
+- `NOVCTA` - Copybook para nuevas cuentas
+- `NOVECLIE` - Copybook para novedades de clientes
+- `PRODUC` - Copybook con estructura de datos de productos
+- `TBCLIENT` - Copybook para tabla de clientes
+- `TBVCLIEN` - Copybook para tabla de validación de clientes
 
 ### `/data`
 
@@ -205,11 +208,63 @@ Scripts y programas SQL:
 - `SPUFJOIN` - Scripts SPUFI para consultas con JOIN
 - `VERTABLA` - Scripts para visualización de estructuras de tablas
 
+### `/CICS`
+
+Programas y recursos relacionados con CICS (Customer Information Control System):
+
+- `PEPECICS` - Programa CICS de ejemplo para procesamiento de transacciones online
+
+### `/.vscode`
+
+Configuración para Visual Studio Code:
+
+- `settings.json` - Configuración de extensiones y parámetros para trabajar con COBOL en VS Code
+
 ## Documentación
 
-La documentación detallada sobre el proceso de apareo de archivos se puede encontrar en el directorio Apareo, particularmente en `pgmapar.html.htm` que explica:
+### Apareo de Archivos
 
-- Cómo se procesan los archivos de clientes y movimientos
-- La lógica para comparar claves
-- El proceso de lectura secuencial
-- Cómo se emparejan y procesan los registros
+La documentación detallada sobre el proceso de apareo de archivos se encuentra en el directorio `ApareoDocu`, particularmente en `pgmapar.html.htm` que explica:
+
+- Cómo se procesan los archivos de clientes y movimientos secuencialmente
+- La lógica para comparar claves y aparear registros relacionados
+- El proceso de lectura secuencial y manejo de fin de archivos
+- Cómo se emparejan y procesan los registros para obtener resultados consolidados
+- Diagramas de flujo que ilustran el proceso completo
+
+### Archivos VSAM
+
+La documentación sobre archivos VSAM está disponible en:
+
+- `PAPAVSAM` - Documentación técnica sobre la estructura y manejo de VSAM
+- `PAPAVSAM.md` - Guía en formato Markdown sobre operaciones con VSAM
+
+### Programa de Apareo 02
+
+Documentación adicional sobre el programa de apareo mejorado:
+
+- `PGMAPA02.md` - Documentación en formato Markdown con detalles de implementación
+
+### Configuración Zowe
+
+Los archivos `zowe.config.json` y `zowe.schema.json` proporcionan la configuración para interactuar con mainframe a través de la interfaz Zowe CLI.
+
+## Resumen y Uso
+
+Este repositorio sirve como una biblioteca completa de programas COBOL para diferentes aplicaciones en entornos mainframe:
+
+1. **Programas de Apareo**: Procesamiento y fusión de archivos secuenciales
+2. **Corte de Control**: Agrupación y procesamiento por lotes
+3. **Acceso a DB2**: Ejemplos de conexión y manipulación de bases de datos
+4. **VSAM**: Acceso y manejo de archivos virtuales
+5. **CICS**: Programación para entornos de transacción online
+6. **Copybooks**: Estructuras de datos reutilizables
+
+Los programas están organizados por tipo y funcionalidad, con sus correspondientes JCL para ejecución. La documentación proporciona explicaciones detalladas sobre los procesos más importantes.
+
+## Licencia y Uso
+
+Este material está destinado para propósitos educativos y de práctica. Consulte los archivos individuales para información sobre licencias específicas.
+
+---
+Última actualización: Julio de 2025

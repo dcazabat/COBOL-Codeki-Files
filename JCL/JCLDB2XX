@@ -1,36 +1,29 @@
-//KC03C7CD JOB CLASS=A,MSGCLASS=O,MSGLEVEL=(1,1),NOTIFY=&SYSUID
-//JOBLIB  DD  DSN=DSND10.SDSNLOAD,DISP=SHR
-//***************************************************************
-//* EJECUTAR STEP1 SOLO LA PRIMERA VEZ PARA DEFINIR SALIDA      *
-//***************************************************************
-//*
-//STEP1    EXEC PGM=IEFBR14
-//DD1      DD DSN=KC03C7C.DB2.SALIDA,
-//            DISP=(MOD,DELETE,DELETE),
-//            UNIT=SYSDA,
-//            SPACE=(TRK,(1,1),RLSE)
-//*
-//STEP2    EXEC PGM=IEFBR14
-//DD1      DD DSN=KC03C7C.DB2.SALIDA,
-//            DCB=(LRECL=80,BLKSIZE=8000,RECFM=FB),
-//            SPACE=(TRK,(1,1),RLSE),
-//            DISP=(,CATLG,DELETE)
-//*
-//***************************************************************
-//*      EJECUTAR PROGRAMA COBOL CON SQL EMBEBIDO               *
-//***************************************************************
-//*
-//STEP3    EXEC PGM=IKJEFT01,DYNAMNBR=20
-//STEPLIB  DD  DSN=DSND10.SDSNLOAD,DISP=SHR
-//SYSTSPRT DD SYSOUT=*
-//DDSALE   DD DSN=KC03C7C.DB2.SALIDA,DISP=SHR
-//SYSOUT   DD SYSOUT=*
-//SYSTSIN  DD *
-  DSN SYSTEM(DBDG)
-  RUN  PROGRAM(PGMDB228) -
-       PLAN(CURSOC7C) -
-       LIB('KC03C7C.CURSOS.PGMLIB')
-  END
-/*
-//SYSPRINT DD SYSOUT=*
-//SYSUDUMP DD SYSOUT=*
+//KC03XXXD JOB CLASS=A,MSGCLASS=O,MSGLEVEL=(1,1),NOTIFY=&SYSUID         00010002
+//JOBLIB  DD  DSN=DSND10.SDSNLOAD,DISP=SHR                              00020001
+//***************************************************************       00030000
+//* EJECUTAR STEP1 SOLO LA PRIMERA VEZ PARA DEFINIR SALIDA      *       00040002
+//***************************************************************       00050000
+//*                                                                     00060000
+//STEP1    EXEC PGM=IEFBR14                                             00070000
+//DD1      DD DSN=KC03XXX.ALU9999.DB2.SALIDA,UNIT=SYSDA,                00080002
+//            DCB=(LRECL=80,BLKSIZE=8000,RECFM=FB),                     00090000
+//            SPACE=(TRK,(1,1),RLSE),DISP=(,CATLG)                      00100000
+//*                                                                     00110000
+//***************************************************************       00120000
+//*      EJECUTAR PROGRAMA COBOL CON SQL EMBEBIDO               *       00130000
+//***************************************************************       00140000
+//*                                                                     00150000
+//STEP2    EXEC PGM=IKJEFT01,DYNAMNBR=20,COND=(4,LT)                    00160000
+//SYSTSPRT DD SYSOUT=*                                                  00170000
+//DDSALID  DD DSN=KC03XXX.ALU9999.DB2.SALIDA,DISP=SHR                   00180003
+//SYSOUT   DD SYSOUT=*                                                  00190000
+//SYSTSIN  DD *                                                         00200000
+  DSN SYSTEM(DBDG)                                                      00210000
+  RUN  PROGRAM(PGMDBXXX) PLAN(CURSOXXX) +                               00220004
+      LIB('KC03XXX.CURSOS.PGMLIB')                                      00230002
+  END                                                                   00240000
+//SYSPRINT DD SYSOUT=*                                                  00250000
+//SYSUDUMP DD SYSOUT=*                                                  00260000
+//SYSIN    DD *                                                         00270000
+//*                                                                     00280000
+//                                                                      00290000
