@@ -12,20 +12,27 @@
 
        DATA DIVISION.
        WORKING-STORAGE SECTION. 
+       01  WS-SALIDA            PIC X(10) VALUE "HOLA MUNDO".
+       01  WS-SALIDA-LENGTH     PIC 9(4) VALUE 10.
 
        PROCEDURE DIVISION.
        MAIN-PROGRAM.
            PERFORM 1000-I-INICIO.
            PERFORM 2000-I-PROCESO.
            PERFORM 9999-I-FINAL.
-           GOBACK.
 
        1000-I-INICIO.
-           DISPLAY "INICIO DEL PROGRAMA".
+           *> Las variables se inicializaron con valores por defecto
+           *> en la sección de WORKING-STORAGE.
 
        2000-I-PROCESO.
+           EXEC CICS SEND TEXT
+                 FROM(WS-SALIDA)
+                 LENGTH(WS-SALIDA-LENGTH) 
+           END-EXEC.
 
        9999-I-FINAL.
-           DISPLAY "FIN DEL PROGRAMA".
-
+           EXEC CICS
+              RETURN 
+           END-EXEC.
        

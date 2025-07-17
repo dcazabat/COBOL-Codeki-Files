@@ -58,6 +58,7 @@
        01  WS-FLAG-FIN               PIC X.
            88  WS-SI-PROCESO               VALUE ' '.
            88  WS-FIN-PROCESO              VALUE 'F'.
+           
       * Variables sumarizadoras
        77  WS-TOT-LEIDOS-TBCURCTA    PIC 9(3)  VALUE ZEROS.
        77  WS-TOT-LEIDOS-TBCURCLI    PIC 9(3)  VALUE ZEROS.

@@ -1,0 +1,14 @@
+//KC03XXXZ JOB CLASS=A,MSGCLASS=O,MSGLEVEL=(1,1),NOTIFY=&SYSUID,
+//             REGION=0M
+//***********************************************
+//*   COMPILADOR COBOL CICS                     *
+//*   ALUMLIB DIGITAR SU USERID ALUMNO          *
+//*   GOPGM DIGITAR SU PROGRAM-ID               *
+//***********************************************
+//JCLLIB JCLLIB ORDER=KC02788.ALU9999.FUENTE
+//STEP1  EXEC PROCCICS,PARM.TRN='COBOL3,NOSEQ',
+//       ALUMLIB=KC03XXX.CURSOS,
+//       GOPGM=PGMCON99
+//*
+//*  PARA COPY DE ESTRUCTURA DE ARCHIVOS
+//COB.SYSLIB DD DSN=KC02788.ALU9999.COPYLIB,DISP=SHR
