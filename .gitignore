@@ -1,5 +1,3 @@
 *-exe*
-.vscode/
-*.vscode/*
 *.suo
 *.user
