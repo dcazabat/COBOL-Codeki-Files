@@ -1,27 +1,16 @@
 {
-    "yaml.schemas": {
-        "file:///home/dacazabat/.vscode/extensions/ibm.zopeneditor-5.5.0/resources/zapp-schema-1.4.0.json": [
-            "zapp.yaml",
-        ],
-        "file:///home/dacazabat/.vscode/extensions/ibm.zopeneditor-5.5.0/resources/zcodeformat-schema-0.0.1.json": [
-            "zcodeformat.yaml"
-        ],
-        "file:///home/dacazabat/.vscode/extensions/ibm.zopeneditor-5.4.1/resources/zapp-schema-1.4.0.json": [
-            "zapp.yaml"
-        ],
-        "file:///home/dacazabat/.vscode/extensions/ibm.zopeneditor-5.4.1/resources/zcodeformat-schema-0.0.1.json": [
-            "zcodeformat.yaml"
-        ]
-    },
     "cobol-lsp.cpy-manager.profiles": "zosmf",
     "cobol-lsp.cpy-manager.idms.paths-dsn": [
-        "KC03C7C.CURSOS.DCLGEN"
+        "KC03C7C.CURSOS.DCLGEN",
+        "KC03C7C.CURSOS.COPYLIB"
     ],
     "cobol-lsp.cpy-manager.paths-dsn": [
-        "KC03C7C.CURSOS.DCLGEN"
+        "KC03C7C.CURSOS.DCLGEN",
+        "KC03C7C.CURSOS.COPYLIB"
     ],
     "cobol-lsp.cpy-manager.idms.paths-local": [
-        "${workspaceFolder}/DCLGEN"
+        "${workspaceFolder}/DCLGEN",
+        "${workspaceFolder}/COPYLIBS"
     ],
     "cobol-lsp.cpy-manager.paths-local": [
         "${workspaceFolder}/DCLGEN",
