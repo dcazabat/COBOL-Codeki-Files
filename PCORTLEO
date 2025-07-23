@@ -43,14 +43,18 @@
       
        01  WS-VARIABLES.
            05 WS-AUT-MAR-ANT        PIC X(30).
+           05 WS-AUT-MOD-ANT        PIC X(48).
            05 WS-NUM-EDI            PIC $$$,$$$,$99.
+           05 WS-NUM-EDI-MOD        PIC $$$,$$$,$99.
       
        01  AC-ACUMULADORES.
            05 AC-AUT-MAR            PIC 9(12).
+           05 AC-AUT-MOD            PIC 9(12).
            05 AC-AUT-TOT            PIC 9(12).
       
        01  CN-CONTADORES.
            05 CN-AUT-MAR            PIC 9(05).
+           05 CN-AUT-MOD            PIC 9(05).
            05 CN-AUT-READ           PIC 9(05).
       
        01  CO-SEPARADO1             PIC X(120) VALUE
@@ -88,10 +92,12 @@
            READ AUTOMOTO            INTO WS-REC-AUTOMOTO
            MOVE 0                   TO CN-AUT-READ
            MOVE 0                   TO AC-AUT-TOT
-      
+
            PERFORM UNTIL SW-FS-EOF
               OR SW-FS-NOK
               MOVE WS-AUT-MAR       TO WS-AUT-MAR-ANT
+              MOVE 0                TO AC-AUT-MAR
+              MOVE 0                TO CN-AUT-MAR
               
               DISPLAY ' Ventas Marca ==> ' WS-AUT-MAR-ANT
               DISPLAY CO-SEPARADO1
@@ -100,18 +106,41 @@
                  OR SW-FS-NOK
                  OR WS-AUT-MAR NOT = WS-AUT-MAR-ANT
                  
-                 ADD 1              TO CN-AUT-MAR
-                 ADD 1              TO CN-AUT-READ
-                 ADD WS-AUT-IMP     TO AC-AUT-MAR
+                 MOVE WS-AUT-MOD    TO WS-AUT-MOD-ANT
+                 MOVE 0             TO AC-AUT-MOD
+                 MOVE 0             TO CN-AUT-MOD
                  
-                 MOVE WS-AUT-MAR    TO WS-DIS-MAR
-                 MOVE WS-AUT-MOD    TO WS-DIS-MOD
-                 MOVE WS-AUT-PAT    TO WS-DIS-PAT
-                 MOVE WS-AUT-TIP    TO WS-DIS-TIP
-                 MOVE WS-AUT-IMP    TO WS-DIS-IMP
+                 DISPLAY '   Modelo ==> ' WS-AUT-MOD-ANT
                  
-                 DISPLAY WS-DIS-AUTOMOTO
-                 READ AUTOMOTO      INTO WS-REC-AUTOMOTO
+                 PERFORM UNTIL SW-FS-EOF
+                    OR SW-FS-NOK
+                    OR WS-AUT-MAR NOT = WS-AUT-MAR-ANT
+                    OR WS-AUT-MOD NOT = WS-AUT-MOD-ANT
+                    
+                    ADD 1           TO CN-AUT-MOD
+                    ADD 1           TO CN-AUT-MAR
+                    ADD 1           TO CN-AUT-READ
+                    ADD WS-AUT-IMP  TO AC-AUT-MOD
+                    
+                    MOVE WS-AUT-MAR TO WS-DIS-MAR
+                    MOVE WS-AUT-MOD TO WS-DIS-MOD
+                    MOVE WS-AUT-PAT TO WS-DIS-PAT
+                    MOVE WS-AUT-TIP TO WS-DIS-TIP
+                    MOVE WS-AUT-IMP TO WS-DIS-IMP
+                    
+                    DISPLAY WS-DIS-AUTOMOTO
+                    READ AUTOMOTO   INTO WS-REC-AUTOMOTO
+                 END-PERFORM
+                 
+                 MOVE AC-AUT-MOD    TO WS-NUM-EDI-MOD
+                 
+                 DISPLAY '   ........................'
+                 DISPLAY '   SubTotal Modelo    ' WS-AUT-MOD-ANT
+                 DISPLAY '   Reg.Leidos        ' CN-AUT-MOD
+                 DISPLAY '   Total Modelo      ' WS-NUM-EDI-MOD
+                 DISPLAY '   ........................'
+                 
+                 ADD AC-AUT-MOD     TO AC-AUT-MAR
               END-PERFORM
               
               MOVE AC-AUT-MAR       TO WS-NUM-EDI
@@ -125,8 +154,12 @@
               ADD AC-AUT-MAR         TO AC-AUT-TOT
            END-PERFORM
            
+           MOVE AC-AUT-TOT          TO WS-NUM-EDI
+           
            DISPLAY CO-SEPARADOR
            DISPLAY ' Total Venta Automotores '
+           DISPLAY ' Total General      ' WS-NUM-EDI
+           DISPLAY ' Reg. Procesados    ' CN-AUT-READ
            DISPLAY CO-SEPARADOR
            .
        2000-F-PROCESO.

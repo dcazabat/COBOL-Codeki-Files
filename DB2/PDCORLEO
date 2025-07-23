@@ -1,0 +1,332 @@
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. DCORLEO.
+      
+       ENVIRONMENT DIVISION.
+       CONFIGURATION SECTION.
+       SPECIAL-NAMES.
+           DECIMAL-POINT IS COMMA.
+
+       INPUT-OUTPUT SECTION.
+       FILE-CONTROL.
+             SELECT SALIDA  ASSIGN DDSALE
+             FILE STATUS IS SW-FS-SALIDA.
+
+       DATA DIVISION.
+       FILE SECTION.
+       FD SALIDA
+             BLOCK CONTAINS 0 RECORDS
+             RECORDING MODE IS F.
+
+       01 REG-SALIDA          PIC X(132).
+       01 SW-FS-SALIDA        PIC X(02).
+           88 SW-FS-OK          VALUE '00'.
+           88 SW-FS-EOF         VALUE '10'.
+           88 SW-FS-NOK         VALUE '01' THRU '09'
+                                      '11' THRU '99'.
+                                 
+       
+       
+       WORKING-STORAGE SECTION.
+       01  WS-DIS-AUTOMOTO.
+           05 WS-DIS-MAR      PIC X(30).
+           05 FILLER          PIC X(01) VALUE '|'.
+           05 WS-DIS-MOD      PIC X(45).
+           05 FILLER          PIC X(01) VALUE '|'.
+           05 WS-DIS-PAT      PIC X(02).
+           05 FILLER          PIC X(01) VALUE '|'.
+           05 WS-DIS-TIP      PIC X(20).
+           05 FILLER          PIC X(01) VALUE '|'.
+           05 WS-DIS-IMP      PIC $$$,$$$,$99.
+      
+       01  WS-VARIABLES.
+           05 WS-AUT-MAR-ANT        PIC X(30).
+           05 WS-AUT-MOD-ANT        PIC X(48).
+           05 WS-NUM-EDI            PIC $$$,$$$,$99.
+           05 WS-NUM-EDI-MOD        PIC $$$,$$$,$99.
+           05 WS-PROCESO-OK         PIC X(01) VALUE 'S'.
+               88 PROCESO-CONTINUA  VALUE 'S'.
+               88 PROCESO-TERMINA   VALUE 'N'.
+      
+       01  AC-ACUMULADORES.
+           05 AC-AUT-MAR            PIC 9(12).
+           05 AC-AUT-MOD            PIC 9(12).
+           05 AC-AUT-TOT            PIC 9(12).
+      
+       01  CN-CONTADORES.
+           05 CN-AUT-MAR            PIC 9(05).
+           05 CN-AUT-MOD            PIC 9(05).
+           05 CN-AUT-READ           PIC 9(05).
+      
+       01  CO-SEPARADO1             PIC X(120) VALUE
+           ALL '-'.
+      
+       01  CO-SEPARADOR             PIC X(120) VALUE
+           ALL '='.
+
+      **********************************************
+      * DECLARACION DE LAS VARIABLES HOST Y CURSOR *
+      **********************************************
+
+      * SQLCA COMMUNICATION AREA
+           EXEC SQL INCLUDE SQLCA END-EXEC.
+
+      * DCLGEN de la tabla
+           EXEC SQL INCLUDE TBCURAUT END-EXEC.
+
+      * DECLARACION DEL CURSOR
+           EXEC SQL 
+              DECLARE CURSORAUT CURSOR 
+              FOR
+                 SELECT * 
+                 FROM KC02787.TBAUTMOT 
+                 ORDER BY AUT_MAR , AUT_MOD 
+           END-EXEC.
+
+       PROCEDURE DIVISION.
+       0000-CONTROL.
+           PERFORM 1000-I-INICIO
+              THRU 1000-F-INICIO
+      
+           PERFORM 2000-I-PROCESO
+              THRU 2000-F-PROCESO
+      
+           PERFORM 3000-I-FINAL
+              THRU 3000-F-FINAL
+      
+           GOBACK
+           .
+      
+       1000-I-INICIO.
+           OPEN OUTPUT SALIDA
+           IF NOT SW-FS-OK
+              DISPLAY '* Error En Open Salida= ' SW-FS-SALIDA
+              MOVE 9999 TO RETURN-CODE
+           END-IF
+           
+           EXEC SQL
+              OPEN CURSORAUT
+           END-EXEC
+           
+           EVALUATE SQLCODE
+              WHEN 0
+                 CONTINUE
+              WHEN OTHER
+                 DISPLAY '* Error al abrir cursor: ' SQLCODE
+                 DISPLAY '* SQLERRM: ' SQLERRM
+                 MOVE 9999 TO RETURN-CODE
+           END-EVALUATE
+           .
+       1000-F-INICIO.
+           EXIT
+           .
+      
+       2000-I-PROCESO.
+           MOVE 'S' TO WS-PROCESO-OK
+           
+           PERFORM 2500-I-FETCH-CURSOR
+              THRU 2500-F-FETCH-CURSOR
+           
+           EVALUATE SQLCODE
+              WHEN 0
+                 CONTINUE
+              WHEN +100
+                 DISPLAY 'No hay registros en la tabla'
+                 MOVE 'No hay registros en la tabla' TO REG-SALIDA
+                 WRITE REG-SALIDA
+                 MOVE 'N' TO WS-PROCESO-OK
+              WHEN OTHER
+                 MOVE 'N' TO WS-PROCESO-OK
+           END-EVALUATE
+           
+           IF PROCESO-CONTINUA
+              MOVE 0 TO CN-AUT-READ
+              MOVE 0 TO AC-AUT-TOT
+
+              PERFORM UNTIL SQLCODE = +100
+                 OR SQLCODE < 0
+                 OR NOT PROCESO-CONTINUA
+              MOVE WS-AUT-MAR TO WS-AUT-MAR-ANT
+              MOVE 0 TO AC-AUT-MAR
+              MOVE 0 TO CN-AUT-MAR
+              
+              DISPLAY ' Ventas Marca ==> ' WS-AUT-MAR-ANT
+              MOVE ' Ventas Marca ==> ' TO REG-SALIDA
+              MOVE WS-AUT-MAR-ANT TO REG-SALIDA(19:30)
+              WRITE REG-SALIDA
+              
+              DISPLAY CO-SEPARADO1
+              MOVE CO-SEPARADO1 TO REG-SALIDA
+              WRITE REG-SALIDA
+              
+              PERFORM UNTIL SQLCODE = +100
+                 OR SQLCODE < 0
+                 OR WS-AUT-MAR NOT = WS-AUT-MAR-ANT
+                 OR NOT PROCESO-CONTINUA
+                 
+                 MOVE WS-AUT-MOD TO WS-AUT-MOD-ANT
+                 MOVE 0 TO AC-AUT-MOD
+                 MOVE 0 TO CN-AUT-MOD
+                 
+                 DISPLAY '   Modelo ==> ' WS-AUT-MOD-ANT
+                 MOVE '   Modelo ==> ' TO REG-SALIDA
+                 MOVE WS-AUT-MOD-ANT TO REG-SALIDA(16:48)
+                 WRITE REG-SALIDA
+                 
+                 PERFORM UNTIL SQLCODE = +100
+                    OR SQLCODE < 0
+                    OR WS-AUT-MAR NOT = WS-AUT-MAR-ANT
+                    OR WS-AUT-MOD NOT = WS-AUT-MOD-ANT
+                    OR NOT PROCESO-CONTINUA
+                    
+                    ADD 1 TO CN-AUT-MOD
+                    ADD 1 TO CN-AUT-MAR
+                    ADD 1 TO CN-AUT-READ
+                    ADD WS-AUT-IMP TO AC-AUT-MOD
+                    
+                    MOVE WS-AUT-MAR TO WS-DIS-MAR
+                    MOVE WS-AUT-MOD TO WS-DIS-MOD
+                    MOVE WS-AUT-PAT TO WS-DIS-PAT
+                    MOVE WS-AUT-TIP TO WS-DIS-TIP
+                    MOVE WS-AUT-IMP TO WS-DIS-IMP
+                    
+                    DISPLAY WS-DIS-AUTOMOTO
+                    MOVE WS-DIS-AUTOMOTO TO REG-SALIDA
+                    WRITE REG-SALIDA
+                    
+                    PERFORM 2500-I-FETCH-CURSOR
+                       THRU 2500-F-FETCH-CURSOR
+                    
+                    IF SQLCODE < 0
+                       MOVE 'N' TO WS-PROCESO-OK
+                    END-IF
+                 END-PERFORM
+                 
+                 MOVE AC-AUT-MOD    TO WS-NUM-EDI-MOD
+                 
+                 DISPLAY '   ........................'
+                 MOVE '   ........................' TO REG-SALIDA
+                 WRITE REG-SALIDA
+                 
+                 DISPLAY '   SubTotal Modelo    ' WS-AUT-MOD-ANT
+                 MOVE '   SubTotal Modelo    ' TO REG-SALIDA
+                 MOVE WS-AUT-MOD-ANT TO REG-SALIDA(24:48)
+                 WRITE REG-SALIDA
+                 
+                 DISPLAY '   Reg.Leidos        ' CN-AUT-MOD
+                 MOVE '   Reg.Leidos        ' TO REG-SALIDA
+                 MOVE CN-AUT-MOD TO REG-SALIDA(22:5)
+                 WRITE REG-SALIDA
+                 
+                 DISPLAY '   Total Modelo      ' WS-NUM-EDI-MOD
+                 MOVE '   Total Modelo      ' TO REG-SALIDA
+                 MOVE WS-NUM-EDI-MOD TO REG-SALIDA(22:12)
+                 WRITE REG-SALIDA
+                 
+                 DISPLAY '   ........................'
+                 MOVE '   ........................' TO REG-SALIDA
+                 WRITE REG-SALIDA
+                 
+                 ADD AC-AUT-MOD TO AC-AUT-MAR
+              END-PERFORM
+              
+              MOVE AC-AUT-MAR TO WS-NUM-EDI
+              
+              DISPLAY CO-SEPARADO1
+              MOVE CO-SEPARADO1 TO REG-SALIDA
+              WRITE REG-SALIDA
+              
+              DISPLAY ' Total              ' WS-AUT-MAR-ANT
+              MOVE ' Total              ' TO REG-SALIDA
+              MOVE WS-AUT-MAR-ANT TO REG-SALIDA(20:30)
+              WRITE REG-SALIDA
+              
+              DISPLAY ' Reg.Leidos       ' CN-AUT-MAR
+              MOVE ' Reg.Leidos       ' TO REG-SALIDA
+              MOVE CN-AUT-MAR TO REG-SALIDA(19:5)
+              WRITE REG-SALIDA
+              
+              DISPLAY ' Total Marca      ' WS-NUM-EDI
+              MOVE ' Total Marca      ' TO REG-SALIDA
+              MOVE WS-NUM-EDI TO REG-SALIDA(19:12)
+              WRITE REG-SALIDA
+              
+              DISPLAY CO-SEPARADO1
+              MOVE CO-SEPARADO1 TO REG-SALIDA
+              WRITE REG-SALIDA
+              
+              ADD AC-AUT-MAR TO AC-AUT-TOT
+           END-PERFORM
+           
+           MOVE AC-AUT-TOT TO WS-NUM-EDI
+           
+           DISPLAY CO-SEPARADOR
+           MOVE CO-SEPARADOR TO REG-SALIDA
+           WRITE REG-SALIDA
+           
+           DISPLAY ' Total Venta Automotores '
+           MOVE ' Total Venta Automotores ' TO REG-SALIDA
+           WRITE REG-SALIDA
+           
+           DISPLAY ' Total General      ' WS-NUM-EDI
+           MOVE ' Total General      ' TO REG-SALIDA
+           MOVE WS-NUM-EDI TO REG-SALIDA(20:12)
+           WRITE REG-SALIDA
+           
+           DISPLAY ' Reg. Procesados    ' CN-AUT-READ
+           MOVE ' Reg. Procesados    ' TO REG-SALIDA
+           MOVE CN-AUT-READ TO REG-SALIDA(21:5)
+           WRITE REG-SALIDA
+           
+           DISPLAY CO-SEPARADOR
+           MOVE CO-SEPARADOR TO REG-SALIDA
+           WRITE REG-SALIDA
+           END-IF
+           .
+       2000-F-PROCESO.
+           EXIT
+           .
+
+       2500-I-FETCH-CURSOR.
+           EXEC SQL
+              FETCH CURSORAUT
+              INTO :DCLTBAUTOMOTO
+           END-EXEC
+           
+           EVALUATE SQLCODE
+              WHEN 0
+                 CONTINUE
+              WHEN +100
+                 CONTINUE
+              WHEN OTHER
+                 DISPLAY '* Error en FETCH: ' SQLCODE
+                 DISPLAY '* SQLERRM: ' SQLERRM
+                 MOVE '* Error en FETCH' TO REG-SALIDA
+                 WRITE REG-SALIDA
+                 MOVE 9999 TO RETURN-CODE
+                 MOVE 'N' TO WS-PROCESO-OK
+           END-EVALUATE
+           .
+       2500-F-FETCH-CURSOR.
+           EXIT
+           .
+      
+       3000-I-FINAL.
+           EXEC SQL
+              CLOSE CURSORAUT
+           END-EXEC
+           
+           EVALUATE SQLCODE
+              WHEN 0
+                 CONTINUE
+              WHEN OTHER
+                 DISPLAY '* Error al cerrar cursor: ' SQLCODE
+                 DISPLAY '* SQLERRM: ' SQLERRM
+           END-EVALUATE
+           
+           CLOSE SALIDA
+           IF NOT SW-FS-OK
+              DISPLAY '* Error En Close Salida= ' SW-FS-SALIDA
+           END-IF
+           .
+       3000-F-FINAL.
+           EXIT.

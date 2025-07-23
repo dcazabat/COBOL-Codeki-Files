@@ -1,0 +1,34 @@
+      ******************************************************************
+      * DCLGEN TABLE(KC02787.TBAUTOMOTO)                               *
+      *        LIBRARY(KC03C7C.CURSOS.DCLGEN(TBAUTOMOTO))              *
+      *        ACTION(REPLACE)                                         *
+      *        LANGUAGE(COBOL)                                         *
+      *        NAMES(WS-)                                              *
+      *        QUOTE                                                   *
+      *        COLSUFFIX(YES)                                          *
+      * ... IS THE DCLGEN COMMAND THAT MADE THE FOLLOWING STATEMENTS   *
+      ******************************************************************
+           EXEC SQL DECLARE KC02787.TBAUTMOT TABLE
+           ( AUT_MAR                        CHAR(30) NOT NULL,
+             AUT_MOD                        CHAR(48) NOT NULL,
+             AUT_PAT                        CHAR(6) NOT NULL,
+             AUT_TIP                        CHAR(26) NOT NULL,
+             AUT_IMP                        DECIMAL(8, 0) NOT NULL
+           ) END-EXEC.
+      ******************************************************************
+      * COBOL DECLARATION FOR TABLE KC02787.TBAUTOMOTO                 *
+      ******************************************************************
+       01  DCLTBAUTOMOTO.
+      *                       AUT_MAR
+           10 WS-AUT-MAR           PIC X(30).
+      *                       AUT_MOD
+           10 WS-AUT-MOD           PIC X(48).
+      *                       AUT_PAT
+           10 WS-AUT-PAT           PIC X(6).
+      *                       AUT_TIP
+           10 WS-AUT-TIP           PIC X(26).
+      *                       AUT_IMP
+           10 WS-AUT-IMP           PIC 9(8).
+      ******************************************************************
+      * THE NUMBER OF COLUMNS DESCRIBED BY THIS DECLARATION IS 5       *
+      ******************************************************************
