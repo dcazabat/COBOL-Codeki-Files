@@ -1,6 +1,22 @@
        IDENTIFICATION DIVISION.
-       PROGRAM-ID. DCORLEO.
-      
+       PROGRAM-ID. PDCORLEO.
+
+       AUTHOR.        D. CAZABAT.
+       INSTALLATION.  CURSO CODEKI.
+       DATE-WRITTEN.  23/07/2025.
+       DATE-COMPILED. 23/07/2025.
+       SECURITY.      UNCLASSIFIED.                                             
+      ********************************************************
+      *                                                      *
+      *  DOBLE CORTE DE CONTROL : DB2                        *
+      *  ============================                        *
+      *                                                      *
+      *  LEE LOS REGISTROS DE TBCRUAUT ORDENADOS POR         *
+      *  AUT_MAR Y AUT_MOD PARA REALIZAR LOS SUBTOTALES DE   *
+      *  LOS SALDOS POR CADA CORTE DE CONTROL Y TOTAL GRAL   *
+      *                                                      *
+      ********************************************************
+
        ENVIRONMENT DIVISION.
        CONFIGURATION SECTION.
        SPECIAL-NAMES.
@@ -23,9 +39,8 @@
            88 SW-FS-EOF         VALUE '10'.
            88 SW-FS-NOK         VALUE '01' THRU '09'
                                       '11' THRU '99'.
-                                 
-       
-       
+      
+      *****************
        WORKING-STORAGE SECTION.
        01  WS-DIS-AUTOMOTO.
            05 WS-DIS-MAR      PIC X(30).
