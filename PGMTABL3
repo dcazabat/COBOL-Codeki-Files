@@ -1,373 +1,370 @@
-       IDENTIFICATION DIVISION.                                         00010000
-        PROGRAM-ID PGMTABL3.                                            00011000
-      **************************************                            00012000
-      *                                    *                            00013000
-      *  PROGRAMA PARA GENERAR UNA TABLA   *                            00014000
-      *  EN WORKING CON TABLA DE 3 D       *                            00015000
-      *  ARREGLO DE 3 DIMENSIONES:         *                            00015100
-      *  PAGINAS:  7 D²AS DE LA SEMANA     *                            00015200
-      *  COLUMNAS: 5 SECTORES              *                            00015300
-      *  FILAS   : 10 ACTIVIDADES          *                            00015400
-      **************************************                            00015500
-      *      MANTENIMIENTO DE PROGRAMA     *                            00015600
-      **************************************                            00015700
-      *  FECHA   *    DETALLE        * COD *                            00015800
-      **************************************                            00015900
-      *          *                   *     *                            00016000
-      *          *                   *     *                            00016100
-      **************************************                            00016200
-       ENVIRONMENT DIVISION.                                            00017000
-       INPUT-OUTPUT SECTION.                                            00018000
-       FILE-CONTROL.                                                    00019000
-                                                                        00020500
-       DATA DIVISION.                                                   00020600
-       FILE SECTION.                                                    00020700
-                                                                        00030000
-      **************************************                            00040000
-       WORKING-STORAGE SECTION.                                         00040100
-      **************************************                            00040200
-       77  FILLER        PIC X(26) VALUE '* INICIO WORKING-STORAGE *'.  00040300
-      **************************************                            00041900
-                                                                        00042200
-                                                                        00046100
-      ********     FECHA DE PROCESO ***************                     00046200
-       01  WS-FECHA.                                                    00046300
-           03  WS-FECHA-AAAA    PIC 9999          VALUE ZEROS.          00046400
-           03  WS-FECHA-MM      PIC 99            VALUE ZEROS.          00046500
-           03  WS-FECHA-DD      PIC 99            VALUE ZEROS.          00046600
-                                                                        00046700
-      *************************************************************     00046800
-      *        PROPUESTA DE SOLUCIäN EN CLASE                           00046900
-      *        ------------------------------                           00047000
-      *        DEFINICIìN DE TABLA (3 DIMENSIONES)                      00047100
-      *        CLASE 17 TRAMO 1                                         00047200
-      **************************************************************    00047300
-       01 WS-TABLA.                                                     00047402
-      *                                                                 00047500
-          03 WS-PAGINA         OCCURS 5  TIMES.                         00047611
-             05 WS-ITEM-PAGINA              PIC X(10).                  00047700
-                                                                        00047800
-             05 WS-FILA        OCCURS 5  TIMES.                         00047911
-                07 WS-ITEM-FILA             PIC X(12).                  00048000
-                                                                        00048100
-                07  WS-COLUMNA OCCURS 10 TIMES.                         00048211
-                    09  WS-ITEM-COLUMNA     PIC X(20).                  00048300
-                                                                        00048400
-       77  WS-I           PIC 99                VALUE ZEROS.            00048512
-       77  WS-J           PIC 99                VALUE ZEROS.            00048612
-       77  WS-K           PIC 99                VALUE ZEROS.            00048712
-      *77  WS-MARCA-TI    PIC 9                 VALUE ZEROS.            00048828
-      *77  WS-MARCA-TJ    PIC 9                 VALUE ZEROS.            00048928
-      **************************************************************    00049027
-      * 7 DIAS DE LA SEMANA (PAGINA - INDICE WS-I)                 *    00049127
-      **************************************************************    00049227
-       01  WS-DIAS.                                                     00049327
-             05  FILLER    PIC X(10)             VALUE 'LUNES     '.    00049427
-             05  FILLER    PIC X(10)             VALUE 'MARTES    '.    00049527
-             05  FILLER    PIC X(10)             VALUE 'MIERCOLES '.    00049627
-             05  FILLER    PIC X(10)             VALUE 'JUEVES    '.    00049727
-             05  FILLER    PIC X(10)             VALUE 'VIERNES   '.    00049827
-       01 WS-TAB-DIAS     REDEFINES WS-DIAS.                            00049927
-          03 WS-ITEM-DIAS    PIC X(10)  OCCURS 5  TIMES.                00050027
-                                                                        00050127
-      **************************************************************    00050227
-      * 10 SECTORES         (FILA   - INDICE WS-J)                 *    00050327
-      **************************************************************    00050427
-       01 WS-SECTOR.                                                    00050527
-          03 FILLER           PIC X(12)  VALUE                          00050627
-                      ' FINANZAS  '.                                    00050730
-          03 FILLER           PIC X(12)  VALUE                          00050827
-                      ' CLIENTES  '.                                    00050930
-          03 FILLER           PIC X(12)  VALUE                          00051027
-                      ' INVERSIONES'.                                   00051130
-          03 FILLER           PIC X(12)  VALUE                          00051227
-                      ' PRESTAMOS  '.                                   00051330
-          03 FILLER           PIC X(12)  VALUE                          00051427
-                      ' INFORMATICA'.                                   00051530
-                                                                        00051627
-       01 WS-TAB-SECTOR   REDEFINES WS-SECTOR.                          00051727
-          03 WS-ITEM-SECTOR  PIC X(12)  OCCURS 5  TIMES.                00051827
-                                                                        00051927
-      **************************************************************    00052027
-      * 10 ACTIVIDADES      (COLUMNA- INDICE WS-K)                 *    00052127
-      **************************************************************    00052227
-       01 WS-ACTIVI-DADES.                                              00052327
-          03 FILLER           PIC X(20)  VALUE                          00052427
-                      '  ANALISIS          '.                           00052530
-          03 FILLER           PIC X(20)  VALUE                          00052627
-                      '  PROCEDIMIENTOS    '.                           00052730
-          03 FILLER           PIC X(20)  VALUE                          00052827
-                      '  ATENCION          '.                           00052930
-          03 FILLER           PIC X(20)  VALUE                          00053027
-                      ' ACTUALIZACION DATOS'.                           00053130
-          03 FILLER           PIC X(20)  VALUE                          00053227
-                      '  ADMINISTRACION  '.                             00053330
-          03 FILLER           PIC X(20)  VALUE                          00053427
-                      '  ASESORAMIENTO   '.                             00053530
-          03 FILLER           PIC X(20)  VALUE                          00053627
-                      '  PROMOCION       '.                             00053730
-          03 FILLER           PIC X(20)  VALUE                          00053827
-                      '  OTORGAMIENTO    '.                             00053930
-          03 FILLER           PIC X(20)  VALUE                          00054027
-                      '  DESARROLLO      '.                             00054130
-          03 FILLER           PIC X(20)  VALUE                          00054227
-                      '  PRODUCCION      '.                             00054330
-                                                                        00054427
-       01 WS-TAB-ACTIVI   REDEFINES WS-ACTIVI-DADES.                    00054527
-          03 WS-ITEM-ACTIVI  PIC X(20)  OCCURS 10 TIMES.                00054627
-                                                                        00054727
-      *                                                                 00054827
-      *  DEFINICIìN VARIABLES                                           00054927
-      *                                                                 00055027
-       77  WS-ES-X            PIC X     VALUE 'X'.                      00055103
-       77  WS-MARCA           PIC X.                                    00055201
-           88 WS-MARCA-SIGUE            VALUE ' '.                      00055303
-           88 WS-MARCA-FIN              VALUE 'F'.                      00055403
-                                                                        00055501
-       77  FILLER              PIC X(26) VALUE                          00055601
-                                         '* FINAL  WORKING-STORAGE *'.  00055701
-                                                                        00055801
-      ***************************************************************.  00055901
-       PROCEDURE DIVISION.                                              00056001
-      **************************************                            00056101
-      *                                    *                            00056201
-      *  CUERPO PRINCIPAL DEL PROGRAMA     *                            00056301
-      *                                    *                            00056401
-      **************************************                            00056501
-       MAIN-PROGRAM.                                                    00056601
-                                                                        00056701
-           PERFORM 1000-INICIO  THRU   F-1000-INICIO.                   00056801
-                                                                        00056901
-           PERFORM 2000-PROCESO  THRU  F-2000-PROCESO                   00057001
-                   UNTIL WS-MARCA-FIN.                                  00057101
-                                                                        00057201
-           PERFORM 9999-FINAL    THRU  F-9999-FINAL.                    00058000
-                                                                        00059000
-       F-MAIN-PROGRAM. GOBACK.                                          00060000
-                                                                        00061000
-      **************************************                            00061100
-      *                                    *                            00061200
-      *  CUERPO INICIO APERTURA ARCHIVOS   *                            00061300
-      *                                    *                            00061400
-      **************************************                            00061500
-       1000-INICIO.                                                     00061600
-           ACCEPT WS-FECHA FROM DATE.                                   00061700
-           SET WS-MARCA-SIGUE TO TRUE.                                  00061801
-                                                                        00071700
-       F-1000-INICIO.   EXIT.                                           00071800
-                                                                        00071900
-      **************************************                            00072000
-      *                                    *                            00073000
-      *  CUERPO PRINCIPAL DE PROCESOS      *                            00073100
-      *                                    *                            00073700
-      **************************************                            00073800
-       2000-PROCESO.                                                    00073900
-           PERFORM VARYING WS-K      FROM 1 BY 1                        00075501
-                                        UNTIL WS-K > 10                 00075608
-                                                                        00075708
-             PERFORM VARYING WS-J      FROM 1 BY 1                      00075808
-                                        UNTIL WS-J > 5                  00075908
-                                                                        00076008
-               PERFORM 2020-ARMAR  THRU F-2020-ARMAR                    00076126
-                       VARYING WS-I      FROM 1 BY 1                    00076218
-                                        UNTIL WS-I > 5                  00076318
-                                                                        00076418
-             END-PERFORM                                                00076818
-           END-PERFORM.                                                 00076918
-                                                                        00077008
-      * TABLA ARMADA                                                    00077108
-           SET WS-MARCA-FIN   TO TRUE.                                  00077208
-                                                                        00077308
-       F-2000-PROCESO. EXIT.                                            00077408
-                                                                        00077518
-                                                                        00077626
-       2020-ARMAR.                                                      00077726
-           IF  WS-I = 1                                                 00077826
-               PERFORM 2022-ES1   THRU F-2022-ES1                       00077926
-           ELSE                                                         00078026
-                                                                        00078126
-           IF  WS-I = 2                                                 00078226
-               PERFORM 2022-ES2   THRU F-2022-ES2                       00078326
-           ELSE                                                         00078426
-                                                                        00078526
-           IF  WS-I = 3                                                 00078626
-               PERFORM 2022-ES3   THRU F-2022-ES3                       00078726
-           ELSE                                                         00078826
-                                                                        00078926
-           IF  WS-I = 4                                                 00079026
-               PERFORM 2022-ES4   THRU F-2022-ES4                       00079126
-           ELSE                                                         00079226
-               PERFORM 2022-ES5   THRU F-2022-ES5                       00079326
-           END-IF                                                       00079426
-           END-IF                                                       00079526
-           END-IF                                                       00079626
-           END-IF.                                                      00079726
-                                                                        00079826
-       F-2020-ARMAR. EXIT.                                              00079926
-                                                                        00080026
-       2022-ES1.                                                        00080126
-           IF  WS-J = 1 AND WS-K = 1                                    00080226
-               MOVE WS-ES-X   TO WS-COLUMNA (WS-I WS-J WS-K)            00080326
-               GO TO F-2022-ES1                                         00080426
-           END-IF.                                                      00080526
-                                                                        00080626
-           IF  WS-J = 2 AND WS-K = 3                                    00080726
-               MOVE WS-ES-X   TO WS-COLUMNA (WS-I WS-J WS-K)            00080826
-               GO TO F-2022-ES1                                         00080926
-           END-IF.                                                      00081026
-                                                                        00081126
-           IF  WS-J = 3 AND WS-K = 6                                    00081226
-               MOVE WS-ES-X   TO WS-COLUMNA (WS-I WS-J WS-K)            00081326
-               GO TO F-2022-ES1                                         00081426
-           END-IF.                                                      00081526
-                                                                        00081626
-           IF  WS-J = 5 AND (WS-K = 9 OR WS-K = 10)                     00081726
-               MOVE WS-ES-X   TO WS-COLUMNA (WS-I WS-J WS-K)            00081826
-           END-IF.                                                      00082026
-                                                                        00082126
-       F-2022-ES1. EXIT.                                                00082226
-                                                                        00082326
-       2022-ES2.                                                        00082426
-           IF  WS-J = 2 AND WS-K = 2                                    00082526
-               MOVE WS-ES-X   TO WS-COLUMNA (WS-I WS-J WS-K)            00082626
-               GO TO F-2022-ES2                                         00082726
-           END-IF.                                                      00082826
-                                                                        00082926
-           IF  WS-J = 2 AND WS-K = 4                                    00083026
-               MOVE WS-ES-X   TO WS-COLUMNA (WS-I WS-J WS-K)            00083126
-               GO TO F-2022-ES2                                         00083226
-           END-IF.                                                      00083326
-                                                                        00083426
-           IF  WS-J = 3 AND WS-K = 5                                    00083526
-               MOVE WS-ES-X   TO WS-COLUMNA (WS-I WS-J WS-K)            00083626
-               GO TO F-2022-ES2                                         00083726
-           END-IF.                                                      00083826
-                                                                        00083926
-           IF  WS-J = 4 AND WS-K = 8                                    00084026
-               MOVE WS-ES-X   TO WS-COLUMNA (WS-I WS-J WS-K)            00084126
-               GO TO F-2022-ES2                                         00084226
-           END-IF.                                                      00084326
-                                                                        00084426
-           IF  WS-J = 5 AND (WS-K = 9 OR WS-K = 10)                     00084526
-               MOVE WS-ES-X   TO WS-COLUMNA (WS-I WS-J WS-K)            00084626
-           END-IF.                                                      00084826
-                                                                        00084926
-       F-2022-ES2. EXIT.                                                00085026
-                                                                        00085126
-       2022-ES3.                                                        00085226
-           IF  WS-J = 1 AND WS-K = 1                                    00085326
-               MOVE WS-ES-X   TO WS-COLUMNA (WS-I WS-J WS-K)            00085426
-               GO TO F-2022-ES3                                         00085526
-           END-IF.                                                      00085626
-                                                                        00085726
-           IF  WS-J = 2 AND WS-K = 3                                    00085826
-               MOVE WS-ES-X   TO WS-COLUMNA (WS-I WS-J WS-K)            00085926
-               GO TO F-2022-ES3                                         00086026
-           END-IF.                                                      00086126
-                                                                        00086226
-           IF  WS-J = 4 AND WS-K = 8                                    00086326
-               MOVE WS-ES-X   TO WS-COLUMNA (WS-I WS-J WS-K)            00086426
-               GO TO F-2022-ES3                                         00086526
-           END-IF.                                                      00086626
-                                                                        00086726
-           IF  WS-J = 5 AND (WS-K = 9 OR WS-K = 10)                     00087326
-               MOVE WS-ES-X   TO WS-COLUMNA (WS-I WS-J WS-K)            00087426
-           END-IF.                                                      00087626
-                                                                        00087726
-       F-2022-ES3. EXIT.                                                00087826
-                                                                        00087926
-       2022-ES4.                                                        00088026
-           IF  WS-J = 2 AND WS-K = 2                                    00088126
-               MOVE WS-ES-X   TO WS-COLUMNA (WS-I WS-J WS-K)            00088226
-               GO TO F-2022-ES4                                         00088326
-           END-IF.                                                      00088426
-                                                                        00088526
-           IF  WS-J = 2 AND WS-K = 4                                    00088626
-               MOVE WS-ES-X   TO WS-COLUMNA (WS-I WS-J WS-K)            00088726
-               GO TO F-2022-ES4                                         00088826
-           END-IF.                                                      00088926
-                                                                        00089026
-           IF  WS-J = 3 AND WS-K = 5                                    00089126
-               MOVE WS-ES-X   TO WS-COLUMNA (WS-I WS-J WS-K)            00089226
-               GO TO F-2022-ES4                                         00089326
-           END-IF.                                                      00089426
-                                                                        00089526
-           IF  WS-J = 4 AND WS-K = 8                                    00089626
-               MOVE WS-ES-X   TO WS-COLUMNA (WS-I WS-J WS-K)            00089726
-               GO TO F-2022-ES4                                         00089826
-           END-IF.                                                      00089926
-                                                                        00090026
-           IF  WS-J = 5 AND (WS-K = 9 OR WS-K = 10)                     00090126
-               MOVE WS-ES-X   TO WS-COLUMNA (WS-I WS-J WS-K)            00090226
-           END-IF.                                                      00090426
-                                                                        00090526
-       F-2022-ES4. EXIT.                                                00090626
-                                                                        00090726
-       2022-ES5.                                                        00090826
-           IF  WS-J = 1 AND WS-K = 1                                    00090926
-               MOVE WS-ES-X   TO WS-COLUMNA (WS-I WS-J WS-K)            00091026
-               GO TO F-2022-ES5                                         00091126
-           END-IF.                                                      00091226
-                                                                        00091326
-           IF  WS-J = 2 AND WS-K = 4                                    00091426
-               MOVE WS-ES-X   TO WS-COLUMNA (WS-I WS-J WS-K)            00091526
-               GO TO F-2022-ES5                                         00091626
-           END-IF.                                                      00091726
-                                                                        00091826
-           IF  WS-J = 3 AND WS-K = 6                                    00091926
-               MOVE WS-ES-X   TO WS-COLUMNA (WS-I WS-J WS-K)            00092026
-               GO TO F-2022-ES5                                         00092126
-           END-IF.                                                      00092226
-                                                                        00092326
-           IF  WS-J = 4 AND WS-K = 7                                    00092426
-               MOVE WS-ES-X   TO WS-COLUMNA (WS-I WS-J WS-K)            00092526
-               GO TO F-2022-ES5                                         00092626
-           END-IF.                                                      00092726
-                                                                        00092826
-           IF  WS-J = 5 AND (WS-K = 9 OR WS-K = 10)                     00092926
-               MOVE WS-ES-X   TO WS-COLUMNA (WS-I WS-J WS-K)            00093026
-           END-IF.                                                      00093226
-                                                                        00093326
-       F-2022-ES5. EXIT.                                                00093426
-                                                                        00093526
-                                                                        00095624
-      **************************************                            00095724
-      *                                    *                            00095824
-      *  CUERPO FINAL CIERRE DE FILES      *                            00095924
-      *                                    *                            00096024
-      **************************************                            00096124
-       9999-FINAL.                                                      00096224
-      *    MOVE ZEROS            TO WS-MARCA-TI.                        00096328
-                                                                        00096527
-           PERFORM VARYING WS-I      FROM 1 BY 1                        00096627
-                                        UNTIL WS-I > 5                  00096727
-                                                                        00096827
-      *      MOVE ZEROS            TO WS-MARCA-TJ                       00096928
-             PERFORM VARYING WS-J      FROM 1 BY 1                      00097027
-                                        UNTIL WS-J > 5                  00097127
-                                                                        00097227
-               PERFORM VARYING WS-K      FROM 1 BY 1                    00097327
-                                        UNTIL WS-K > 10                 00097427
-                                                                        00097527
-                 IF WS-COLUMNA (WS-I WS-J WS-K)  = WS-ES-X              00097627
-      *            IF   WS-MARCA-TI = ZEROS  AND WS-MARCA-TJ            00097728
-      *               MOVE     1      TO WS-MARCA-TI                    00097828
-      *               MOVE     1      TO WS-MARCA-TJ                    00097928
-                      DISPLAY  WS-ITEM-DIAS    (WS-I)                   00098027
-                      DISPLAY  WS-ITEM-SECTOR  (WS-J)                   00098127
-                      DISPLAY  WS-ITEM-ACTIVI  (WS-K)                   00098227
-      *            ELSE                                                 00098328
-      *               IF WS-MARCA-TJ = ZEROS                            00098428
-      *                 MOVE     1      TO WS-MARCA-TJ                  00098528
-      *                 DISPLAY  WS-ITEM-DIAS    (WS-I)                 00098628
-      *                 DISPLAY  WS-ITEM-SECTOR  (WS-J)                 00098728
-      *                 DISPLAY  WS-ITEM-ACTIVI  (WS-K)                 00098828
-                 END-IF                                                 00098927
-                                                                        00099027
-               END-PERFORM                                              00099127
-             END-PERFORM                                                00099227
-           END-PERFORM.                                                 00099327
-                                                                        00099427
-       F-9999-FINAL.                                                    00099527
-           EXIT.                                                        00099627
-      *                                                                 00100000
+       IDENTIFICATION DIVISION.                                         
+       PROGRAM-ID. PGMTABL3.                                            
+      **************************************                            
+      *                                    *                            
+      *  PROGRAMA PARA GENERAR UNA TABLA   *                            
+      *  EN WORKING CON TABLA DE 3 D       *                            
+      *  ARREGLO DE 3 DIMENSIONES:         *                            
+      *  PAGINAS:  7 DIAS DE LA SEMANA     *
+      *  COLUMNAS: 5 SECTORES              *                            
+      *  FILAS   : 10 ACTIVIDADES          *                            
+      **************************************                            
+      *      MANTENIMIENTO DE PROGRAMA     *                            
+      **************************************                            
+      *  FECHA   *    DETALLE        * COD *                            
+      **************************************                            
+      *          *                   *     *                            
+      *          *                   *     *                            
+      **************************************                            
+       ENVIRONMENT DIVISION.                                            
+       INPUT-OUTPUT SECTION.                                            
+       FILE-CONTROL.                                                    
+                                                                        
+       DATA DIVISION.                                                   
+       FILE SECTION.                                                    
+                                                                        
+      **************************************                            
+       WORKING-STORAGE SECTION.                                         
+      **************************************                            
+       77  FILLER        PIC X(26) VALUE '* INICIO WORKING-STORAGE *'.  
+      **************************************                            
+                                                                        
+                                                                        
+      ********     FECHA DE PROCESO ***************                     
+       01  WS-FECHA.                                                    
+           03  WS-FECHA-AAAA    PIC 9999          VALUE ZEROS.          
+           03  WS-FECHA-MM      PIC 99            VALUE ZEROS.          
+           03  WS-FECHA-DD      PIC 99            VALUE ZEROS.          
+                                                                        
+      *************************************************************     
+      *        PROPUESTA DE SOLUCION EN CLASE                           
+      *        ------------------------------                           
+      *        DEFINICION DE TABLA (3 DIMENSIONES)                      
+      *        CLASE 17 TRAMO 1                                         
+      **************************************************************    
+       01 WS-TABLA.                                                     
+      *                                                                 
+          03 WS-PAGINA         OCCURS 5  TIMES.                         
+             05 WS-ITEM-PAGINA              PIC X(10).                  
+                                                                        
+             05 WS-FILA        OCCURS 5  TIMES.                         
+                07 WS-ITEM-FILA             PIC X(12).                  
+                                                                        
+                07  WS-COLUMNA OCCURS 10 TIMES.                         
+                    09  WS-ITEM-COLUMNA     PIC X(20).                  
+                                                                        
+       77  WS-I           PIC 99                VALUE ZEROS.            
+       77  WS-J           PIC 99                VALUE ZEROS.            
+       77  WS-K           PIC 99                VALUE ZEROS.            
+      *77  WS-MARCA-TI    PIC 9                 VALUE ZEROS.            
+      *77  WS-MARCA-TJ    PIC 9                 VALUE ZEROS.            
+      **************************************************************    
+      * 7 DIAS DE LA SEMANA (PAGINA - INDICE WS-I)                 *    
+      **************************************************************    
+       01  WS-DIAS.                                                     
+             05  FILLER    PIC X(10)             VALUE 'LUNES     '.    
+             05  FILLER    PIC X(10)             VALUE 'MARTES    '.    
+             05  FILLER    PIC X(10)             VALUE 'MIERCOLES '.    
+             05  FILLER    PIC X(10)             VALUE 'JUEVES    '.    
+             05  FILLER    PIC X(10)             VALUE 'VIERNES   '.    
+       01 WS-TAB-DIAS     REDEFINES WS-DIAS.                            
+          03 WS-ITEM-DIAS    PIC X(10)  OCCURS 5  TIMES.                
+                                                                        
+      **************************************************************    
+      * 10 SECTORES         (FILA   - INDICE WS-J)                 *    
+      **************************************************************    
+       01 WS-SECTOR.                                                    
+          03 FILLER           PIC X(12)  VALUE                          
+                      ' FINANZAS  '.                                    
+          03 FILLER           PIC X(12)  VALUE                          
+                      ' CLIENTES  '.                                    
+          03 FILLER           PIC X(12)  VALUE                          
+                      ' INVERSIONES'.                                   
+          03 FILLER           PIC X(12)  VALUE                          
+                      ' PRESTAMOS  '.                                   
+          03 FILLER           PIC X(12)  VALUE                          
+                      ' INFORMATICA'.                                   
+                                                                        
+       01 WS-TAB-SECTOR   REDEFINES WS-SECTOR.                          
+          03 WS-ITEM-SECTOR  PIC X(12)  OCCURS 5  TIMES.                
+                                                                        
+      **************************************************************    
+      * 10 ACTIVIDADES      (COLUMNA- INDICE WS-K)                 *    
+      **************************************************************    
+       01 WS-ACTIVI-DADES.                                              
+          03 FILLER           PIC X(20)  VALUE                          
+                      '  ANALISIS          '.                           
+          03 FILLER           PIC X(20)  VALUE                          
+                      '  PROCEDIMIENTOS    '.                           
+          03 FILLER           PIC X(20)  VALUE                          
+                      '  ATENCION          '.                           
+          03 FILLER           PIC X(20)  VALUE                          
+                      '  ACTUALIZACION    '.                           
+          03 FILLER           PIC X(20)  VALUE                          
+                      '  ADMINISTRACION  '.                             
+          03 FILLER           PIC X(20)  VALUE                          
+                      '  ASESORAMIENTO   '.                             
+          03 FILLER           PIC X(20)  VALUE                          
+                      '  PROMOCION       '.                             
+          03 FILLER           PIC X(20)  VALUE                          
+                      '  OTORGAMIENTO    '.                             
+          03 FILLER           PIC X(20)  VALUE                          
+                      '  DESARROLLO      '.                             
+          03 FILLER           PIC X(20)  VALUE                          
+                      '  PRODUCCION      '.                             
+                                                                        
+       01 WS-TAB-ACTIVI   REDEFINES WS-ACTIVI-DADES.                    
+          03 WS-ITEM-ACTIVI  PIC X(20)  OCCURS 10 TIMES.                
+                                                                        
+      *                                                                 
+      *  DEFINICIï¿½N VARIABLES                                           
+      *                                                                 
+       77  WS-ES-X            PIC X     VALUE 'X'.                      
+       77  WS-MARCA           PIC X.                                    
+           88 WS-MARCA-SIGUE            VALUE ' '.                      
+           88 WS-MARCA-FIN              VALUE 'F'.                      
+                                                                        
+       77  FILLER              PIC X(26) VALUE                          
+                                         '* FINAL  WORKING-STORAGE *'.  
+                                                                        
+      ***************************************************************.  
+       PROCEDURE DIVISION.                                              
+      **************************************                            
+      *                                    *                            
+      *  CUERPO PRINCIPAL DEL PROGRAMA     *                            
+      *                                    *                            
+      **************************************                            
+       MAIN-PROGRAM.                                                    
+                                                                        
+           PERFORM 1000-INICIO  THRU   F-1000-INICIO.                   
+                                                                        
+           PERFORM 2000-PROCESO  THRU  F-2000-PROCESO                   
+                   UNTIL WS-MARCA-FIN.                                  
+                                                                        
+           PERFORM 9999-FINAL    THRU  F-9999-FINAL.                    
+                                                                        
+       F-MAIN-PROGRAM. GOBACK.                                          
+                                                                        
+      **************************************                            
+      *                                    *                            
+      *  CUERPO INICIO APERTURA ARCHIVOS   *                            
+      *                                    *                            
+      **************************************                            
+       1000-INICIO.                                                     
+           ACCEPT WS-FECHA FROM DATE.                                   
+           SET WS-MARCA-SIGUE TO TRUE.                                  
+                                                                        
+       F-1000-INICIO.   EXIT.                                           
+                                                                        
+      **************************************                            
+      *                                    *                            
+      *  CUERPO PRINCIPAL DE PROCESOS      *                            
+      *                                    *                            
+      **************************************                            
+       2000-PROCESO.                                                    
+           PERFORM VARYING WS-K      FROM 1 BY 1                        
+                                        UNTIL WS-K > 10                 
+                                                                        
+             PERFORM VARYING WS-J      FROM 1 BY 1                      
+                                        UNTIL WS-J > 5                  
+                                                                        
+               PERFORM 2020-ARMAR  THRU F-2020-ARMAR                    
+                       VARYING WS-I      FROM 1 BY 1                    
+                                        UNTIL WS-I > 5                  
+                                                                        
+             END-PERFORM                                                
+           END-PERFORM.                                                 
+                                                                        
+      * TABLA ARMADA                                                    
+           SET WS-MARCA-FIN   TO TRUE.                                  
+                                                                        
+       F-2000-PROCESO. EXIT.                                            
+                                                                        
+                                                                        
+       2020-ARMAR.                                                      
+           IF  WS-I = 1                                                 
+               PERFORM 2022-ES1   THRU F-2022-ES1                       
+           ELSE                                                         
+               IF  WS-I = 2                                             
+                   PERFORM 2022-ES2   THRU F-2022-ES2                   
+               ELSE                                                     
+                   IF  WS-I = 3                                         
+                       PERFORM 2022-ES3   THRU F-2022-ES3               
+                   ELSE                                                 
+                       IF  WS-I = 4                                     
+                           PERFORM 2022-ES4   THRU F-2022-ES4           
+                       ELSE                                             
+                           PERFORM 2022-ES5   THRU F-2022-ES5           
+                       END-IF                                           
+                   END-IF                                               
+               END-IF                                                   
+           END-IF.                                                      
+                                                                        
+       F-2020-ARMAR. EXIT.                                              
+                                                                        
+       2022-ES1.                                                        
+           IF  WS-J = 1 AND WS-K = 1                                    
+               MOVE WS-ES-X   TO WS-COLUMNA (WS-I WS-J WS-K)            
+               GO TO F-2022-ES1                                         
+           END-IF.                                                      
+                                                                        
+           IF  WS-J = 2 AND WS-K = 3                                    
+               MOVE WS-ES-X   TO WS-COLUMNA (WS-I WS-J WS-K)            
+               GO TO F-2022-ES1                                         
+           END-IF.                                                      
+                                                                        
+           IF  WS-J = 3 AND WS-K = 6                                    
+               MOVE WS-ES-X   TO WS-COLUMNA (WS-I WS-J WS-K)            
+               GO TO F-2022-ES1                                         
+           END-IF.                                                      
+                                                                        
+           IF  WS-J = 5 AND (WS-K = 9 OR WS-K = 10)                     
+               MOVE WS-ES-X   TO WS-COLUMNA (WS-I WS-J WS-K)            
+           END-IF.                                                      
+                                                                        
+       F-2022-ES1. EXIT.                                                
+                                                                        
+       2022-ES2.                                                        
+           IF  WS-J = 2 AND WS-K = 2                                    
+               MOVE WS-ES-X   TO WS-COLUMNA (WS-I WS-J WS-K)            
+               GO TO F-2022-ES2                                         
+           END-IF.                                                      
+                                                                        
+           IF  WS-J = 2 AND WS-K = 4                                    
+               MOVE WS-ES-X   TO WS-COLUMNA (WS-I WS-J WS-K)            
+               GO TO F-2022-ES2                                         
+           END-IF.                                                      
+                                                                        
+           IF  WS-J = 3 AND WS-K = 5                                    
+               MOVE WS-ES-X   TO WS-COLUMNA (WS-I WS-J WS-K)            
+               GO TO F-2022-ES2                                         
+           END-IF.                                                      
+                                                                        
+           IF  WS-J = 4 AND WS-K = 8                                    
+               MOVE WS-ES-X   TO WS-COLUMNA (WS-I WS-J WS-K)            
+               GO TO F-2022-ES2                                         
+           END-IF.                                                      
+                                                                        
+           IF  WS-J = 5 AND (WS-K = 9 OR WS-K = 10)                     
+               MOVE WS-ES-X   TO WS-COLUMNA (WS-I WS-J WS-K)            
+           END-IF.                                                      
+                                                                        
+       F-2022-ES2. EXIT.                                                
+                                                                        
+       2022-ES3.                                                        
+           IF  WS-J = 1 AND WS-K = 1                                    
+               MOVE WS-ES-X   TO WS-COLUMNA (WS-I WS-J WS-K)            
+               GO TO F-2022-ES3                                         
+           END-IF.                                                      
+                                                                        
+           IF  WS-J = 2 AND WS-K = 3                                    
+               MOVE WS-ES-X   TO WS-COLUMNA (WS-I WS-J WS-K)            
+               GO TO F-2022-ES3                                         
+           END-IF.                                                      
+                                                                        
+           IF  WS-J = 4 AND WS-K = 8                                    
+               MOVE WS-ES-X   TO WS-COLUMNA (WS-I WS-J WS-K)            
+               GO TO F-2022-ES3                                         
+           END-IF.                                                      
+                                                                        
+           IF  WS-J = 5 AND (WS-K = 9 OR WS-K = 10)                     
+               MOVE WS-ES-X   TO WS-COLUMNA (WS-I WS-J WS-K)            
+           END-IF.                                                      
+                                                                        
+       F-2022-ES3. EXIT.                                                
+                                                                        
+       2022-ES4.                                                        
+           IF  WS-J = 2 AND WS-K = 2                                    
+               MOVE WS-ES-X   TO WS-COLUMNA (WS-I WS-J WS-K)            
+               GO TO F-2022-ES4                                         
+           END-IF.                                                      
+                                                                        
+           IF  WS-J = 2 AND WS-K = 4                                    
+               MOVE WS-ES-X   TO WS-COLUMNA (WS-I WS-J WS-K)            
+               GO TO F-2022-ES4                                         
+           END-IF.                                                      
+                                                                        
+           IF  WS-J = 3 AND WS-K = 5                                    
+               MOVE WS-ES-X   TO WS-COLUMNA (WS-I WS-J WS-K)            
+               GO TO F-2022-ES4                                         
+           END-IF.                                                      
+                                                                        
+           IF  WS-J = 4 AND WS-K = 8                                    
+               MOVE WS-ES-X   TO WS-COLUMNA (WS-I WS-J WS-K)            
+               GO TO F-2022-ES4                                         
+           END-IF.                                                      
+                                                                        
+           IF  WS-J = 5 AND (WS-K = 9 OR WS-K = 10)                     
+               MOVE WS-ES-X   TO WS-COLUMNA (WS-I WS-J WS-K)            
+           END-IF.                                                      
+                                                                        
+       F-2022-ES4. EXIT.                                                
+                                                                        
+       2022-ES5.                                                        
+           IF  WS-J = 1 AND WS-K = 1                                    
+               MOVE WS-ES-X   TO WS-COLUMNA (WS-I WS-J WS-K)            
+               GO TO F-2022-ES5                                         
+           END-IF.                                                      
+                                                                        
+           IF  WS-J = 2 AND WS-K = 4                                    
+               MOVE WS-ES-X   TO WS-COLUMNA (WS-I WS-J WS-K)            
+               GO TO F-2022-ES5                                         
+           END-IF.                                                      
+                                                                        
+           IF  WS-J = 3 AND WS-K = 6                                    
+               MOVE WS-ES-X   TO WS-COLUMNA (WS-I WS-J WS-K)            
+               GO TO F-2022-ES5                                         
+           END-IF.                                                      
+                                                                        
+           IF  WS-J = 4 AND WS-K = 7                                    
+               MOVE WS-ES-X   TO WS-COLUMNA (WS-I WS-J WS-K)            
+               GO TO F-2022-ES5                                         
+           END-IF.                                                      
+                                                                        
+           IF  WS-J = 5 AND (WS-K = 9 OR WS-K = 10)                     
+               MOVE WS-ES-X   TO WS-COLUMNA (WS-I WS-J WS-K)            
+           END-IF.                                                      
+                                                                        
+       F-2022-ES5. EXIT.                                                
+                                                                        
+                                                                        
+      **************************************                            
+      *                                    *                            
+      *  CUERPO FINAL CIERRE DE FILES      *                            
+      *                                    *                            
+      **************************************                            
+       9999-FINAL.                                                      
+      *    MOVE ZEROS            TO WS-MARCA-TI.                        
+                                                                        
+           PERFORM VARYING WS-I      FROM 1 BY 1                        
+                                        UNTIL WS-I > 5                  
+                                                                        
+      *      MOVE ZEROS            TO WS-MARCA-TJ                       
+             PERFORM VARYING WS-J      FROM 1 BY 1                      
+                                        UNTIL WS-J > 5                  
+                                                                        
+               PERFORM VARYING WS-K      FROM 1 BY 1                    
+                                        UNTIL WS-K > 10                 
+                                                                        
+                 IF WS-COLUMNA (WS-I WS-J WS-K)  = WS-ES-X              
+      *            IF   WS-MARCA-TI = ZEROS  AND WS-MARCA-TJ            
+      *               MOVE     1      TO WS-MARCA-TI                    
+      *               MOVE     1      TO WS-MARCA-TJ                    
+                      DISPLAY  WS-ITEM-DIAS    (WS-I)                   
+                      DISPLAY  WS-ITEM-SECTOR  (WS-J)                   
+                      DISPLAY  WS-ITEM-ACTIVI  (WS-K)                   
+      *            ELSE                                                 
+      *               IF WS-MARCA-TJ = ZEROS                            
+      *                 MOVE     1      TO WS-MARCA-TJ                  
+      *                 DISPLAY  WS-ITEM-DIAS    (WS-I)                 
+      *                 DISPLAY  WS-ITEM-SECTOR  (WS-J)                 
+      *                 DISPLAY  WS-ITEM-ACTIVI  (WS-K)                 
+                 END-IF                                                 
+                                                                        
+               END-PERFORM                                              
+             END-PERFORM                                                
+           END-PERFORM.                                                 
+                                                                        
+       F-9999-FINAL.                                                    
+           EXIT.                                                        
+      *                                                                 

@@ -1,6 +1,6 @@
-SELECT SALDO, NROCLI                                                    00010000
-   FROM  KC02787.TBCURCTA                                               00020000
-       ORDER BY NROCLI;                                                 00030000
-SELECT *                                                                00040000
-   FROM  KC02787.TBCURCLI;                                              00050000
-SELECT * FROM SYSCAT.COLUMNS;                                           00060003
+SELECT SALDO, NROCLI
+   FROM  KC02787.TBCURCTA
+       ORDER BY NROCLI;
+SELECT *
+   FROM  KC02787.TBCURCLI;
+SELECT * FROM SYSCAT.COLUMNS;

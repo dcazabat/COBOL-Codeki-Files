@@ -1,22 +1,22 @@
-       IDENTIFICATION DIVISION.                                         00670002
-       PROGRAM-ID.    PGMSUMA.                                          00680004
-       AUTHOR.        D. CAZABAT.                                       00690004
-       INSTALLATION.  CURSO CODEKI.                                     00700004
-       DATE-WRITTEN.  04/11/2025.                                       00710004
-       DATE-COMPILED. 04/11/2025.                                       00720004
-                                                                        00730004
-       DATA DIVISION.                                                   00740004
-       WORKING-STORAGE SECTION.                                         00750004
-       01 CONTADOR  PIC 9(2) VALUE 1.                                   00760004
-       01 TOTAL-SUMA PIC 9(3) VALUE 0.                                  00770004
-                                                                        00780004
-       PROCEDURE DIVISION.                                              02400004
-       MAIN-LOGIC.                                                      02401004
-           DISPLAY 'SUMA DE 1 A 10, BY KC03C7C'                         02410004
-           PERFORM SUMAR-NUMEROS VARYING CONTADOR FROM 1 BY 1           02420004
-               UNTIL CONTADOR > 10.                                     02421004
-           DISPLAY 'LA SUMA DE LOS NUMEROS DE 1 A 10 ES: ' TOTAL-SUMA.  02422004
-           STOP RUN.                                                    02423004
-                                                                        02424004
-       SUMAR-NUMEROS.                                                   02425004
-           ADD CONTADOR TO TOTAL-SUMA.                                  02430004
+       IDENTIFICATION DIVISION.                                         
+       PROGRAM-ID.    PGMSUMA.                                          
+       AUTHOR.        D. CAZABAT.                                       
+       INSTALLATION.  CURSO CODEKI.                                     
+       DATE-WRITTEN.  04/11/2025.                                       
+       DATE-COMPILED. 04/11/2025.                                       
+                                                                        
+       DATA DIVISION.                                                   
+       WORKING-STORAGE SECTION.                                         
+       01 CONTADOR  PIC 9(2) VALUE 1.                                   
+       01 TOTAL-SUMA PIC 9(3) VALUE 0.                                  
+                                                                        
+       PROCEDURE DIVISION.                                              
+       MAIN-LOGIC.                                                      
+           DISPLAY 'SUMA DE 1 A 10, BY KC03C7C'                         
+           PERFORM SUMAR-NUMEROS VARYING CONTADOR FROM 1 BY 1           
+               UNTIL CONTADOR > 10.                                     
+           DISPLAY 'LA SUMA DE LOS NUMEROS DE 1 A 10 ES: ' TOTAL-SUMA.  
+           STOP RUN.                                                    
+                                                                        
+       SUMAR-NUMEROS.                                                   
+           ADD CONTADOR TO TOTAL-SUMA.                                  

@@ -283,7 +283,7 @@
            IF WS-CLI-TIPO     EQUAL 02                                  
               ADD WS-MOV-IMPORTE TO WS-SALDO-ACUM                               
            ELSE                                                         
-              DISPLAY 'ERROR TIPO CUENTA:' WS-MOV-CLAVE                                     
+              DISPLAY 'ERROR TIPO CUENTA:' WS-MOV-CLAVE
               ADD 1 TO WS-ERRONEOS-MOV
            END-IF.
        F-5000-PROCESAR-CLIENTE. EXIT.                                   

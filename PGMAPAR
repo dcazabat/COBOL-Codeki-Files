@@ -4,12 +4,12 @@
        INSTALLATION.  CURSO CODEKI.                                     
        DATE-WRITTEN.  09/05/2025.                                       
        DATE-COMPILED. 10/05/2025.                                       
-      **********************************************************
-      *                                                        *
-      *  OBJETIVO: PRACTICA CODIFICACION COBOL                 *
-      *  ASINCRONICA 8: VALIDACION                             *
-      *                                                        *
-      **********************************************************
+      ***********************************************************
+      *                                                         *
+      *  OBJETIVO: PRACTICA CODIFICACION COBOL                  *
+      *  ASINCRONICA 8: VALIDACION                              *
+      *                                                         *
+      ***********************************************************
       ***********************************************************
       *                                                         *
       *  APAREO SIMPLE: UN MOVIMIENTO POR CUENTA                *
@@ -20,11 +20,11 @@
       *  TENER PRESENTE QUE; EN ESTE EJEMPLO SOLO HAY UN        *
       *  MOVIMIENTO  POR CUENTA                                 *
       *                                                         *
-      *  SI, COMO ES NORMAL, HUBIERA M�S DE UN MOV X CLIENTE    *
-      *  CUANDO SE PRODUCE EL APAREO; HABR� QUE LEER OTRO MOV.  *
+      *  SI, COMO ES NORMAL, HUBIERA MAS DE UN MOV X CLIENTE    *
+      *  CUANDO SE PRODUCE EL APAREO; HABRA QUE LEER OTRO MOV.  *
       *                                                         *
-      *  SE LEER� UN REGISTRO DEL MAESTRO CLIENTE; LUEGO QUE    *
-      *  SE CONSIDERE QUE YA NO HAY M�S MOV PARA EL MISMO  :    *
+      *  SE LEERA UN REGISTRO DEL MAESTRO CLIENTE; LUEGO QUE    *
+      *  SE CONSIDERE QUE YA NO HAY M�S MOV PARA EL MISMO  :   *
       *                                                         *
       *  MOV-CLAVE > CLI-CLAVE                                  *
       *                                                         *
@@ -156,7 +156,7 @@
        MAIN-PROGRAM.                                                    
                                                                         
            PERFORM 1000-INICIO
-              THRU F-1000-INICIO.                                                                 
+              THRU F-1000-INICIO.
 
            PERFORM 2000-PROCESO
              THRU  F-2000-PROCESO                   
@@ -222,7 +222,7 @@
                 THRU F-3000-LEER-MOVI                        
            ELSE                                                         
              IF WS-CLI-CLAVE > WS-MOV-CLAVE
-               *> LA CLAVE DEL CLIENTE EN EL MOVIMIENTO NO EXISTE                             
+               *> LA CLAVE DEL CLIENTE EN EL MOVIMIENTO NO EXISTE
                DISPLAY 'CLAVE CLIENTE = ' WS-MOV-CLAVE ' NO ENCONTRADA'
                ADD 1 TO WS-RECH-CLI-NOEXIST
                PERFORM 3000-LEER-MOVI                                 
@@ -288,7 +288,7 @@
       * VALIDAR QUE SEA CUENTA CORRIENTE   *
        5000-PROCESAR-CLIENTE.                                           
            IF WS-CLI-TIPO NOT EQUAL 02                                  
-             DISPLAY 'ERROR TIPO CUENTA:' WS-MOV-CLAVE                                     
+             DISPLAY 'ERROR TIPO CUENTA:' WS-MOV-CLAVE
              ADD 1 TO WS-ERRONEOS-MOV
              GO TO F-5000-PROCESAR-CLIENTE
            END-IF.                                                      
@@ -327,7 +327,7 @@
        9999-FINAL.                                                      
            CLOSE CLIENTE                                                
              IF WS-CLI-CODE IS NOT EQUAL '00'                          
-               DISPLAY '* ERROR EN CLOSE CLIENTE = ' WS-CLI-CODE                 
+               DISPLAY '* ERROR EN CLOSE CLIENTE = ' WS-CLI-CODE
                MOVE 9999 TO RETURN-CODE                                
                SET WS-FIN-LECTURA TO TRUE                              
             END-IF.                                                    
@@ -354,5 +354,5 @@
            DISPLAY WS-LEYEN-CLIW  WS-GRABADOS-SAL.
            DISPLAY WS-LEYEN-MOVE  WS-ERRONEOS-MOV.
            DISPLAY WS-LEYEN-RECH  WS-RECH-CLI-NOEXIST.
-       F-9999-FINAL. EXIT.                                                        
+       F-9999-FINAL. EXIT.
       *

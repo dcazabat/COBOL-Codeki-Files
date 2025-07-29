@@ -42,7 +42,7 @@
            05 SW-FS-CLIENTES     PIC X(02).
               88 SW-CLI-OK       VALUE '00'.
               88 SW-CLI-EOF      VALUE '10'.
-              88 SW-FS-EOF      VALUE '10'.
+              88 SW-FS-EOF       VALUE '10'.
               88 SW-CLI-NOK      VALUE '01' THRU '09'
                                       '11' THRU '99'.
            05 SW-FS-SALIDA       PIC X(02).

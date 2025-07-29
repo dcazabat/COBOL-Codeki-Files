@@ -1,212 +1,215 @@
-       IDENTIFICATION DIVISION.                                         00010002
-       PROGRAM-ID. PGMSIN11.                                            00020021
-                                                                        00030000
-      **************************************************                00040006
-      *                                                *                00050006
-      *  SINCRONICA 11: CORTE CONTROL                  *                00060021
-      *  ============================                  *                00061006
-      *                                                *                00062006
-      *  - HACE UN  CORTE DE CONTROL POR WS-SUC-NRO    *                00070306
-      *  - Y OTRO CORTE DE CONTROL POR WS-SUC-TIPC1    *                00070406
-      *                                                *                00071006
-      *                                                *                00073006
-      **************************************************                00074006
-                                                                        00075000
-       ENVIRONMENT DIVISION.                                            00076000
-       CONFIGURATION SECTION.                                           00077000
-                                                                        00077107
-       SPECIAL-NAMES.                                                   00078000
-           DECIMAL-POINT IS COMMA.                                      00079000
-                                                                        00079107
-       INPUT-OUTPUT SECTION.                                            00080000
-       FILE-CONTROL.                                                    00090000
-             SELECT ENTRADA ASSIGN DDENTRA                              00100000
-                    FILE STATUS IS FS-ENT.                              00110000
-                                                                        00120000
-       DATA DIVISION.                                                   00130000
-       FILE SECTION.                                                    00140000
-       FD ENTRADA                                                       00150000
-            BLOCK CONTAINS 0 RECORDS                                    00160000
-            RECORDING MODE IS F.                                        00170000
-                                                                        00180000
-       01 REG-ENTRADA    PIC X(20).                                     00190000
-                                                                        00200000
-      **************************************                            00201004
-       WORKING-STORAGE SECTION.                                         00210000
-      **************************************                            00220000
-                                                                        00230000
-       77  FS-ENT          PIC XX                VALUE SPACES.          00240000
-                                                                        00250022
-       77  WS-STATUS-FIN   PIC X.                                       00270004
-           88  WS-FIN-LECTURA                    VALUE 'Y'.             00280000
-           88  WS-NO-FIN-LECTURA                 VALUE 'N'.             00290000
-                                                                        00300022
-       77  WS-SUC-NRO-ANT      PIC 999           VALUE ZEROS.           00310000
-       77  WS-CANT-TIPC1       PIC 9(2)          VALUE ZEROS.           00320009
-       77  WS-SUC-TIPC1-ANT    PIC 999           VALUE ZEROS.           00330007
-       77  WS-CANT-SUC         PIC 9(3)          VALUE ZEROS.           00340007
-       77  WS-TOT-CUENTAS      PIC S9(9)V99      VALUE ZEROS.           00350019
-       77  WS-SUMA-SUC         PIC S9(9)V99      VALUE ZEROS.           00350116
-       77  WS-SUMA-TIPC1       PIC S9(8)V99      VALUE ZEROS.           00350211
-                                                                        00350311
-       77  WS-TOT-PRINT        PIC -ZZZ.ZZZ.ZZ9,99 VALUE ZEROS.         00450008
-       77  WS-SUC-PRINT        PIC ZZ9            VALUE ZEROS.          00460011
-       77  WS-TIPO-PRINT       PIC ZZ9            VALUE ZEROS.          00461007
-                                                                        00462000
-           COPY CORTE.                                                  00464000
-                                                                        00465000
-      *****************************************************             00466104
-       PROCEDURE DIVISION.                                              00467000
-      *****************************************************             00468000
-                                                                        00468104
-      **************************************                            00469000
-      *                                    *                            00470000
-      *  CUERPO PRINCIPAL DEL PROGRAMA     *                            00480000
-      *                                    *                            00490000
-      **************************************                            00500000
-       MAIN-PROGRAM-INICIO.                                             00510000
-                                                                        00520000
-           PERFORM 1000-I-INICIO  THRU 1000-F-INICIO.                   00530000
-                                                                        00540000
-           PERFORM 2000-I-PROCESO THRU  2000-F-PROCESO                  00550000
-                                  UNTIL WS-FIN-LECTURA.                 00560000
-                                                                        00570000
-           PERFORM 9999-I-FINAL     THRU  9999-I-FINAL.                 00580000
-                                                                        00590000
-       MAIN-PROGRAM-FINAL. GOBACK.                                      00600000
-                                                                        00610000
-      **************************************                            00620000
-       1000-I-INICIO.                                                   00630000
-      **************************************                            00640000
-                                                                        00650000
-           SET WS-NO-FIN-LECTURA TO TRUE.                               00660000
-                                                                        00670000
-           OPEN INPUT  ENTRADA.                                         00680000
-           IF FS-ENT IS NOT EQUAL '00'                                  00690000
-              DISPLAY '* ERROR EN OPEN ENTRADA INICIO = ' FS-ENT        00700000
-              SET  WS-FIN-LECTURA TO TRUE                               00710000
-           END-IF.                                                      00720000
-                                                                        00730000
-      * LEER EL PRIMER REGISTRO FUERA DEL LOOP PRINCIPAL                00740000
-                                                                        00742107
-           PERFORM 2500-I-LEER THRU 2500-F-LEER.                        00742212
-                                                                        00742508
-           IF WS-FIN-LECTURA                                            00742609
-              DISPLAY '* ARCHIVO ENTRADA VAC²O EN INICIO' FS-ENT        00742708
-           ELSE                                                         00742808
-                                                                        00742908
-              MOVE WS-SUC-NRO TO WS-SUC-NRO-ANT                         00745022
-              MOVE WS-SUC-TIPC1 TO WS-SUC-TIPC1-ANT                     00746022
-              ADD 1 TO WS-CANT-SUC                                      00747022
-              ADD 1 TO WS-CANT-TIPC1                                    00748022
-              ADD WS-SUC-IMPORTE  TO WS-SUMA-SUC  WS-SUMA-TIPC1         00748122
-              MOVE WS-SUC-NRO TO WS-SUC-PRINT                           00749022
-              DISPLAY '--------------------------------'                00750022
-              DISPLAY 'SUCURSAL = ' WS-SUC-PRINT                        00760022
-              DISPLAY '--------------------------------'                00770022
-           END-IF.                                                      00780008
-                                                                        00780116
-       1000-F-INICIO. EXIT.                                             00980000
-                                                                        00990000
-      **************************************                            01000000
-       2000-I-PROCESO.                                                  01010000
-      **************************************                            01020000
-                                                                        01030000
-           PERFORM 2500-I-LEER THRU 2500-F-LEER                         01031312
-                                                                        01031408
-           IF WS-FIN-LECTURA                                            01031522
-                PERFORM 2300-CORTE-SUC     THRU 2300-F-CORTE-SUC        01031622
-           ELSE                                                         01031822
-              IF WS-SUC-NRO EQUAL WS-SUC-NRO-ANT                        01101022
-                ADD 1 TO WS-CANT-SUC                                    01110000
-                ADD WS-SUC-IMPORTE  TO WS-SUMA-SUC                      01110111
-                   IF WS-SUC-TIPC1 EQUAL WS-SUC-TIPC1-ANT               01120022
-                      ADD 1 TO WS-CANT-TIPC1                            01130022
-                      ADD WS-SUC-IMPORTE  TO WS-SUMA-TIPC1              01131022
-                   ELSE                                                 01140022
-                      PERFORM 2600-CORTE-TIPC THRU 2600-F-CORTE-TIPC    01150022
-                   END-IF                                               01160022
-              ELSE                                                      01170022
-                  PERFORM 2300-CORTE-SUC     THRU 2300-F-CORTE-SUC      01180022
-              END-IF                                                    01200022
-           END-IF.                                                      01200422
-                                                                        01210000
-       2000-F-PROCESO. EXIT.                                            01320000
-                                                                        01330000
-      *************  CORTE DE CONTROL POR SUCURSAL *******              01340111
-       2300-CORTE-SUC.                                                  01340211
-      ****************************************************              01340311
-                                                                        01340411
-           PERFORM 2600-CORTE-TIPC THRU 2600-F-CORTE-TIPC               01340511
-           MOVE WS-SUMA-SUC    TO WS-TOT-PRINT                          01340622
-           DISPLAY 'TOTAL IMPORTE    EN SUCURSAL = ' WS-TOT-PRINT       01340717
-           ADD WS-SUMA-SUC     TO WS-TOT-CUENTAS                        01340819
-           MOVE WS-SUC-NRO     TO WS-SUC-NRO-ANT                        01340922
-           MOVE WS-SUC-NRO-ANT TO WS-SUC-NRO                            01341015
-           IF NOT WS-FIN-LECTURA                                        01341122
-             DISPLAY '--------------------------------'                 01341222
-             DISPLAY 'SUCURSAL = ' WS-SUC-NRO                           01341322
-             DISPLAY '--------------------------------'                 01341422
-           END-IF.                                                      01341522
-           MOVE 1 TO WS-CANT-SUC                                        01341622
-           MOVE 1 TO WS-CANT-TIPC1                                      01341722
-           MOVE WS-SUC-TIPC1   TO WS-SUC-TIPC1-ANT.                     01341822
-           MOVE WS-SUC-IMPORTE TO WS-SUMA-SUC.                          01341922
-                                                                        01342022
-       2300-F-CORTE-SUC. EXIT.                                          01342122
-                                                                        01343022
-                                                                        01345911
-      **************************************                            01346007
-       2500-I-LEER.                                                     01346107
-      **************************************                            01346207
-             READ ENTRADA INTO WS-REG-SUCURSAL                          01346307
-                                                                        01346407
-             EVALUATE FS-ENT                                            01346507
-               WHEN '00'                                                01346607
-                CONTINUE                                                01347012
-                                                                        01349907
-               WHEN '10'                                                01350007
-                SET WS-FIN-LECTURA TO TRUE                              01350307
-                                                                        01350407
-               WHEN OTHER                                               01350507
-                DISPLAY '*ERROR EN LECTURA ENTRADA INICIO : ' FS-ENT    01350607
-                SET WS-FIN-LECTURA TO TRUE                              01350707
-                                                                        01350807
-             END-EVALUATE.                                              01350907
-                                                                        01351007
-       2500-F-LEER. EXIT.                                               01351107
-                                                                        01351207
-      *************  CORTE DE CONTROL POR TIPC1  *********              01351311
-       2600-CORTE-TIPC.                                                 01351411
-      ****************************************************              01351511
-                                                                        01351611
-           MOVE WS-SUMA-TIPC1 TO WS-TOT-PRINT                           01351718
-           DISPLAY 'TOTAL IMPORTE TIPO CUENTA  ' WS-SUC-TIPC1-ANT       01351915
-                                        ' '      WS-TOT-PRINT           01352018
-                                                                        01540011
-           MOVE WS-SUC-TIPC1 TO WS-SUC-TIPC1-ANT.                       01550011
-           MOVE WS-SUC-IMPORTE TO WS-SUMA-TIPC1.                        01551015
-                                                                        01560011
-                                                                        01570011
-       2600-F-CORTE-TIPC. EXIT.                                         01580011
-                                                                        01590011
-                                                                        01880000
-      ****************************************************              01881004
-       9999-I-FINAL.                                                    01890000
-      ****************************************************              01891004
-                                                                        01910000
-           MOVE WS-TOT-CUENTAS TO WS-TOT-PRINT                          02090000
-           DISPLAY '**********************************************'     02091022
-           DISPLAY 'TOTAL IMPORTE GENERAL        = ' WS-TOT-PRINT.      02100022
-                                                                        02110000
-           CLOSE ENTRADA                                                02120000
-              IF FS-ENT IS NOT EQUAL '00'                               02130000
-                DISPLAY '* ERROR EN CLOSE ENTRADA = '                   02140000
-                                            FS-ENT                      02150000
-                MOVE 9999 TO RETURN-CODE                                02160000
-                SET WS-FIN-LECTURA TO TRUE                              02170000
-             END-IF.                                                    02180000
-                                                                        02200000
-       9999-F-FINAL.  EXIT.                                             02210000
-                                                                        02220000
-      *                                                                 02230000
+       IDENTIFICATION DIVISION.                                         
+       PROGRAM-ID. PGMSIN11.                                            
+                                                                        
+      **************************************************                
+      *                                                *                
+      *  SINCRONICA 11: CORTE CONTROL                  *                
+      *  ============================                  *                
+      *                                                *                
+      *  - HACE UN  CORTE DE CONTROL POR WS-SUC-NRO    *                
+      *  - Y OTRO CORTE DE CONTROL POR WS-SUC-TIPC1    *                
+      *                                                *                
+      *                                                *                
+      **************************************************                
+                                                                        
+       ENVIRONMENT DIVISION.                                            
+       CONFIGURATION SECTION.                                           
+                                                                        
+       SPECIAL-NAMES.                                                   
+           DECIMAL-POINT IS COMMA.                                      
+                                                                        
+       INPUT-OUTPUT SECTION.                                            
+       FILE-CONTROL.                                                    
+             SELECT ENTRADA ASSIGN DDENTRA                              
+                    FILE STATUS IS FS-ENT.                              
+                                                                        
+       DATA DIVISION.                                                   
+       FILE SECTION.                                                    
+       FD ENTRADA                                                       
+            BLOCK CONTAINS 0 RECORDS                                    
+            RECORDING MODE IS F.                                        
+                                                                        
+       01 REG-ENTRADA    PIC X(20).                                     
+                                                                        
+      **************************************                            
+       WORKING-STORAGE SECTION.                                         
+      **************************************                            
+                                                                        
+       77  FS-ENT          PIC XX                VALUE SPACES.          
+                                                                        
+       77  WS-STATUS-FIN   PIC X.                                       
+           88  WS-FIN-LECTURA                    VALUE 'Y'.             
+           88  WS-NO-FIN-LECTURA                 VALUE 'N'.             
+                                                                        
+       77  WS-SUC-NRO-ANT      PIC 999           VALUE ZEROS.           
+       77  WS-CANT-TIPC1       PIC 9(2)          VALUE ZEROS.           
+       77  WS-SUC-TIPC1-ANT    PIC 999           VALUE ZEROS.           
+       77  WS-CANT-SUC         PIC 9(3)          VALUE ZEROS.           
+       77  WS-TOT-CUENTAS      PIC S9(9)V99      VALUE ZEROS.           
+       77  WS-SUMA-SUC         PIC S9(9)V99      VALUE ZEROS.           
+       77  WS-SUMA-TIPC1       PIC S9(8)V99      VALUE ZEROS.           
+                                                                        
+       77  WS-TOT-PRINT        PIC -ZZZ.ZZZ.ZZ9,99 VALUE ZEROS.         
+       77  WS-SUC-PRINT        PIC ZZ9            VALUE ZEROS.          
+       77  WS-TIPO-PRINT       PIC ZZ9            VALUE ZEROS.          
+                                                                        
+           COPY CORTE.                                                  
+                                                                        
+      *****************************************************             
+       PROCEDURE DIVISION.                                              
+      *****************************************************             
+                                                                        
+      **************************************                            
+      *                                    *                            
+      *  CUERPO PRINCIPAL DEL PROGRAMA     *                            
+      *                                    *                            
+      **************************************                            
+       MAIN-PROGRAM-INICIO.                                             
+                                                                        
+           PERFORM 1000-I-INICIO  
+              THRU 1000-F-INICIO.                   
+                                                                        
+           PERFORM 2000-I-PROCESO 
+              THRU 2000-F-PROCESO                  
+              UNTIL WS-FIN-LECTURA.                 
+                                                                        
+           PERFORM 9999-I-FINAL 
+              THRU 9999-F-FINAL.                 
+                                                                        
+       MAIN-PROGRAM-FINAL. GOBACK.                                      
+                                                                        
+      **************************************                            
+       1000-I-INICIO.                                                   
+      **************************************                            
+                                                                        
+           SET WS-NO-FIN-LECTURA TO TRUE.                               
+                                                                        
+           OPEN INPUT  ENTRADA.                                         
+           IF FS-ENT IS NOT EQUAL '00'                                  
+              DISPLAY '* ERROR EN OPEN ENTRADA INICIO = ' FS-ENT        
+              SET  WS-FIN-LECTURA TO TRUE                               
+           END-IF.                                                      
+                                                                        
+      * LEER EL PRIMER REGISTRO FUERA DEL LOOP PRINCIPAL                
+                                                                        
+           PERFORM 2500-I-LEER THRU 2500-F-LEER.                        
+                                                                        
+           IF WS-FIN-LECTURA                                            
+              DISPLAY '* ARCHIVO ENTRADA VACï¿½O EN INICIO' FS-ENT        
+           ELSE                                                         
+                                                                        
+              MOVE WS-SUC-NRO TO WS-SUC-NRO-ANT                         
+              MOVE WS-SUC-TIPC1 TO WS-SUC-TIPC1-ANT                     
+              ADD 1 TO WS-CANT-SUC                                      
+              ADD 1 TO WS-CANT-TIPC1                                    
+              ADD WS-SUC-IMPORTE  TO WS-SUMA-SUC  WS-SUMA-TIPC1         
+              MOVE WS-SUC-NRO TO WS-SUC-PRINT                           
+              DISPLAY '--------------------------------'                
+              DISPLAY 'SUCURSAL = ' WS-SUC-PRINT                        
+              DISPLAY '--------------------------------'                
+           END-IF.                                                      
+                                                                        
+       1000-F-INICIO. EXIT.                                             
+                                                                        
+      **************************************                            
+       2000-I-PROCESO.                                                  
+      **************************************                            
+                                                                        
+           PERFORM 2500-I-LEER THRU 2500-F-LEER                         
+                                                                        
+           IF WS-FIN-LECTURA                                            
+                PERFORM 2300-CORTE-SUC     THRU 2300-F-CORTE-SUC        
+           ELSE                                                         
+              IF WS-SUC-NRO EQUAL WS-SUC-NRO-ANT                        
+                ADD 1 TO WS-CANT-SUC                                    
+                ADD WS-SUC-IMPORTE  TO WS-SUMA-SUC                      
+                   IF WS-SUC-TIPC1 EQUAL WS-SUC-TIPC1-ANT               
+                      ADD 1 TO WS-CANT-TIPC1                            
+                      ADD WS-SUC-IMPORTE  TO WS-SUMA-TIPC1              
+                   ELSE                                                 
+                      PERFORM 2600-CORTE-TIPC THRU 2600-F-CORTE-TIPC    
+                   END-IF                                               
+              ELSE                                                      
+                  PERFORM 2300-CORTE-SUC     THRU 2300-F-CORTE-SUC      
+              END-IF                                                    
+           END-IF.                                                      
+                                                                        
+       2000-F-PROCESO. EXIT.                                            
+                                                                        
+      *************  CORTE DE CONTROL POR SUCURSAL *******              
+       2300-CORTE-SUC.                                                  
+      ****************************************************              
+                                                                        
+           PERFORM 2600-CORTE-TIPC THRU 2600-F-CORTE-TIPC               
+           MOVE WS-SUMA-SUC    TO WS-TOT-PRINT                          
+           DISPLAY 'TOTAL IMPORTE    EN SUCURSAL = ' WS-TOT-PRINT       
+           ADD WS-SUMA-SUC     TO WS-TOT-CUENTAS                        
+           MOVE WS-SUC-NRO     TO WS-SUC-NRO-ANT                        
+           MOVE WS-SUC-NRO-ANT TO WS-SUC-NRO                            
+           IF NOT WS-FIN-LECTURA                                        
+             DISPLAY '--------------------------------'                 
+             DISPLAY 'SUCURSAL = ' WS-SUC-NRO                           
+             DISPLAY '--------------------------------'                 
+           END-IF.                                                      
+           MOVE 1 TO WS-CANT-SUC                                        
+           MOVE 1 TO WS-CANT-TIPC1                                      
+           MOVE WS-SUC-TIPC1   TO WS-SUC-TIPC1-ANT.                     
+           MOVE WS-SUC-IMPORTE TO WS-SUMA-SUC.                          
+                                                                        
+       2300-F-CORTE-SUC. EXIT.                                          
+                                                                        
+                                                                        
+      **************************************                            
+       2500-I-LEER.                                                     
+      **************************************                            
+             READ ENTRADA INTO WS-REG-SUCURSAL                          
+                                                                        
+             EVALUATE FS-ENT                                            
+               WHEN '00'                                                
+                CONTINUE                                                
+                                                                        
+               WHEN '10'                                                
+                SET WS-FIN-LECTURA TO TRUE                              
+                                                                        
+               WHEN OTHER                                               
+                DISPLAY '*ERROR EN LECTURA ENTRADA INICIO : ' FS-ENT    
+                SET WS-FIN-LECTURA TO TRUE                              
+                                                                        
+             END-EVALUATE.                                              
+                                                                        
+       2500-F-LEER. EXIT.                                               
+                                                                        
+      *************  CORTE DE CONTROL POR TIPC1  *********              
+       2600-CORTE-TIPC.                                                 
+      ****************************************************              
+                                                                        
+           MOVE WS-SUMA-TIPC1 TO WS-TOT-PRINT                           
+           DISPLAY 'TOTAL IMPORTE TIPO CUENTA  ' WS-SUC-TIPC1-ANT       
+                                        ' '      WS-TOT-PRINT           
+                                                                        
+           MOVE WS-SUC-TIPC1 TO WS-SUC-TIPC1-ANT.                       
+           MOVE WS-SUC-IMPORTE TO WS-SUMA-TIPC1.                        
+                                                                        
+                                                                        
+       2600-F-CORTE-TIPC. EXIT.                                         
+                                                                        
+                                                                        
+      ****************************************************              
+       9999-I-FINAL.                                                    
+      ****************************************************              
+                                                                        
+           MOVE WS-TOT-CUENTAS TO WS-TOT-PRINT                          
+           DISPLAY '**********************************************'     
+           DISPLAY 'TOTAL IMPORTE GENERAL        = ' WS-TOT-PRINT.      
+                                                                        
+           CLOSE ENTRADA                                                
+              IF FS-ENT IS NOT EQUAL '00'                               
+                DISPLAY '* ERROR EN CLOSE ENTRADA = '                   
+                                            FS-ENT                      
+                MOVE 9999 TO RETURN-CODE                                
+                SET WS-FIN-LECTURA TO TRUE                              
+             END-IF.                                                    
+                                                                        
+       9999-F-FINAL.  EXIT.                                             
+                                                                        
+      *                                                                 

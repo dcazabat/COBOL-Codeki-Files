@@ -1,27 +1,27 @@
        IDENTIFICATION DIVISION.
         PROGRAM-ID PGMRUT.
-      **************************************
-      *                                    *
-      *  RUTINA QUE DEVUELVE £LTIMO DIA DEL*
-      *  MES                               *
-      *  PROGRAMA LLAMADOR ENVIA:          *
-      *  A‹O EN 4 CARACTERES NUMERICOS     *
-      *  MES EN 2 CARACTERES NUMERICOS     *
-      *                                    *
-      *  RUTINA DEVUELVE:                  *
-      *  A‹O EN 4 CARACTERES NUMERICOS     *
-      *  MES EN 2 CARACTERES NUMERICOS     *
-      *  DIA EN 2 CARACTERES NUMERICOS     *
-      *  RETURN-CODE EXITOSO = ZEROS       *
-      *  RETURN-CODE PARA FECHA INVAL.= 05 *
-      **************************************
-      *      MANTENIMIENTO DE PROGRAMA     *
-      **************************************
-      *  FECHA   *    DETALLE        * COD *
-      **************************************
-      *          *                   *     *
-      *          *                   *     *
-      **************************************
+      ****************************************
+      *                                      *
+      *  RUTINA QUE DEVUELVE ï¿½LTIMO DIA DEL *
+      *  MES                                 *
+      *  PROGRAMA LLAMADOR ENVIA:            *
+      *  ANIO EN 4 CARACTERES NUMERICOS      *
+      *  MES EN 2 CARACTERES NUMERICOS       *
+      *                                      *
+      *  RUTINA DEVUELVE:                    *
+      *  ANIO EN 4 CARACTERES NUMERICOS      *
+      *  MES EN 2 CARACTERES NUMERICOS       *
+      *  DIA EN 2 CARACTERES NUMERICOS       *
+      *  RETURN-CODE EXITOSO = ZEROS         *
+      *  RETURN-CODE PARA FECHA INVAL.= 05   *
+      ****************************************
+      *      MANTENIMIENTO DE PROGRAMA       *
+      ****************************************
+      *  FECHA   *    DETALLE        * COD   *
+      ****************************************
+      *          *                   *       *
+      *          *                   *       *
+      ****************************************
        ENVIRONMENT DIVISION.
        INPUT-OUTPUT SECTION.
        FILE-CONTROL.
@@ -132,7 +132,7 @@
        2000-PROCESO.
 
            IF WS-AREA-MES = 02
-      * CALCULO A¬O BISIESTO               *
+      * CALCULO Aï¿½O BISIESTO               *
               DIVIDE WS-AREA-ANIO BY 4 GIVING WS-RESULTADO
                   REMAINDER    WS-REMAINDER
               IF WS-REMAINDER = ZEROS
@@ -153,7 +153,7 @@
        9999-FINAL.
 
            MOVE WS-AREA          TO LK-AREA.
-           DISPLAY "***PGMRUT - CìDIGO DE RETORNO ES   ****** "
+           DISPLAY "***PGMRUT - Cï¿½DIGO DE RETORNO ES   ****** "
                                      RETURN-CODE
            DISPLAY "   FECHA RECIBIDA: "  WS-FECHA-RECIBIDA.
            DISPLAY "   FECHA ENVIADA : "  WS-AREA.

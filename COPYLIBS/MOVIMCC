@@ -1,20 +1,20 @@
-      **************************************                            00043500
-      * LAY-OUT MOVIMIENTOS                                             00043600
-      * LARGO REGISTRO: 80 BYTES                                        00043700
-      **************************************                            00043800
-       01  WS-REG-MOVIMI.                                               00043900
-      * WS-MOV-NRO NRO. CLIENTE AL QUE PERTENECE EL MOVIMIENTO.         00044100
-           03  WS-MOV-NRO          PIC 9(05)        VALUE ZEROS.        00044200
-           03  WS-MOV-CLAVE.                                            00044300
-      *    02 CUENTAS CORRIENTES                                        00044400
-      *    03 CAJA DE AHORROS                                           00044500
-      *    04 PLAZO FIJO                                                00044600
-               05  WS-MOV-TIPO         PIC 9(02)        VALUE ZEROS.    00044700
-               05  WS-MOV-CUENTA       PIC 9(08)        VALUE ZEROS.    00044800
-                                                                        00044900
-           03  WS-MOV-IMPORTE          PIC S9(09)V99    VALUE ZEROS.    00045000
-      *    FORMATO FECHA AAAAMMDD                                       00045100
-           03  WS-MOV-FECHA            PIC 9(08)        VALUE ZEROS.    00045200
-                                                                        00045300
-           03  FILLER                  PIC X(46)        VALUE SPACES.   00045400
-                                                                        00046000
+      **************************************                            
+      * LAY-OUT MOVIMIENTOS                                             
+      * LARGO REGISTRO: 80 BYTES                                        
+      **************************************                            
+       01  WS-REG-MOVIMI.                                               
+      * WS-MOV-NRO NRO. CLIENTE AL QUE PERTENECE EL MOVIMIENTO.         
+           03  WS-MOV-NRO          PIC 9(05)        VALUE ZEROS.        
+           03  WS-MOV-CLAVE.                                            
+      *    02 CUENTAS CORRIENTES                                        
+      *    03 CAJA DE AHORROS                                           
+      *    04 PLAZO FIJO                                                
+               05  WS-MOV-TIPO         PIC 9(02)        VALUE ZEROS.    
+               05  WS-MOV-CUENTA       PIC 9(08)        VALUE ZEROS.    
+                                                                        
+           03  WS-MOV-IMPORTE          PIC S9(09)V99    VALUE ZEROS.    
+      *    FORMATO FECHA AAAAMMDD                                       
+           03  WS-MOV-FECHA            PIC 9(08)        VALUE ZEROS.    
+                                                                        
+           03  FILLER                  PIC X(46)        VALUE SPACES.   
+                                                                        

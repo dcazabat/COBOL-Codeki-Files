@@ -162,20 +162,20 @@
            EXEC SQL
               FETCH  ITEM_CURSOR
                      INTO
-                        :DCLTBCURCTA.SALDO,
-                        :DCLTBCURCTA.TIPCUEN,
-                        :DCLTBCURCTA.NROCUEN,
-                        :DCLTBCURCTA.SUCUEN
+                        :WS-SALDO,
+                        :WS-TIPCUEN,
+                        :WS-NROCUEN,
+                        :WS-SUCUEN
            END-EXEC.
 
 
            EVALUATE TRUE
              WHEN SQLCODE EQUAL ZEROS
                 DISPLAY 'ACCESO DB2 OK '
-                MOVE SALDO   TO REG-SALDO
-                MOVE TIPCUEN TO REG-TIPCUEN
-                MOVE NROCUEN TO REG-NROCUEN
-                MOVE SUCUEN  TO REG-SUCUEN
+                MOVE WS-SALDO   TO REG-SALDO
+                MOVE WS-TIPCUEN TO REG-TIPCUEN
+                MOVE WS-NROCUEN TO REG-NROCUEN
+                MOVE WS-SUCUEN  TO REG-SUCUEN
                 PERFORM 3000-I-GRABAR          THRU
                         3000-F-GRABAR
 

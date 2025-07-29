@@ -42,8 +42,8 @@
            03 PRE-PRECIO          PIC 9(3)V99   VALUE ZEROS.
                                                                         
        WORKING-STORAGE SECTION.                                         
-       77  WS-PROD-CODE          PIC XX        VALUE SPACES.                     
-       77  WS-PREC-CODE          PIC XX        VALUE SPACES.                     
+       77  WS-PROD-CODE          PIC XX        VALUE SPACES.
+       77  WS-PREC-CODE          PIC XX        VALUE SPACES.
        77  WS-INDICE             PIC 99        VALUE ZEROS.
        77  WS-I                  PIC 99        VALUE ZEROS.
        77  WS-PRECIO-ED          PIC $ZZ.ZZ9,99 VALUE ZEROS.

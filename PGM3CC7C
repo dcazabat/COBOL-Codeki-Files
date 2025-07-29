@@ -94,7 +94,7 @@
        1000-INICIO.                                                     
            ACCEPT WS-FECHA FROM DATE.                                   
            DISPLAY 'FECHA DE PROCESO: ' 
-              WS-FECHA-DD '/' WS-FECHA-MM '/' WS-FECHA-AA                                     
+              WS-FECHA-DD '/' WS-FECHA-MM '/' WS-FECHA-AA
                                                                         
            SET WS-NO-FIN-LECTURA TO TRUE.                               
                                                                         
@@ -158,7 +158,7 @@
              WHEN '10'                                                 
                 SET WS-FIN-LECTURA TO TRUE                                
                 PERFORM 2100-ULTIMO-REGISTRO                              
-                   THRU  F-2100-ULTIMO-REGISTRO                           
+                   THRU F-2100-ULTIMO-REGISTRO
                                                                         
              WHEN OTHER                                                   
                 DISPLAY '* ERROR EN LECTURA ENTRADA = ' WS-ENT-CODE       
@@ -183,21 +183,21 @@
            DISPLAY 'TOTAL GENERAL: ' WS-EDIT-GENERAL                    
            DISPLAY ' '                                                  
            MOVE WS-CANT-LEIDAS TO WS-EDIT-LEIDAS                       
-           DISPLAY 'REGISTROS PROCESADOS: ' WS-EDIT-LEIDAS              
+           DISPLAY 'REGISTROS PROCESADOS: ' WS-EDIT-LEIDAS.
        F-2100-ULTIMO-REGISTRO. EXIT.                                    
                                                                         
       **************************************                            
       *                                    *                            
       *  SEGUIR PROCESO                    *                            
       *                                    *                            
-      **************************************                                                                   
+      **************************************
        2200-SEGUIR-PROCESO.                                             
            IF WS-SUC-NRO EQUAL WS-SUCURSAL-ANT
-              ADD WS-SUC-IMPORTE TO WS-TOTAL-SUCURSAL                                                  
+              ADD WS-SUC-IMPORTE TO WS-TOTAL-SUCURSAL
            ELSE                                                         
               PERFORM 2230-CORTE-SUCURSAL 
                  THRU F-2230-CORTE-SUCURSAL
-              ADD WS-SUC-IMPORTE TO WS-TOTAL-SUCURSAL                            
+              ADD WS-SUC-IMPORTE TO WS-TOTAL-SUCURSAL
            END-IF.                                                      
        F-2200-SEGUIR-PROCESO. EXIT.                                     
 
@@ -210,7 +210,7 @@
            DISPLAY 'TOTAL SUCURSAL: ' WS-EDIT-TOTAL                     
                                                                         
            MOVE WS-SUC-NRO      TO WS-SUCURSAL-ANT                      
-           MOVE ZEROS           TO WS-TOTAL-SUCURSAL                    
+           MOVE ZEROS           TO WS-TOTAL-SUCURSAL.
        F-2230-CORTE-SUCURSAL. EXIT.                                     
                                                                         
       **************************************                            

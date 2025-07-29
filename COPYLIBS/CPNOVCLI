@@ -1,31 +1,31 @@
-      **************************************                            00010000
-      *         LAYOUT NOVEDAD CLIENTES    *                            00020000
-      *                                    *                            00030000
-      *  KC02788.ALU9999.NOVCLIEN          *                            00040004
-      *                                    *                            00041000
-      *         LARGO 50 BYTES             *                            00042000
-      *                                    *                            00044000
-      **************************************                            00044200
-                                                                        00044300
-       01  WS-REG-NOVCLIE.                                              00046400
-      * VALIDOS  DU - PA - PE - CI         *                            00046503
-           03  NOV-TIP-DOC         PIC X(02)    VALUE SPACES.           00046600
-           03  NOV-NRO-DOC         PIC 9(11)    VALUE ZEROS.            00046700
-      * VALIDOS  NRO SUCURSAL ENTRE 1 Y 99                              00046803
-           03  NOV-SUC             PIC 9(02)    VALUE ZEROS.            00046900
-      * VALIDOS  TIPO CUENTA 01 = CUENTAS CORRIENTES                    00047003
-      *          TIPO CUENTA 02 = CAJA DE AHORROS                       00047103
-      *          TIPO CUENTA 03 = PLAZO FIJO                            00047203
-           03  NOV-CLI-TIPO        PIC 9(02)    VALUE ZEROS.            00047303
-           03  NOV-CLI-NRO         PIC 9(03)    VALUE ZEROS.            00047403
-           03  NOV-CLI-IMP         PIC S9(09)V99 COMP-3 VALUE ZEROS.    00047503
-      * FORMATO NOV-CLI-FECHA (AAAAMMDD)                                00047603
-      *      AAAA = A‹O                                                 00047703
-      *      MM = MES                                                   00047803
-      *      DD  = DIA                                                  00047903
-      * VALIDOS  ENTRE DIA 1 Y 31 DEL A‹O (SEG£N MES)                   00048003
-      *          CONSIDERAR 29 FEBRERO (BISIESTO)                       00048103
-      *          A‹O NUM©RICO, MAYOR A 2024                             00048205
-           03  NOV-CLI-FECHA       PIC X(8)             VALUE ZEROS.    00048303
-           03  FILLER              PIC X(16)    VALUE SPACES.           00048403
-                                                                        00049000
+      **************************************                         
+      *         LAYOUT NOVEDAD CLIENTES    *                         
+      *                                    *                         
+      *  KC02788.ALU9999.NOVCLIEN          *                         
+      *                                    *                         
+      *         LARGO 50 BYTES             *                         
+      *                                    *                         
+      **************************************                         
+                                                                     
+       01  WS-REG-NOVCLIE.                                           
+      * VALIDOS  DU - PA - PE - CI         *                         
+           03  NOV-TIP-DOC         PIC X(02)    VALUE SPACES.        
+           03  NOV-NRO-DOC         PIC 9(11)    VALUE ZEROS.         
+      * VALIDOS  NRO SUCURSAL ENTRE 1 Y 99                           
+           03  NOV-SUC             PIC 9(02)    VALUE ZEROS.         
+      * VALIDOS  TIPO CUENTA 01 = CUENTAS CORRIENTES                 
+      *          TIPO CUENTA 02 = CAJA DE AHORROS                    
+      *          TIPO CUENTA 03 = PLAZO FIJO                         
+           03  NOV-CLI-TIPO        PIC 9(02)    VALUE ZEROS.         
+           03  NOV-CLI-NRO         PIC 9(03)    VALUE ZEROS.         
+           03  NOV-CLI-IMP         PIC S9(09)V99 COMP-3 VALUE ZEROS. 
+      * FORMATO NOV-CLI-FECHA (AAAAMMDD)                             
+      *      AAAA = Aï¿½O                                              
+      *      MM = MES                                                
+      *      DD  = DIA                                               
+      * VALIDOS  ENTRE DIA 1 Y 31 DEL Aï¿½O (SEGï¿½N MES)                
+      *          CONSIDERAR 29 FEBRERO (BISIESTO)                    
+      *          Aï¿½O NUMï¿½RICO, MAYOR A 2024                          
+           03  NOV-CLI-FECHA       PIC X(8)             VALUE ZEROS. 
+           03  FILLER              PIC X(16)    VALUE SPACES.        
+                                                                     
