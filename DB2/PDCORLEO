@@ -93,7 +93,7 @@
               DECLARE CURSORAUT CURSOR 
               FOR
                  SELECT * 
-                 FROM KC02787.TBAUTMOT 
+                 FROM kc02803.TBAUTMOT 
                  ORDER BY AUT_MAR , AUT_MOD 
            END-EXEC.
 

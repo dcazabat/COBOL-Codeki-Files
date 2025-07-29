@@ -114,7 +114,7 @@
               DECLARE CURSORCLI CURSOR 
               FOR
                  SELECT * 
-                 FROM KC02787.TBCURCTA 
+                 FROM kc02803.TBCURCTA 
                  ORDER BY TIPCUEN, SUCUEN 
            END-EXEC.
 
