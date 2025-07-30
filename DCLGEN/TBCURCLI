@@ -1,5 +1,5 @@
       ******************************************************************
-      * DCLGEN TABLE(KC02787.TBCURCLI)                                 *
+      * DCLGEN TABLE(KC02803.TBCURCLI)                                 *
       *        LIBRARY(KC03C7C.CURSOS.DCLGEN(TBCURCLI))                *
       *        ACTION(REPLACE)                                         *
       *        LANGUAGE(COBOL)                                         *
@@ -8,7 +8,7 @@
       *        COLSUFFIX(YES)                                          *
       * ... IS THE DCLGEN COMMAND THAT MADE THE FOLLOWING STATEMENTS   *
       ******************************************************************
-           EXEC SQL DECLARE KC02787.TBCURCLI TABLE
+           EXEC SQL DECLARE KC02803.TBCURCLI TABLE
            ( TIPDOC                         CHAR(2) NOT NULL,
              NRODOC                         DECIMAL(11, 0) NOT NULL,
              NROCLI                         DECIMAL(3, 0) NOT NULL,
@@ -17,7 +17,7 @@
              SEXO                           CHAR(1) NOT NULL
            ) END-EXEC.
       ******************************************************************
-      * COBOL DECLARATION FOR TABLE KC02787.TBCURCLI                   *
+      * COBOL DECLARATION FOR TABLE KC02803.TBCURCLI                   *
       ******************************************************************
        01  DCLTBCURCLI.
       *                       TIPDOC

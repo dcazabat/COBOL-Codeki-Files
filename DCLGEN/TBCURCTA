@@ -1,5 +1,5 @@
       ******************************************************************
-      * DCLGEN TABLE(KC02787.TBCURCTA)                                 *
+      * DCLGEN TABLE(KC02803.TBCURCTA)                                 *
       *        LIBRARY(KC03C7C.CURSOS.DCLGEN(TBCURCTA))                *
       *        ACTION(REPLACE)                                         *
       *        LANGUAGE(COBOL)                                         *
@@ -8,7 +8,7 @@
       *        COLSUFFIX(YES)                                          *
       * ... IS THE DCLGEN COMMAND THAT MADE THE FOLLOWING STATEMENTS   *
       ******************************************************************
-           EXEC SQL DECLARE KC02787.TBCURCTA TABLE
+           EXEC SQL DECLARE KC02803.TBCURCTA TABLE
            ( TIPCUEN                        CHAR(2) NOT NULL,
              NROCUEN                        DECIMAL(5, 0) NOT NULL,
              SUCUEN                         DECIMAL(2, 0) NOT NULL,
@@ -17,7 +17,7 @@
              FECSAL                         DATE NOT NULL
            ) END-EXEC.
       ******************************************************************
-      * COBOL DECLARATION FOR TABLE KC02787.TBCURCTA                   *
+      * COBOL DECLARATION FOR TABLE KC02803.TBCURCTA                   *
       ******************************************************************
        01  DCLTBCURCTA.
       *                       TIPCUEN

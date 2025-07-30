@@ -1,6 +1,5 @@
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PGMDBDAC.
-       
        AUTHOR.        D. CAZABAT.
        INSTALLATION.  CURSO CODEKI.
        DATE-WRITTEN.  12/07/2025.
@@ -15,6 +14,9 @@
       *  SUCUEN Y TIPCUEN PARA REALIZAR LOS SUBTOTALES DE    *
       *  LOS SALDOS POR CADA CORTE DE CONTROL Y TOTAL GRAL   *
       *                                                      *
+      *  NOTA: OWNER DE LA TABLA ACTUALIZADO DE KC02787      *
+      *        A KC02803 EN FECHA 29/07/2025                 *
+      *                                                      *
       ********************************************************
        ENVIRONMENT DIVISION.
        CONFIGURATION SECTION.
@@ -23,16 +25,16 @@
 
        INPUT-OUTPUT SECTION.
        FILE-CONTROL.
-             SELECT SALIDA  ASSIGN DDSALE
-             FILE STATUS IS SW-FS-SALIDA.
+           SELECT SALIDA  ASSIGN DDSALE
+           FILE STATUS IS SW-FS-SALIDA.
 
        DATA DIVISION.
        FILE SECTION.
-       FD SALIDA
-             BLOCK CONTAINS 0 RECORDS
-             RECORDING MODE IS F.
+       FD  SALIDA
+           BLOCK CONTAINS 0 RECORDS
+           RECORDING MODE IS F.
 
-       01 REG-SALIDA      PIC X(132).
+       01  REG-SALIDA      PIC X(132).
 
        WORKING-STORAGE SECTION.
       * Variables de fecha y hora
@@ -104,7 +106,6 @@
            EXEC SQL INCLUDE SQLCA END-EXEC.
 
       * DCLGEN de la tabla
-           EXEC SQL INCLUDE TBCURCLI END-EXEC.
            EXEC SQL INCLUDE TBCURCTA END-EXEC.
 
       **********************************************
@@ -114,7 +115,7 @@
               DECLARE CURSORCLI CURSOR 
               FOR
                  SELECT * 
-                 FROM kc02803.TBCURCTA 
+                 FROM KC02803.TBCURCTA 
                  ORDER BY TIPCUEN, SUCUEN 
            END-EXEC.
 
@@ -157,8 +158,8 @@
 
            EVALUATE SQLCODE
               WHEN 0
-                 *> Leemos el primer registro aquí 
-                 *> para inicializar valores
+      * Leemos el primer registro aquí 
+      * para inicializar valores
                  EXEC SQL
                     FETCH CURSORCLI
                     INTO :DCLTBCURCTA
@@ -166,46 +167,46 @@
                  
                  EVALUATE SQLCODE
                     WHEN 0
-                       *> Primer registro leído correctamente
+      * Primer registro leído correctamente
                        ADD 1 TO WS-CONT-TOTALLEI
                        
-                       *> Inicializamos valores anteriores 
-                       *> con el primer registro
+      * Inicializamos valores anteriores 
+      * con el primer registro
                        MOVE WS-TIPCUEN TO WS-TIPCUEN-ANTERIOR
                        MOVE WS-SUCUEN TO WS-SUCUEN-ANTERIOR
                        
-                       *> Inicializamos contadores 
-                       *> para el primer registro
+      * Inicializamos contadores 
+      * para el primer registro
                        MOVE 1 TO WS-CONT-TIPCUEN
                        MOVE 1 TO WS-CONT-SUCCUEN
                        
-                       *> Acumular saldo del primer registro
+      * Acumular saldo del primer registro
                        ADD WS-SALDO TO WS-TOT-SALDOS-TIPCUEN
                        ADD WS-SALDO TO WS-TOT-SALDOS-SUCCUEN
                        ADD WS-SALDO TO WS-TOT-SALDOS
                        
-                       *> Mostrar encabezados del primer TIPCUEN
+      * Mostrar encabezados del primer TIPCUEN
                        PERFORM 1300-I-WRITE-TIPCUEN
                        
-                       *> Mostrar encabezado de la primera SUCUEN
+      * Mostrar encabezado de la primera SUCUEN
                        PERFORM 1400-I-WRITE-SUCUEN
 
                        
-                       *> Procesar el registro actual (primer registro)
-                       *> Grabar el registro en el archivo de salida
+      * Procesar el registro actual (primer registro)
+      * Grabar el registro en el archivo de salida
                        MOVE SPACES TO REG-SALIDA
                        STRING '      CUENTA: ' 
                               DELIMITED BY SIZE
                               INTO REG-SALIDA
                        
-                       *> Convertir WS-NROCUEN a formato para mostrar
+      * Convertir WS-NROCUEN a formato para mostrar
                        MOVE WS-NROCUEN TO REG-SALIDA(15:8)
                        
                        STRING ' SALDO: '
                               DELIMITED BY SIZE
                               INTO REG-SALIDA(25:8)
                        
-                       *> Convertir WS-SALDO a formato para mostrar
+      * Convertir WS-SALDO a formato para mostrar
                        MOVE WS-SALDO TO WS-TOT-SALDOS-DISP
                        MOVE WS-TOT-SALDOS-DISP TO REG-SALIDA(33:16)
                        WRITE REG-SALIDA
@@ -213,7 +214,7 @@
                        ADD 1 TO WS-LINEAS-PAG
                        
                     WHEN +100
-                       *> No hay registros en el cursor
+      * No hay registros en el cursor
                        SET WS-FIN-PROCESO TO TRUE
                        
                     WHEN OTHER
@@ -237,7 +238,7 @@
 
        1100-I-WRITE-DISPLAY.
            MOVE FUNCTION CURRENT-DATE TO WS-CURRENT-DATE
-           *> Armado par Display de SPOOL
+      * Armado par Display de SPOOL
            DISPLAY WS-ASTERISCOS 
            DISPLAY WS-TITULO
            DISPLAY WS-GUIONES
@@ -255,13 +256,13 @@
       ***************************************
 
        1200-I-WRITE-SALIDA.
-           *> Armado para el archivo de salida 
+      * Armado para el archivo de salida 
            WRITE REG-SALIDA FROM WS-GUIONES
            WRITE REG-SALIDA FROM WS-TITULO 
            WRITE REG-SALIDA FROM WS-GUIONES.
 
        1300-I-WRITE-TIPCUEN.
-           *> Mostrar encabezado del tipo de cuenta
+      * Mostrar encabezado del tipo de cuenta
            DISPLAY WS-GUIONES
            DISPLAY 'TIPO DE CUENTA: ' WS-TIPCUEN
            DISPLAY WS-GUIONES
@@ -275,7 +276,7 @@
            ADD 2 TO WS-LINEAS-PAG.
 
        1400-I-WRITE-SUCUEN.
-           *> Mostrar encabezado de la sucursal
+      * Mostrar encabezado de la sucursal
            MOVE WS-SUCUEN TO WS-SUCUEN-DISP
            DISPLAY '  SUCURSAL: ' WS-SUCUEN
            MOVE SPACES TO REG-SALIDA
@@ -291,8 +292,8 @@
       *                                    *
       **************************************
        2000-I-PROCESO.
-           *> Ya leímos el primer registro en la inicialización
-           *> Por lo que leemos el siguiente registro directamente
+      * Ya leímos el primer registro en la inicialización
+      * Por lo que leemos el siguiente registro directamente
 
            EXEC SQL
               FETCH CURSORCLI
@@ -303,91 +304,91 @@
               WHEN 0
                  ADD 1 TO WS-CONT-TOTALLEI
                  
-                 *> Control de corte por TIPCUEN (primer nivel)
+      * Control de corte por TIPCUEN (primer nivel)
                  IF WS-TIPCUEN NOT = WS-TIPCUEN-ANTERIOR
-                    *> Mostrar subtotales de la sucursal anterior
-                    *> para el tipo de cuenta anterior
+      * Mostrar subtotales de la sucursal anterior
+      * para el tipo de cuenta anterior
                     IF WS-SUCUEN-ANTERIOR NOT = 0
                        PERFORM 2200-CORTE-SUCUEN
                     END-IF
 
-                    *> Mostrar subtotales del tipo de cuenta anterior
+      * Mostrar subtotales del tipo de cuenta anterior
                     IF WS-TIPCUEN-ANTERIOR NOT = SPACES
                        PERFORM 2100-CORTE-TIPCUEN
                     END-IF
                     
-                    *> Inicializar contadores y acumuladores de TIPCUEN
+      * Inicializar contadores y acumuladores de TIPCUEN
                     MOVE 0 TO WS-CONT-TIPCUEN
                     MOVE 0 TO WS-TOT-SALDOS-TIPCUEN
                     MOVE WS-TIPCUEN TO WS-TIPCUEN-ANTERIOR
                     
-                    *> Mostrar encabezado del nuevo TIPCUEN
+      * Mostrar encabezado del nuevo TIPCUEN
                     PERFORM  1300-I-WRITE-TIPCUEN
                     
-                    *> Inicializar para SUCUEN ya que cambió el TIPCUEN
+      * Inicializar para SUCUEN ya que cambió el TIPCUEN
                     MOVE 0 TO WS-SUCUEN-ANTERIOR
                     MOVE 0 TO WS-CONT-SUCCUEN
                     MOVE 0 TO WS-TOT-SALDOS-SUCCUEN
                  END-IF
                  
-                 *> Control de corte por SUCUEN (segundo nivel)
+      * Control de corte por SUCUEN (segundo nivel)
                  IF WS-SUCUEN NOT = WS-SUCUEN-ANTERIOR
-                    *> Mostrar subtotales de la sucursal anterior
+      * Mostrar subtotales de la sucursal anterior
                     IF WS-SUCUEN-ANTERIOR NOT = 0
                        PERFORM 2200-CORTE-SUCUEN
                     END-IF
                     
-                    *> Inicializar contadores y acumuladores de SUCUEN
+      * Inicializar contadores y acumuladores de SUCUEN
                     MOVE 0 TO WS-CONT-SUCCUEN
                     MOVE 0 TO WS-TOT-SALDOS-SUCCUEN
                     MOVE WS-SUCUEN TO WS-SUCUEN-ANTERIOR
                     
-                    *> Mostrar encabezado de la nueva SUCUEN
+      * Mostrar encabezado de la nueva SUCUEN
                     PERFORM 1400-I-WRITE-SUCUEN
                  END-IF
                  
-                 *> Procesar el registro actual
+      * Procesar el registro actual
                  ADD 1 TO WS-CONT-TIPCUEN
                  ADD 1 TO WS-CONT-SUCCUEN
                  ADD WS-SALDO  TO WS-TOT-SALDOS-TIPCUEN
                  ADD WS-SALDO  TO WS-TOT-SALDOS-SUCCUEN
                  ADD WS-SALDO  TO WS-TOT-SALDOS
                  
-                 *> Grabar el registro en el archivo de salida
+      * Grabar el registro en el archivo de salida
                  MOVE SPACES TO REG-SALIDA
                  STRING '      CUENTA: ' 
                         DELIMITED BY SIZE
                         INTO REG-SALIDA
                  
-                 *> Convertir WS-NROCUEN a formato para mostrar
+      * Convertir WS-NROCUEN a formato para mostrar
                  MOVE WS-NROCUEN TO REG-SALIDA(15:8)
                  
                  STRING ' SALDO: '
                         DELIMITED BY SIZE
                         INTO REG-SALIDA(25:8)
                  
-                 *> Convertir WS-SALDO a formato para mostrar
+      * Convertir WS-SALDO a formato para mostrar
                  MOVE WS-SALDO TO WS-TOT-SALDOS-DISP
                  MOVE WS-TOT-SALDOS-DISP TO REG-SALIDA(33:16)
                  WRITE REG-SALIDA
                  ADD 1 TO WS-TOT-GRABADOS
                  ADD 1 TO WS-LINEAS-PAG
                  
-                 *> Control de salto de página
+      * Control de salto de página
                  IF WS-LINEAS-PAG > 40
                     MOVE ZEROS TO WS-LINEAS-PAG
                     PERFORM 1200-I-WRITE-SALIDA
                  END-IF
                  
               WHEN +100
-                 *> Fin del archivo - procesar últimos cortes
+      * Fin del archivo - procesar últimos cortes
                  IF WS-CONT-TOTALLEI > 0
-                    *> Procesar el último SUCUEN
+      * Procesar el último SUCUEN
                     IF WS-SUCUEN-ANTERIOR NOT = 0
                        PERFORM 2200-CORTE-SUCUEN
                     END-IF
                     
-                    *> Procesar el último TIPCUEN
+      * Procesar el último TIPCUEN
                     IF WS-TIPCUEN-ANTERIOR NOT = SPACES
                        PERFORM 2100-CORTE-TIPCUEN
                     END-IF
@@ -477,7 +478,7 @@
       *                                    *
       **************************************
        9999-I-FINAL.
-            *> MOSTRAR TOTALES DE CONTROL
+      * MOSTRAR TOTALES DE CONTROL
            DISPLAY ' '
            DISPLAY WS-ASTERISCOS
            DISPLAY WS-GUIONES
@@ -488,7 +489,7 @@
            DISPLAY WS-GUIONES
            DISPLAY WS-ASTERISCOS
            
-           *> Mostrar en archivo de salida
+      * Mostrar en archivo de salida
            MOVE SPACES TO REG-SALIDA
            STRING 'RESUMEN FINAL DE TOTALES'
                   DELIMITED BY SIZE
@@ -516,7 +517,7 @@
            WRITE REG-SALIDA
            WRITE REG-SALIDA FROM WS-ASTERISCOS
 
-           *> CIERRE DE CURSOR Y ARCHIVOS
+      * CIERRE DE CURSOR Y ARCHIVOS
            EXEC SQL
               CLOSE CURSORCLI
            END-EXEC.
