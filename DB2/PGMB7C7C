@@ -32,7 +32,7 @@
              BLOCK CONTAINS 0 RECORDS
              RECORDING MODE IS F.
 
-       01 REG-SALIDA      PIC X(80).
+       01 REG-SALIDA      PIC X(132).
 
        WORKING-STORAGE SECTION.
       * Variables de fecha y hora
@@ -136,7 +136,7 @@
               DECLARE CURSORCTA CURSOR 
               FOR
                  SELECT A.*
-                 FROM KC02787.TBCURCTA A 
+                 FROM KC02803.TBCURCTA A 
                  ORDER BY A.NROCLI
            END-EXEC.
 
@@ -237,7 +237,7 @@
                  EXEC SQL
                      SELECT A.*
                      INTO :DCLTBCURCLI
-                     FROM KC02787.TBCURCLI A
+                     FROM KC02803.TBCURCLI A
                      WHERE A.NROCLI = :WS-NROCLI
                  END-EXEC
 

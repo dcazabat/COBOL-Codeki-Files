@@ -86,7 +86,12 @@
       
        77  WS-TOT-GRABADOS              PIC 9(3)  VALUE ZEROS.
        77  WS-TOT-GRABADOS-DISP         PIC ZZZ.
-       77  WS-SUCUEN-DISP               PIC Z9.
+       77  WS-SUCUEN-DISP               PIC 99.
+       77  WS-TIPCUEN-DISP              PIC X(2).
+
+      * Variables auxiliares para conversiones seguras
+       77  WS-NROCUEN-EDIT              PIC 9(5).
+       77  WS-SALDO-EDIT                PIC -9(5).99.
 
        01  WS-FECHA.
            03  WS-DIA   PIC 99.
@@ -195,20 +200,18 @@
       * Procesar el registro actual (primer registro)
       * Grabar el registro en el archivo de salida
                        MOVE SPACES TO REG-SALIDA
+                       
+      * Convertir campos COMP-3 a formato editable
+                       MOVE WS-NROCUEN TO WS-NROCUEN-EDIT
+                       MOVE WS-SALDO TO WS-SALDO-EDIT
+                       
                        STRING '      CUENTA: ' 
+                              WS-NROCUEN-EDIT
+                              ' SALDO: '
+                              WS-SALDO-EDIT
                               DELIMITED BY SIZE
                               INTO REG-SALIDA
                        
-      * Convertir WS-NROCUEN a formato para mostrar
-                       MOVE WS-NROCUEN TO REG-SALIDA(15:8)
-                       
-                       STRING ' SALDO: '
-                              DELIMITED BY SIZE
-                              INTO REG-SALIDA(25:8)
-                       
-      * Convertir WS-SALDO a formato para mostrar
-                       MOVE WS-SALDO TO WS-TOT-SALDOS-DISP
-                       MOVE WS-TOT-SALDOS-DISP TO REG-SALIDA(33:16)
                        WRITE REG-SALIDA
                        ADD 1 TO WS-TOT-GRABADOS
                        ADD 1 TO WS-LINEAS-PAG
@@ -263,12 +266,13 @@
 
        1300-I-WRITE-TIPCUEN.
       * Mostrar encabezado del tipo de cuenta
+           MOVE WS-TIPCUEN TO WS-TIPCUEN-DISP
            DISPLAY WS-GUIONES
-           DISPLAY 'TIPO DE CUENTA: ' WS-TIPCUEN
+           DISPLAY 'TIPO DE CUENTA: ' WS-TIPCUEN-DISP
            DISPLAY WS-GUIONES
            
            MOVE SPACES TO REG-SALIDA
-           STRING 'TIPO DE CUENTA: ' WS-TIPCUEN
+           STRING 'TIPO DE CUENTA: ' WS-TIPCUEN-DISP
                   DELIMITED BY SIZE
                   INTO REG-SALIDA
            WRITE REG-SALIDA
@@ -277,8 +281,12 @@
 
        1400-I-WRITE-SUCUEN.
       * Mostrar encabezado de la sucursal
-           MOVE WS-SUCUEN TO WS-SUCUEN-DISP
-           DISPLAY '  SUCURSAL: ' WS-SUCUEN
+           IF WS-SUCUEN >= 0 AND WS-SUCUEN <= 99
+              MOVE WS-SUCUEN TO WS-SUCUEN-DISP
+           ELSE
+              MOVE 0 TO WS-SUCUEN-DISP
+           END-IF
+           DISPLAY '  SUCURSAL: ' WS-SUCUEN-DISP
            MOVE SPACES TO REG-SALIDA
            STRING '  SUCURSAL: ' WS-SUCUEN-DISP
                   DELIMITED BY SIZE
@@ -356,20 +364,18 @@
                  
       * Grabar el registro en el archivo de salida
                  MOVE SPACES TO REG-SALIDA
+                 
+      * Convertir campos COMP-3 a formato editable
+                 MOVE WS-NROCUEN TO WS-NROCUEN-EDIT
+                 MOVE WS-SALDO TO WS-SALDO-EDIT
+                 
                  STRING '      CUENTA: ' 
+                        WS-NROCUEN-EDIT
+                        ' SALDO: '
+                        WS-SALDO-EDIT
                         DELIMITED BY SIZE
                         INTO REG-SALIDA
                  
-      * Convertir WS-NROCUEN a formato para mostrar
-                 MOVE WS-NROCUEN TO REG-SALIDA(15:8)
-                 
-                 STRING ' SALDO: '
-                        DELIMITED BY SIZE
-                        INTO REG-SALIDA(25:8)
-                 
-      * Convertir WS-SALDO a formato para mostrar
-                 MOVE WS-SALDO TO WS-TOT-SALDOS-DISP
-                 MOVE WS-TOT-SALDOS-DISP TO REG-SALIDA(33:16)
                  WRITE REG-SALIDA
                  ADD 1 TO WS-TOT-GRABADOS
                  ADD 1 TO WS-LINEAS-PAG
@@ -410,29 +416,26 @@
            MOVE WS-TOT-SALDOS-TIPCUEN TO WS-TOT-SALDOS-TIPCUEN-DISP
            MOVE WS-CONT-TIPCUEN TO WS-CONT-TIPCUEN-DISP
            
-           DISPLAY 'TOTAL TIPO CUENTA ' WS-TIPCUEN-ANTERIOR ': ' 
+           MOVE WS-TIPCUEN-ANTERIOR TO WS-TIPCUEN-DISP
+           DISPLAY 'TOTAL TIPO CUENTA ' WS-TIPCUEN-DISP ': ' 
                   WS-TOT-SALDOS-TIPCUEN-DISP
            DISPLAY 'CANTIDAD DE CUENTAS: ' WS-CONT-TIPCUEN-DISP
            DISPLAY WS-GUIONES
 
            MOVE SPACES TO REG-SALIDA
            STRING 'TOTAL TIPO CUENTA ' 
+                  WS-TIPCUEN-DISP
+                  ': '
+                  WS-TOT-SALDOS-TIPCUEN-DISP
                   DELIMITED BY SIZE
                   INTO REG-SALIDA
-           
-           MOVE WS-TIPCUEN-ANTERIOR TO REG-SALIDA(18:2)
-           STRING ': '
-                  DELIMITED BY SIZE
-                  INTO REG-SALIDA(20:2)
-           
-           MOVE WS-TOT-SALDOS-TIPCUEN-DISP TO REG-SALIDA(22:16)
            WRITE REG-SALIDA
            
            MOVE SPACES TO REG-SALIDA
            STRING 'CANTIDAD DE CUENTAS: ' 
+                  WS-CONT-TIPCUEN-DISP
                   DELIMITED BY SIZE
                   INTO REG-SALIDA
-           MOVE WS-CONT-TIPCUEN-DISP TO REG-SALIDA(21:3)
            WRITE REG-SALIDA
            
            WRITE REG-SALIDA FROM WS-GUIONES
@@ -447,26 +450,30 @@
            MOVE WS-TOT-SALDOS-SUCCUEN TO WS-TOT-SALDOS-SUCCUEN-DISP
            MOVE WS-CONT-SUCCUEN TO WS-CONT-SUCCUEN-DISP
            
-           MOVE WS-SUCUEN-ANTERIOR TO WS-SUCUEN-DISP
+           IF WS-SUCUEN-ANTERIOR >= 0 AND WS-SUCUEN-ANTERIOR <= 99
+              MOVE WS-SUCUEN-ANTERIOR TO WS-SUCUEN-DISP
+           ELSE
+              MOVE 0 TO WS-SUCUEN-DISP
+           END-IF
            DISPLAY '  TOTAL SUCURSAL ' WS-SUCUEN-DISP ': ' 
                   WS-TOT-SALDOS-SUCCUEN-DISP
            DISPLAY '  CANTIDAD DE CUENTAS: ' WS-CONT-SUCCUEN-DISP
            DISPLAY WS-GUIONES
            
-           MOVE WS-SUCUEN-ANTERIOR TO WS-SUCUEN-DISP
            MOVE SPACES TO REG-SALIDA
-           STRING '  TOTAL SUCURSAL ' WS-SUCUEN-DISP ': '
+           STRING '  TOTAL SUCURSAL ' 
+                  WS-SUCUEN-DISP 
+                  ': '
+                  WS-TOT-SALDOS-SUCCUEN-DISP
                   DELIMITED BY SIZE
                   INTO REG-SALIDA
-                  
-           MOVE WS-TOT-SALDOS-SUCCUEN-DISP TO REG-SALIDA(21:16)
            WRITE REG-SALIDA
            
            MOVE SPACES TO REG-SALIDA
            STRING '  CANTIDAD DE CUENTAS: ' 
+                  WS-CONT-SUCCUEN-DISP
                   DELIMITED BY SIZE
                   INTO REG-SALIDA
-           MOVE WS-CONT-SUCCUEN-DISP TO REG-SALIDA(23:3)
            WRITE REG-SALIDA
            
            WRITE REG-SALIDA FROM WS-GUIONES
