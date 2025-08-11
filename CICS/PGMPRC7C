@@ -1,5 +1,5 @@
        IDENTIFICATION DIVISION.
-       PROGRAM-ID. PGMM1C7C.
+       PROGRAM-ID. PGMPRC7C.
       *
       *****************************************************************
       *                                                               *
@@ -12,17 +12,18 @@
        WORKING-STORAGE SECTION.
 
        01  CT-ERR-01              PIC X(72) VALUE
-           'ERROR1 - INGRESE LOS DATOS Y PRESIONE ENTER'.
+           'ERROR - INGRESE TIPO DOC (DU/PA/PE) Y NUMERO - PRES ENTER'.
        01  CT-ERR-02              PIC X(72) VALUE
-           'ERROR2 - DATOS INGRESADOS INCORRECTOS'.
+           'ERROR - TIPO DOC DEBE SER DU/PA/PE Y NRO DOC NUMERICO'.
        01  CT-ERR-03              PIC X(72) VALUE
-           'ERROR3 - TIPO Y NRO DOCUMENTO INEXISTENTES'.
+           'PERSONA NO ENCONTRADA CON ESE TIPO Y NUMERO DE DOCUMENTO'.
        01  CT-MNS-EXIT            PIC X(72) VALUE
-           'FIN TRANSACCION BC7C'.
+           'SESION FINALIZADA - PROGRAMA PGMPRC7C'.
 
        01 WS-VARIABLES.
           03 WS-MAP               PIC X(07)       VALUE 'MAP1C7C'.
           03 WS-MAPSET            PIC X(07)       VALUE 'MAP1C7C'.
+          03 WS-PROGRAM-NAME      PIC X(08)       VALUE 'PGMPRC7C'.
           03 WS-LONG              PIC S9(04) COMP.
           03 WS-ABSTIME           PIC S9(16) COMP VALUE +0.
           03 WS-FECHA             PIC X(10)       VALUE SPACES.
@@ -96,10 +97,12 @@
              WHEN DFHRESP (MAPFAIL)
                MOVE LENGTH OF MAP1C7CO TO WS-LONG
                MOVE LOW-VALUES TO MAP1C7CO
+               MOVE WS-PROGRAM-NAME TO NOMPGMO
                MOVE CT-ERR-01 TO MSGO
 
              WHEN OTHER
                INITIALIZE MAP1C7CO
+               MOVE WS-PROGRAM-NAME TO NOMPGMO
                MOVE CT-ERR-01 TO MSGO
 
            END-EVALUATE.
@@ -161,7 +164,7 @@
            MOVE NUMDOCI TO PER-NRO-DOC.
 
            EXEC CICS
-                READ FILE('PERSONA')
+                READ FILE('PERSOC7C')
                      INTO(REG-PERSONA)
                      RIDFLD(PER-CLAVE)
                      RESP(WS-VSAM-RESP)
@@ -203,8 +206,10 @@
        3400-F-LIMPIAR-DATOS. EXIT.
        4000-I-PF3.
       *    LIMPIAR PANTALLA
+           PERFORM 8000-I-CLEAR-SCREEN THRU 8000-F-CLEAR-SCREEN
            MOVE LOW-VALUES TO MAP1C7CI.
            MOVE LOW-VALUES TO MAP1C7CO.
+           MOVE WS-PROGRAM-NAME TO NOMPGMO.
            MOVE SPACES TO MSGO.
 
        4000-F-PF3. EXIT.
@@ -246,9 +251,23 @@
 
        7000-F-TIME. EXIT.
 
+       8000-I-CLEAR-SCREEN.
+      *    RUTINA PARA BORRAR COMPLETAMENTE LA PANTALLA
+           EXEC CICS
+                SEND CONTROL ERASE
+           END-EXEC.
+       8000-F-CLEAR-SCREEN. EXIT.
+
        9500-I-SENDMAP.
 
            PERFORM 7000-I-TIME THRU 7000-F-TIME
+           MOVE WS-PROGRAM-NAME TO NOMPGMO
+           
+      *    BORRAR PANTALLA COMPLETA ANTES DE ENVIAR MAPA
+           EXEC CICS
+                SEND CONTROL ERASE
+           END-EXEC
+           
            EXEC CICS
                 SEND MAP    (WS-MAP)
                      MAPSET (WS-MAPSET)
