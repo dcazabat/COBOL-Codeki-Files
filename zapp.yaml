@@ -21,3 +21,5 @@ propertyGroups:
         locations:
           - 'KC03C7C.CURSOS.DCLGEN'
           - 'KC03C7C.CURSOS.COPYLIB'
+          - 'KC02788.ALU9999.COPYLIB'
+          - 'DFH610.CICS.SDFHCOB'

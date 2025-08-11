@@ -27,6 +27,6 @@
            02  FILLER PICTURE X(3).
            02  TIPDOCO  PIC X(2).
            02  FILLER PICTURE X(3).
-           02  NUMDOCO  PIC X(11).
+           02  NUMDOCO PIC Z(11).
            02  FILLER PICTURE X(3).
            02  MSGO PIC X(72).

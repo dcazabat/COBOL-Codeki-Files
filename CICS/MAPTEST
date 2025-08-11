@@ -1,0 +1,102 @@
+INQSET1  DFHMSD TYPE=&SYSPARM,                                         X
+                LANG=COBOL,                                            X
+                MODE=INOUT,                                            X
+                TERM=ALL,                                              X
+                DSATTS=COLOR,                                          X
+                CTRL=FREEKB,                                           X
+                STORAGE=AUTO,                                          X
+                TIOAPFX=YE
+
+INQMAP1  DFHMDI SIZE=(24,80),                                          X
+                LINE=1,                                                X
+                COLUMN=
+
+         DFHMDF POS=(1,1),                                             X
+                LENGTH=8,                                              X
+                ATTRB=(NORM,PROT),                                     X
+                COLOR=TURQUOISE,                                       X
+                INITIAL='CUSTINQ1
+
+         DFHMDF POS=(1,32),                                            X
+                LENGTH=16,                                             X
+                ATTRB=(NORM,PROT),                                     X
+                COLOR=TURQUOISE,                                       X
+                INITIAL='Customer Inquiry
+
+TRANSID  DFHMDF POS=(1,76),                                            X
+                LENGTH=04,                                             X
+                ATTRB=(NORM,PROT),                                     X
+                COLOR=TURQUOISE,                                       X
+                INITIAL='INQ1
+
+         DFHMDF POS=(3,01),                                            X
+                LENGTH=42,                                             X
+                ATTRB=(NORM,PROT),                                     X
+                COLOR=TURQUOISE,                                       X
+                INITIAL='Type a customer number. Then press ENTER.
+
+         DFHMDF POS=(5,01),                                            X
+                LENGTH=24,                                             X
+                ATTRB=(NORM,PROT),                                     X
+                COLOR=TURQUOISE,                                       X
+                INITIAL='Customer number. . . . .
+
+CUSTNO   DFHMDF POS=(5,26),                                            X
+                LENGTH=06,                                             X
+                ATTRB=(NORM,UNPROT),                                   X
+                COLOR=TURQUOISE,                                       X
+                INITIAL='______
+
+         DFHMDF POS=(5,33),                                            X
+                LENGTH=01,                                             X
+                ATTRB=ASKI
+
+         DFHMDF POS=(7,01),                                            X
+                LENGTH=24,                                             X
+                ATTRB=(NORM,PROT),                                     X
+                COLOR=TURQUOISE,                                       X
+                INITIAL='Name and Address . . . :
+
+LNAME    DFHMDF POS=(7,26),                                            X
+                LENGTH=30,                                             X
+                ATTRB=(NORM,PROT),                                     X
+                COLOR=TURQUOIS
+
+FNAME    DFHMDF POS=(8,26),                                            X
+                LENGTH=20,                                             X
+                ATTRB=(NORM,PROT),                                     X
+                COLOR=TURQUOIS
+
+ADDR     DFHMDF POS=(9,26),                                            X
+                LENGTH=30,                                             X
+                ATTRB=(NORM,PROT),                                     X
+                COLOR=TURQUOIS
+
+CITY     DFHMDF POS=(10,26),                                           X
+                LENGTH=20,                                             X
+                ATTRB=(NORM,PROT),                                     X
+                COLOR=TURQUOIS
+
+STATE    DFHMDF POS=(10,47),                                           X
+                LENGTH=02,                                             X
+                ATTRB=(NORM,PROT),                                     X
+                COLOR=TURQUOIS
+
+ZIPCODE  DFHMDF POS=(10,50),                                           X
+                LENGTH=10,                                             X
+                ATTRB=(NORM,PROT),                                     X
+                COLOR=TURQUOIS
+
+MESSAGE  DFHMDF POS=(23,01),                                           X
+                LENGTH=79,                                             X
+                ATTRB=(BRT,PROT),                                      X
+                COLOR=TURQUOIS
+
+         DFHMDF POS=(24,01),                                           X
+                LENGTH=20,                                             X
+                ATTRB=(NORM,PROT),                                     X
+                COLOR=TURQUOISE,                                       X
+                INITIAL='PF3=Exit PF12=Cancel'
+ 
+         DFHMSD TYPE=FINAL
+               END

@@ -1,0 +1,67 @@
+       01  MAP1C7CI.
+           02  FILLER PIC X(12).
+           02  FECHAL    COMP  PIC  S9(4).
+           02  FECHAF    PICTURE X.
+           02  FILLER REDEFINES FECHAF.
+             03 FECHAA    PICTURE X.
+           02  FECHAI  PIC X(10).
+           02  TIPDOCL    COMP  PIC  S9(4).
+           02  TIPDOCF    PICTURE X.
+           02  FILLER REDEFINES TIPDOCF.
+             03 TIPDOCA    PICTURE X.
+           02  TIPDOCI  PIC X(02).
+           02  NUMDOCL    COMP  PIC  S9(4).
+           02  NUMDOCF    PICTURE X.
+           02  FILLER REDEFINES NUMDOCF.
+             03 NUMDOCA    PICTURE X.
+           02  NUMDOCI  PIC 9(11).
+           02  CLINROL    COMP  PIC  S9(4).
+           02  CLINROF    PICTURE X.
+           02  FILLER REDEFINES CLINROF.
+             03 CLINROA    PICTURE X.
+           02  CLINROI  PIC X(3).
+           02  NOMAPEL    COMP  PIC  S9(4).
+           02  NOMAPEF    PICTURE X.
+           02  FILLER REDEFINES NOMAPEF.
+             03 NOMAPEA    PICTURE X.
+           02  NOMAPEI  PIC X(30).
+           02  DIRECCL    COMP  PIC  S9(4).
+           02  DIRECCF    PICTURE X.
+           02  FILLER REDEFINES DIRECCF.
+             03 DIRECCA    PICTURE X.
+           02  DIRECCI  PIC X(30).
+           02  EMAILL    COMP  PIC  S9(4).
+           02  EMAILF    PICTURE X.
+           02  FILLER REDEFINES EMAILF.
+             03 EMAILA    PICTURE X.
+           02  EMAILI  PIC X(30).
+           02  TELEFL    COMP  PIC  S9(4).
+           02  TELEFF    PICTURE X.
+           02  FILLER REDEFINES TELEFF.
+             03 TELEFA    PICTURE X.
+           02  TELEFI  PIC X(15).
+           02  MSGL    COMP  PIC  S9(4).
+           02  MSGF    PICTURE X.
+           02  FILLER REDEFINES MSGF.
+             03 MSGA    PICTURE X.
+           02  MSGI  PIC X(72).
+       01  MAP1C7CO REDEFINES MAP1C7CI.
+           02  FILLER PIC X(12).
+           02  FILLER PICTURE X(3).
+           02  FECHAO  PIC X(10).
+           02  FILLER PICTURE X(3).
+           02  TIPDOCO  PIC X(2).
+           02  FILLER PICTURE X(3).
+           02  NUMDOCO PIC Z(11).
+           02  FILLER PICTURE X(3).
+           02  CLINROO PIC Z(03).
+           02  FILLER PICTURE X(3).
+           02  NOMAPEO PIC X(30).
+           02  FILLER PICTURE X(3).
+           02  DIRECCO PIC X(30).
+           02  FILLER PICTURE X(3).
+           02  EMAILO PIC X(30).
+           02  FILLER PICTURE X(3).
+           02  TELEFO PIC X(15).
+           02  FILLER PICTURE X(3).
+           02  MSGO PIC X(72).

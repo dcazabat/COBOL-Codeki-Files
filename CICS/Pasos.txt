@@ -1,0 +1,10 @@
+1 - COMPILAR EL MAP
+2 - COMPILAR EL PROGRAMA
+3 - IR AL CICS  (l cicsts61)
+4 - ENTRAR CON CEMT
+5 - S (set) o I (inquire)  Ej S PROG(NOMBRE_DEL_PROGRAMA) NEW o no ponerlo y le pongo New en el espacio despues de Pri
+6 - Volver con F3 y borrar todo
+7 - Entrar CECI
+8 - hacer: SEND MAP(NOMBRE_DEL_MAPA) MAPSET(NOMBRE_DEL_MAPA) ERASE
+9 - F3
+10 - PONER NOMBRE DE LA TRANSACCION QUE EN MI CASO ES BC7C
