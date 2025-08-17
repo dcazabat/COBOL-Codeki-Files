@@ -1,0 +1,29 @@
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. PGMSED1F.
+       DATA DIVISION.
+       FILE SECTION.
+       WORKING-STORAGE SECTION.
+       01 WS-MENS                PIC  X(14)   VALUE 'HOLA'.
+       01 WS-TERMINAL            PIC  X(04).
+       01 WS-LONG                PIC S9(04) COMP.
+
+       PROCEDURE DIVISION.
+
+       0000-HOLACICS.
+
+           MOVE 'HOLA CICS JD1F'  TO WS-MENS
+           MOVE LENGTH OF WS-MENS TO WS-LONG
+
+           EXEC CICS
+                SEND TEXT
+                FROM  (WS-MENS)
+                LENGTH(WS-LONG)
+                ERASE
+           END-EXEC
+
+           EXEC CICS
+                RETURN
+           END-EXEC
+           .
+
+
