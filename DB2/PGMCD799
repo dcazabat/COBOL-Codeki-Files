@@ -1,0 +1,210 @@
+       IDENTIFICATION DIVISION.                                         
+       PROGRAM-ID PGMCD799.                                             
+      **********************************************************        
+      *                                                        *        
+      *  PROGRAMA PARA EMITIR TOTAL CTAS ACTIVAS POR SUCURSAL  *        
+      *  ACTIVAS POR SUC Y  TOTAL CTAS ACTIVAS BCO             *        
+      *  LA ENTRADA CLASIFICADA X SUCURSAL                     *        
+      **********************************************************        
+      *  CC DOBLE SOBRE KC02803.TBCURCTA X SUCUEN, TIPCUEN     *        
+      **********************************************************        
+      *      MANTENIMIENTO DE PROGRAMA                         *        
+      **********************************************************        
+      *  FECHA   *    DETALLE        * COD *                            
+      **************************************                            
+      *          *                   *     *                            
+      *          *                   *     *                            
+      **************************************                            
+       ENVIRONMENT DIVISION.                                            
+       CONFIGURATION SECTION.                                           
+       SPECIAL-NAMES.                                                   
+             DECIMAL-POINT IS COMMA.                                    
+       INPUT-OUTPUT SECTION.                                            
+       FILE-CONTROL.                                                    
+       DATA DIVISION.                                                   
+       FILE SECTION.                                                    
+                                                                        
+      **************************************                            
+       WORKING-STORAGE SECTION.                                         
+      **************************************                            
+       77  FILLER        PIC X(26) VALUE '* INICIO WORKING-STORAGE *'.  
+                                                                        
+       01  WS-VARIABLES.                                                
+           05  WS-SUC-ANT                 PIC 99.                       
+           05  WS-TIP-ANT                 PIC XX.                       
+           05  WS-ACC-BALANCE             PIC S9(09)V99.                
+           05  WS-ERR-PARRAFO             PIC X(30).                    
+           05  WS-ERR-OPERACION           PIC X(30).                    
+           05  WS-ERR-CODE                PIC X(30).                    
+           05  WS-CONT-SUC                PIC 9(03).                    
+           05  WS-CONT-TIP                PIC 9(03).                    
+           05  WS-CONT-LEIDOS             PIC 9(03).                    
+           05  WS-CONT-GRABADOS           PIC 9(03).                    
+           05  WS-SQLCODE                 PIC S9(03).                   
+       01  WS-CONSTANTES.                                               
+           05  CONS-CERO                  PIC 9(01)   VALUE 0.          
+           05  WS-CONS-LINEA              PIC X(50)   VALUE ALL '*'.    
+       01  WS-FLAG                        PIC XX.                       
+           88  WS-NO-FIN-PROCESO                      VALUE  '00'.      
+           88  WS-FIN-PROCESO                         VALUE  '10'.      
+      **************************************                            
+                                                                        
+            EXEC SQL                                                    
+              INCLUDE SQLCA                                             
+            END-EXEC.                                                   
+                                                                        
+            EXEC SQL                                                    
+              INCLUDE TBCURCTA                                          
+            END-EXEC.                                                   
+                                                                        
+            EXEC SQL                                                    
+              DECLARE ITEM_CURSOR CURSOR                                
+              FOR                                                       
+              SELECT TIPCUEN,                                           
+                     NROCUEN,                                           
+                     SUCUEN,                                            
+                     NROCLI,                                            
+                     SALDO,                                             
+                     FECSAL                                             
+              FROM  KC02803.TBCURCTA                                    
+              ORDER BY SUCUEN, TIPCUEN                                  
+            END-EXEC.                                                   
+                                                                        
+       77  FILLER        PIC X(26) VALUE '* FINAL  WORKING-STORAGE *'.  
+                                                                        
+      ***************************************************************.  
+       PROCEDURE DIVISION.                                              
+      **************************************                            
+      *                                    *                            
+      *  CUERPO PRINCIPAL DEL PROGRAMA     *                            
+      *                                    *                            
+      **************************************                            
+       MAIN-PROGRAM.                                                    
+                                                                        
+           PERFORM 1000-INICIO                                          
+                                                                        
+           PERFORM 2000-PROCESO                                         
+                   UNTIL WS-FIN-PROCESO                                 
+                                                                        
+           PERFORM 9000-FINAL                                           
+                                                                        
+           GOBACK.                                                      
+                                                                        
+      **************************************                            
+      *                                    *                            
+      *               INICIO               *                            
+      *                                    *                            
+      **************************************                            
+       1000-INICIO.                                                     
+      *                                                                 
+            INITIALIZE WS-VARIABLES                                     
+                                                                        
+            SET  WS-NO-FIN-PROCESO    TO TRUE                           
+                                                                        
+            PERFORM  1100-OPEN-CURSOR                                   
+                                                                        
+            PERFORM  4100-LEER-CURSOR                                   
+                                                                        
+            MOVE     WS-SUCUEN         TO   WS-SUC-ANT                  
+            MOVE     WS-TIPCUEN        TO   WS-TIP-ANT                  
+            .                                                           
+                                                                        
+       1100-OPEN-CURSOR.                                                
+                                                                        
+           EXEC SQL                                                     
+              OPEN ITEM_CURSOR                                          
+           END-EXEC                                                     
+      *                                                                 
+           IF SQLCODE NOT EQUAL ZEROS                                   
+              MOVE SQLCODE       TO  WS-SQLCODE                         
+              DISPLAY 'ERROR EN OPEN CURSOR   ' WS-SQLCODE              
+              MOVE 9999          TO RETURN-CODE                         
+              SET WS-FIN-PROCESO TO TRUE                                
+           END-IF                                                       
+           .                                                            
+      **************************************                            
+      *                                    *                            
+      *              PROCESO               *                            
+      *                                    *                            
+      **************************************                            
+       2000-PROCESO.                                                    
+      *                                                                 
+           IF  WS-SUCUEN   = WS-SUC-ANT                                 
+               IF  WS-TIPCUEN = WS-TIP-ANT                              
+                   ADD 1 TO  WS-CONT-TIP                                
+                   ADD 1 TO  WS-CONT-SUC                                
+                   PERFORM   4100-LEER-CURSOR                           
+               ELSE                                                     
+                   PERFORM   2200-CORTE-TIP                             
+               END-IF                                                   
+           ELSE                                                         
+               PERFORM   2100-CORTE-SUC                                 
+           END-IF                                                       
+           .                                                            
+                                                                        
+       2100-CORTE-SUC.                                                  
+      *                                                                 
+      *    PERFORM 5110-GRABAR-CORTE                                    
+           PERFORM 2200-CORTE-TIP                                       
+           DISPLAY ' SUCURSAL:  '      WS-SUC-ANT                       
+                   '       CANTIDAD: ' WS-CONT-SUC                      
+           MOVE 0                TO  WS-CONT-SUC                        
+           MOVE WS-SUCUEN        TO  WS-SUC-ANT                         
+           .                                                            
+       2200-CORTE-TIP.                                                  
+      *                                                                 
+      *    PERFORM 5110-GRABAR-CORTE                                    
+           DISPLAY ' TIPO DE CUENTA: ' WS-TIP-ANT                       
+                   '       CANTIDAD: ' WS-CONT-TIP                      
+           MOVE 0                TO  WS-CONT-TIP                        
+           MOVE WS-TIPCUEN       TO  WS-TIP-ANT                         
+           .                                                            
+       4100-LEER-CURSOR.                                                
+      *                                                                 
+           EXEC SQL                                                     
+              FETCH  ITEM_CURSOR                                        
+                     INTO                                               
+                        :WS-TIPCUEN,                                    
+                        :WS-NROCUEN,                                    
+                        :WS-SUCUEN,                                     
+                        :WS-NROCLI,                                     
+                        :WS-SALDO,                                      
+                        :WS-FECSAL                                      
+           END-EXEC                                                     
+           EVALUATE TRUE                                                
+             WHEN SQLCODE EQUAL ZEROS                                   
+                  ADD  1       TO WS-CONT-LEIDOS                        
+             WHEN SQLCODE EQUAL +100                                    
+                  PERFORM   2100-CORTE-SUC                              
+                  SET WS-FIN-PROCESO TO TRUE                            
+                                                                        
+             WHEN OTHER                                                 
+                  MOVE SQLCODE TO WS-SQLCODE                            
+                  DISPLAY 'ERROR FETCH CURSOR: '   WS-SQLCODE           
+                  SET WS-FIN-PROCESO TO TRUE                            
+           END-EVALUATE                                                 
+           .                                                            
+      *                                                                 
+      **************************************                            
+      *                                    *                            
+      *  CUERPO FINAL CIERRE DE FILES      *                            
+      *                                    *                            
+      **************************************                            
+       9000-FINAL.                                                      
+      *                                                                 
+           EXEC SQL                                                     
+              CLOSE ITEM_CURSOR                                         
+           END-EXEC                                                     
+           IF SQLCODE NOT EQUAL ZEROS                                   
+              MOVE SQLCODE       TO  WS-SQLCODE                         
+              DISPLAY 'ERROR EN CLOSE CURSOR  ' WS-SQLCODE              
+           ELSE                                                         
+              DISPLAY 'TOTALES LEIDOS   : '  WS-CONT-LEIDOS             
+      *       DISPLAY 'TOTALES GRABADOS : '  WS-CONT-GRABADOS           
+           END-IF                                                       
+           .                                                            
+       9999-CANC-CTRL.                                                  
+           DISPLAY 'PARRAFO   '  WS-ERR-PARRAFO                         
+           DISPLAY 'OPERACION '  WS-ERR-OPERACION                       
+           DISPLAY 'CODIGO    '  WS-ERR-CODE                            
+           COMPUTE CONS-CERO = CONS-CERO / CONS-CERO.                   

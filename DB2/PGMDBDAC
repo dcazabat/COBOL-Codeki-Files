@@ -281,7 +281,7 @@
 
        1400-I-WRITE-SUCUEN.
       * Mostrar encabezado de la sucursal
-           IF WS-SUCUEN >= 0 AND WS-SUCUEN <= 99
+           IF WS-SUCUEN >= 0
               MOVE WS-SUCUEN TO WS-SUCUEN-DISP
            ELSE
               MOVE 0 TO WS-SUCUEN-DISP
@@ -450,7 +450,7 @@
            MOVE WS-TOT-SALDOS-SUCCUEN TO WS-TOT-SALDOS-SUCCUEN-DISP
            MOVE WS-CONT-SUCCUEN TO WS-CONT-SUCCUEN-DISP
            
-           IF WS-SUCUEN-ANTERIOR >= 0 AND WS-SUCUEN-ANTERIOR <= 99
+           IF WS-SUCUEN-ANTERIOR >= 0
               MOVE WS-SUCUEN-ANTERIOR TO WS-SUCUEN-DISP
            ELSE
               MOVE 0 TO WS-SUCUEN-DISP

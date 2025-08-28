@@ -1,0 +1,706 @@
+       IDENTIFICATION DIVISION.                                                 
+       PROGRAM-ID. PGMACD1F.                                                    
+       ENVIRONMENT DIVISION.                                                    
+       CONFIGURATION SECTION.                                                   
+       SPECIAL-NAMES.                                                           
+           DECIMAL-POINT IS COMMA.                                              
+      ******************************************************************        
+      * TRANSACC.: HD1F                                                *        
+      *                                                                *        
+      *                                                                *        
+      * OBJETIVO.: OPCION PF6 DE PGMMED1F                              *        
+      *            LISTADO DE CUENTAS X CLIENTE (PAGINADO)             *        
+      *                                                                *        
+      ******************************************************************        
+       DATA DIVISION.                                                           
+       FILE SECTION.                                                            
+       WORKING-STORAGE SECTION.                                                 
+                                                                                
+       01 WS-DATASET.                                                           
+          03 WS-DATASET-CUENTA        PIC X(08)  VALUE 'CUENTAS'.               
+          03 WS-DATASET-CUENTA-LEN    PIC S9(04) COMP  VALUE 080.               
+          03 WS-DATASET-CUENTA-KEYLEN PIC S9(04) COMP VALUE 003.                
+                                                                                
+       01 WS-VARIABLES.                                                         
+          05 WS-MAP-01              PIC X(07)        VALUE 'MAP6D1F'.           
+          05 WS-MAPSET-01           PIC X(07)        VALUE 'MAP6D1F'.           
+          03 WS-TERMINAL            PIC  X(04).                                 
+          03 WS-SEND-MAP-LONG       PIC S9(04) COMP.                            
+          03 WS-ABSTIME             PIC S9(16) COMP VALUE +0.                   
+          03 WS-FECHA               PIC X(10)       VALUE SPACES.               
+          03 WS-SEP-DATE            PIC X           VALUE '/'.                  
+          03 WS-RESP                PIC S9(04) COMP.                            
+          03 WS-RESP2               PIC S9(04) COMP.                            
+          03 WS-FIN-LAZO-CUENTAS    PIC X.                                      
+          03 WS-I                   PIC 9.                                      
+          03 WS-J                   PIC 9.                                      
+          03 WS-LOW-VALUE           PIC X(29).                                  
+          03 WS-HORA                PIC X(08)       VALUE SPACES.               
+          03 WS-SEP-HOUR            PIC X           VALUE ':'.                  
+          03 WS-MAP-MSG             PIC X(72).                                  
+          03 WS-KEY-CUENTA          PIC X(20) VALUE SPACES.                     
+          03 WS-KEY-CUENTA-AUX      PIC X(20).                                  
+          03 WS-TABLA-AUX.                                                      
+             05 WS-NUMEROS-AUX      OCCURS 5 TIMES.                             
+                10 WS-AUX-TIPDOC         PIC X(02).                             
+                10 WS-AUX-NUMDOC         PIC 9(11).                             
+                10 WS-AUX-SUCURSAL       PIC 9(02).                             
+                10 WS-AUX-TIPCTA         PIC 9(02).                             
+                10 WS-AUX-NROCUENTA      PIC 9(03).                             
+                10 WS-AUX-SALDO          PIC 9(07)V99.                          
+                                                                                
+       01 WS-FECHA-ALT.                                                         
+          03 WS-DIA                 PIC X(2)   VALUE ZEROS.                     
+          03 FILLER                 PIC X(1)   VALUE '/'.                       
+          03 WS-MES                 PIC X(2)   VALUE ZEROS.                     
+          03 FILLER                 PIC X(1)   VALUE '/'.                       
+          03 WS-ANIO                PIC X(4)   VALUE ZEROS.                     
+                                                                                
+       01 WS-COMMAREA.                                                          
+          03 WS-USER-DATA.                                                      
+               05 WS-USER-TIPDOC    PIC X(02).                                  
+               05 WS-USER-NUMDOC    PIC 9(11).                                  
+          03 WS-TIP-DOC             PIC X(02).                                  
+               88 WS-TIP-DOC-BOOLEAN     VALUE 'DU'                             
+                                               'PA'                             
+                                               'PE'.                            
+          03 FILLER                 PIC X(5).                                   
+          03 FILLER                 PIC X(01).                                  
+          03 WS-COMAR-TIP-CUENTA    PIC X(03).                                  
+          03 WS-COMAR-ESTINI        PIC 9(01).                                  
+          03 WS-COMAR-CUENTAS       PIC 9(02).                                  
+          03 WS-COMAR-I             PIC 9(02).                                  
+          03 WS-COMAR-TABLA.                                                    
+             05 WS-CM-NUMEROS  OCCURS 5 TIMES.                                  
+                10 WS-CM-TIPDOC         PIC X(02).                              
+                10 WS-CM-NUMDOC         PIC 9(11).                              
+                10 WS-CM-SUCURSAL       PIC 9(02).                              
+                10 WS-CM-TIPCTA         PIC 9(02).                              
+                10 WS-CM-NROCUENTA      PIC 9(03).                              
+                10 WS-CM-SALDO          PIC 9(07)V99.                           
+          03 WS-COMAR-PRI-CUENTA.                                               
+            05 WS-COMAR-PRI-DATA.                                               
+               07 WS-COMAR-PRI-TIPDOC    PIC X(02).                             
+               07 WS-COMAR-PRI-NUMDOC    PIC 9(11).                             
+            05 FILLER                    PIC 9(07).                             
+          03 WS-COMAR-ULT-CUENTA.                                               
+            05 WS-COMAR-ULT-DATA.                                               
+               07 WS-COMAR-ULT-TIPDOC    PIC X(02).                             
+               07 WS-COMAR-ULT-NUMDOC    PIC 9(11).                             
+            05 FILLER                    PIC 9(07).                             
+          03 WS-CM-CONFIRMAR        PIC X(01).                                  
+          03 WS-COMAR-TIP-CUENTA2   PIC X(03).                                  
+          03 FILLER                 PIC X(44).                                  
+                                                                                
+       01 FILLER       PIC X(30) VALUE '*-> COPY DEL MAPA'.                     
+       COPY MAP6D1F.                                                            
+                                                                                
+       01 FILLER       PIC X(30) VALUE '*-> COPY DFHBMSCA'.                     
+       COPY DFHBMSCA.                                                           
+                                                                                
+       01 FILLER       PIC X(30) VALUE '*-> COPY DE DFHAID'.                    
+       COPY DFHAID.                                                             
+                                                                                
+       01 FILLER       PIC X(30) VALUE '*-> COPY ESTRUCTURA CUENTAS '.          
+       COPY CPCUEN.                                                             
+                                                                                
+       LINKAGE SECTION.                                                         
+                                                                                
+         01 DFHCOMMAREA PIC X(500).                                             
+                                                                                
+      *----------------------------------------------------------------         
+      *                                                                         
+      *----------------------------------------------------------------         
+       PROCEDURE DIVISION USING DFHCOMMAREA.                                    
+                                                                                
+       MAIN-PROGRAM.                                                            
+                                                                                
+           MOVE DFHCOMMAREA TO WS-COMMAREA.                                     
+           MOVE LOW-VALUE   TO WS-LOW-VALUE.                                    
+           MOVE LENGTH OF MAP6D1FO TO WS-SEND-MAP-LONG.                         
+                                                                                
+           IF WS-COMAR-ESTINI = 0                                               
+              PERFORM 1000I-INICIALIZAR-MAP                                     
+                 THRU 1000F-INICIALIZAR-MAP                                     
+           END-IF.                                                              
+                                                                                
+           PERFORM 1100I-RECEIVE-MAP                                            
+              THRU 1100F-RECEIVE-MAP.                                           
+                                                                                
+           PERFORM 1200I-EVAL-TECLA-PULSADA                                     
+              THRU 1200F-EVAL-TECLA-PULSADA.                                    
+                                                                                
+       MAIN-PROGRAM-FINAL. EXIT.                                                
+                                                                                
+      *----------------------------------------------------------------         
+      * INICIALIZAR EL MAPA DE LA PANTALLA.                                     
+      *----------------------------------------------------------------         
+       1000I-INICIALIZAR-MAP.                                                   
+                                                                                
+           MOVE LOW-VALUES TO MAP6D1FO                                          
+           MOVE 1          TO WS-COMAR-ESTINI                                   
+           MOVE 1          TO WS-COMAR-I                                        
+           MOVE 0          TO WS-COMAR-CUENTAS                                  
+           MOVE SPACES     TO WS-COMAR-TABLA                                    
+           MOVE ZEROS      TO WS-COMAR-PRI-CUENTA                               
+           MOVE ZEROS      TO WS-COMAR-ULT-CUENTA                               
+           MOVE WS-USER-TIPDOC TO WS-COMAR-PRI-TIPDOC                           
+                                  WS-COMAR-ULT-TIPDOC                           
+           MOVE WS-USER-NUMDOC TO WS-COMAR-PRI-NUMDOC                           
+                                  WS-COMAR-ULT-TIPDOC                           
+           MOVE WS-COMAR-PRI-CUENTA TO WS-KEY-CUENTA-AUX                        
+                                                                                
+           PERFORM 1500I-AVANZAR-PAG                                            
+              THRU 1500F-AVANZAR-PAG                                            
+                                                                                
+           PERFORM 1400I-DATE-TIME                                              
+              THRU 1400F-DATE-TIME                                              
+                                                                                
+           PERFORM 1300I-SEND-MAP                                               
+              THRU 1300F-SEND-MAP                                               
+                                                                                
+           IF WS-RESP = DFHRESP(NORMAL)                                         
+              PERFORM 9000I-RETURN-TRANSID                                      
+                 THRU 9000F-RETURN-TRANSID                                      
+           ELSE                                                                 
+              MOVE 'TRANS. FINALIZADA C/ERROR' TO WS-MAP-MSG                    
+              PERFORM 9900I-VISUALIZAR-ERROR                                    
+                 THRU 9900F-VISUALIZAR-ERROR                                    
+           END-IF.                                                              
+                                                                                
+       1000F-INICIALIZAR-MAP. EXIT.                                             
+                                                                                
+      *----------------------------------------------------------------         
+      * RECIBIR EL MAPA DESDE LA PANTALLA.                                      
+      *----------------------------------------------------------------         
+       1100I-RECEIVE-MAP.                                                       
+                                                                                
+           EXEC CICS RECEIVE                                                    
+              MAP    (WS-MAP-01)                                                
+              MAPSET (WS-MAPSET-01)                                             
+              INTO   (MAP6D1FI)                                                 
+              RESP   (WS-RESP)                                                  
+              RESP2  (WS-RESP2)                                                 
+           END-EXEC.                                                            
+                                                                                
+       1100F-RECEIVE-MAP. EXIT.                                                 
+                                                                                
+      *----------------------------------------------------------------         
+      * EVALUAR LA TECLA PULSADA POR EL OPERADOR.                               
+      *----------------------------------------------------------------         
+       1200I-EVAL-TECLA-PULSADA.                                                
+                                                                                
+                                                                                
+           EVALUATE EIBAID                                                      
+                                                                                
+              WHEN DFHPF7                                                       
+                                                                                
+                 MOVE WS-COMAR-PRI-CUENTA TO WS-KEY-CUENTA-AUX                  
+                 PERFORM 1540I-RETRO-PAG                                        
+                    THRU 1540F-RETRO-PAG                                        
+                                                                                
+              WHEN DFHPF8                                                       
+                                                                                
+                 MOVE WS-COMAR-ULT-CUENTA TO WS-KEY-CUENTA-AUX                  
+                 PERFORM 1500I-AVANZAR-PAG                                      
+                    THRU 1500F-AVANZAR-PAG                                      
+                                                                                
+              WHEN DFHPF12                                                      
+                 PERFORM 9999I-VOLVER                                           
+                    THRU 9999F-VOLVER                                           
+              WHEN OTHER                                                        
+                 MOVE 'TECLA PRESIONADA INVALIDA' TO                            
+                      MSGO                                                      
+                                                                                
+                 PERFORM 9500I-VISUALIZAR-MENSAJE                               
+                    THRU 9500F-VISUALIZAR-MENSAJE                               
+                                                                                
+           END-EVALUATE.                                                        
+                                                                                
+       1200F-EVAL-TECLA-PULSADA. EXIT.                                          
+                                                                                
+      *----------------------------------------------------------------         
+      * ENVIAR EL MAPA A LA PANTALLA.                                           
+      *----------------------------------------------------------------         
+       1300I-SEND-MAP.                                                          
+                                                                                
+           MOVE LENGTH OF MAP6D1FO TO WS-SEND-MAP-LONG                          
+                                                                                
+           EXEC CICS                                                            
+              SEND MAP (WS-MAP-01)                                              
+              MAPSET (WS-MAPSET-01)                                             
+              FROM   (MAP6D1FO)                                                 
+              LENGTH (WS-SEND-MAP-LONG)                                         
+              ERASE                                                             
+              FREEKB                                                            
+              RESP (WS-RESP)                                                    
+              CURSOR                                                            
+           END-EXEC.                                                            
+                                                                                
+       1300F-SEND-MAP. EXIT.                                                    
+                                                                                
+      *----------------------------------------------------------------         
+      * RECUPERAR FECHA Y HORA DEL SISTEMA.                                     
+      *----------------------------------------------------------------         
+       1400I-DATE-TIME.                                                         
+                                                                                
+           EXEC CICS ASKTIME                                                    
+              ABSTIME (WS-ABSTIME)                                              
+           END-EXEC.                                                            
+                                                                                
+           EXEC CICS FORMATTIME                                                 
+              ABSTIME (WS-ABSTIME)                                              
+              DDMMYYYY (WS-FECHA) DATESEP(WS-SEP-DATE)                          
+              TIME (WS-HORA) TIMESEP(WS-SEP-HOUR)                               
+           END-EXEC.                                                            
+                                                                                
+           MOVE WS-FECHA TO FECHAO.                                             
+           MOVE WS-HORA  TO HORAO.                                              
+                                                                                
+       1400F-DATE-TIME. EXIT.                                                   
+                                                                                
+      *----------------------------------------------------------------         
+      * LEER MAESTRO DE CUENTAS AVANZANDO DE A UNA PAGINA POR VEZ.              
+      *----------------------------------------------------------------         
+       1500I-AVANZAR-PAG.                                                       
+                                                                                
+           MOVE 'N' TO WS-FIN-LAZO-CUENTAS                                      
+                                                                                
+           MOVE WS-KEY-CUENTA-AUX TO WS-KEY-CUENTA.                             
+           MOVE ZEROS TO WS-COMAR-I.                                            
+                                                                                
+           PERFORM VARYING WS-I FROM 1 BY 1 UNTIL WS-I > 5                      
+              MOVE WS-LOW-VALUE(1: 29) TO WS-NUMEROS-AUX(WS-I)                  
+           END-PERFORM.                                                         
+                                                                                
+           PERFORM 8000I-STARTBR-CUENTA                                         
+              THRU 8000F-STARTBR-CUENTA                                         
+                                                                                
+           IF WS-RESP = DFHRESP(NORMAL)                                         
+                                                                                
+              PERFORM 8120I-READNEXT-CUENTA                                     
+                 THRU 8120F-READNEXT-CUENTA                                     
+                                                                                
+              PERFORM UNTIL WS-FIN-LAZO-CUENTAS = 'S'                           
+                                                                                
+                 EVALUATE WS-RESP                                               
+                    WHEN DFHRESP(NORMAL)                                        
+                                                                                
+                       IF WS-CLAVE-CLIENTE = WS-USER-DATA                       
+                          ADD 1 TO WS-COMAR-I                                   
+                          IF WS-COMAR-I <= 5                                    
+                             IF WS-COMAR-I = 1                                  
+                                MOVE WS-CTA-CLAVE TO                            
+                                     WS-COMAR-PRI-CUENTA                        
+                             ELSE                                               
+                                MOVE WS-CTA-CLAVE TO                            
+                                     WS-COMAR-ULT-CUENTA                        
+                             END-IF                                             
+                             MOVE WS-CTA-TIPO-DOC TO                            
+                                  WS-AUX-TIPDOC (WS-COMAR-I)                    
+                             MOVE WS-CTA-NRO-DOC  TO                            
+                                  WS-AUX-NUMDOC (WS-COMAR-I)                    
+                             MOVE WS-CTA-SUC TO                                 
+                                  WS-AUX-SUCURSAL (WS-COMAR-I)                  
+                             MOVE WS-CTA-TIPO   TO                              
+                                  WS-AUX-TIPCTA  (WS-COMAR-I)                   
+                             MOVE WS-CTA-NROCTA TO                              
+                                  WS-AUX-NROCUENTA (WS-COMAR-I)                 
+                             MOVE WS-CTA-SALDO  TO                              
+                                  WS-AUX-SALDO     (WS-COMAR-I)                 
+                          ELSE                                                  
+                                                                                
+                             PERFORM 8200I-ENDBR-MAE-CUENTA                     
+                                THRU 8200F-ENDBR-MAE-CUENTA                     
+                                                                                
+                             MOVE 5 TO WS-COMAR-I                               
+                                                                                
+                             PERFORM 1520I-AUX-A-COM                            
+                                THRU 1520F-AUX-A-COM                            
+                                                                                
+                             MOVE WS-CM-NUMEROS(5) TO                           
+                                  WS-COMAR-ULT-CUENTA                           
+                                                                                
+                             PERFORM 1580I-COMAR-PANT                           
+                                THRU 1580F-COMAR-PANT                           
+                                                                                
+                            PERFORM 9500I-VISUALIZAR-MENSAJE                    
+                               THRU 9500F-VISUALIZAR-MENSAJE                    
+                                                                                
+                          END-IF                                                
+                       END-IF                                                   
+                                                                                
+                       PERFORM 8120I-READNEXT-CUENTA                            
+                          THRU 8120F-READNEXT-CUENTA                            
+                                                                                
+                    WHEN DFHRESP(ENDFILE)                                       
+                                                                                
+                       PERFORM 8200I-ENDBR-MAE-CUENTA                           
+                          THRU 8200F-ENDBR-MAE-CUENTA                           
+                                                                                
+                       IF WS-COMAR-I > 1                                        
+                                                                                
+                          PERFORM 1520I-AUX-A-COM                               
+                             THRU 1520F-AUX-A-COM                               
+                                                                                
+                          MOVE WS-CM-NUMEROS(WS-COMAR-I) TO                     
+                               WS-COMAR-ULT-CUENTA                              
+                                                                                
+                          PERFORM 1580I-COMAR-PANT                              
+                             THRU 1580F-COMAR-PANT                              
+                                                                                
+                       ELSE                                                     
+      ** ARREGLO PARA SALIR SIN CUENTAS                                         
+      *                  IF (WS-FIN-LAZO-CUENTAS = 'S') AND                     
+                         IF (WS-COMAR-I = 0)                                    
+                          MOVE 'CLIENTE SIN CUENTAS          ' TO MSGO          
+                         ELSE                                                   
+                          MOVE 'SE ALCANZO EL FIN DE LA LISTA' TO MSGO          
+                         END-IF                                                 
+                       END-IF                                                   
+                                                                                
+                       PERFORM 9500I-VISUALIZAR-MENSAJE                         
+                          THRU 9500F-VISUALIZAR-MENSAJE                         
+                                                                                
+                    WHEN OTHER                                                  
+                       MOVE 'ERROR ARCHIVO CUENTAS: READNEXT' TO MSGO           
+                                                                                
+                       PERFORM 8200I-ENDBR-MAE-CUENTA                           
+                          THRU 8200F-ENDBR-MAE-CUENTA                           
+                                                                                
+                       PERFORM 9500I-VISUALIZAR-MENSAJE                         
+                          THRU 9500F-VISUALIZAR-MENSAJE                         
+                                                                                
+                 END-EVALUATE                                                   
+                                                                                
+              END-PERFORM                                                       
+                                                                                
+           ELSE                                                                 
+              MOVE 'ERROR ARCHIVO CUENTAS: STARTBR ASC' TO MSGO                 
+                                                                                
+              PERFORM 9500I-VISUALIZAR-MENSAJE                                  
+                 THRU 9500F-VISUALIZAR-MENSAJE                                  
+                                                                                
+           END-IF.                                                              
+                                                                                
+       1500F-AVANZAR-PAG. EXIT.                                                 
+                                                                                
+      *----------------------------------------------------------------         
+      * TRASLADAR VALORES DE LA TABLA DE CUENTA AUX A LA DE LA COMMAR ASC       
+      *----------------------------------------------------------------         
+       1520I-AUX-A-COM.                                                         
+                                                                                
+           PERFORM VARYING WS-I FROM 1 BY 1 UNTIL WS-I > 5                      
+              MOVE WS-LOW-VALUE(1:29) TO WS-CM-NUMEROS(WS-I)                    
+           END-PERFORM.                                                         
+                                                                                
+           MOVE ZEROS TO WS-J.                                                  
+                                                                                
+           PERFORM VARYING WS-I FROM 1 BY 1 UNTIL WS-I > WS-COMAR-I             
+              ADD 1 TO WS-J                                                     
+              MOVE WS-AUX-TIPDOC   (WS-I) TO                                    
+                   WS-CM-TIPDOC    (WS-J)                                       
+              MOVE WS-AUX-NUMDOC   (WS-I) TO                                    
+                   WS-CM-NUMDOC    (WS-J)                                       
+              MOVE WS-AUX-SUCURSAL (WS-I) TO                                    
+                   WS-CM-SUCURSAL  (WS-J)                                       
+              MOVE WS-AUX-TIPCTA   (WS-I) TO                                    
+                   WS-CM-TIPCTA    (WS-J)                                       
+              MOVE WS-AUX-NROCUENTA(WS-I) TO                                    
+                   WS-CM-NROCUENTA (WS-J)                                       
+              MOVE WS-AUX-SALDO    (WS-I) TO                                    
+                   WS-CM-SALDO     (WS-J)                                       
+           END-PERFORM.                                                         
+                                                                                
+       1520F-AUX-A-COM. EXIT.                                                   
+                                                                                
+      *----------------------------------------------------------------         
+      * LEER MAESTRO DE CUENTAS RETROCEDIENDO DE A UNA PAGINA POR VEZ.          
+      *----------------------------------------------------------------         
+       1540I-RETRO-PAG.                                                         
+      *  XXXX                                                                   
+           MOVE 'N' TO WS-FIN-LAZO-CUENTAS                                      
+                                                                                
+           MOVE WS-KEY-CUENTA-AUX TO WS-KEY-CUENTA.                             
+           MOVE ZEROS TO WS-COMAR-I.                                            
+                                                                                
+           PERFORM VARYING WS-I FROM 1 BY 1 UNTIL WS-I > 5                      
+              MOVE WS-LOW-VALUE(1:29) TO WS-NUMEROS-AUX(WS-I)                   
+           END-PERFORM.                                                         
+                                                                                
+           PERFORM 8000I-STARTBR-CUENTA                                         
+              THRU 8000F-STARTBR-CUENTA.                                        
+                                                                                
+           IF WS-RESP = DFHRESP(NORMAL)                                         
+                                                                                
+              PERFORM 8140I-READPREV-CUENTA                                     
+                 THRU 8140F-READPREV-CUENTA                                     
+                                                                                
+              PERFORM UNTIL WS-FIN-LAZO-CUENTAS = 'S'                           
+                                                                                
+                 EVALUATE WS-RESP                                               
+                    WHEN DFHRESP(NORMAL)                                        
+                                                                                
+                       IF (WS-CTA-TIPO-DOC = WS-USER-TIPDOC) AND                
+                          (WS-CTA-NRO-DOC  = WS-USER-NUMDOC)                    
+                          ADD 1 TO WS-COMAR-I                                   
+                          IF WS-COMAR-I <= 5                                    
+                             IF WS-COMAR-I = 1                                  
+                                MOVE WS-CTA-CLAVE TO                            
+                                     WS-COMAR-ULT-CUENTA                        
+                             ELSE                                               
+                                MOVE WS-CTA-CLAVE TO                            
+                                     WS-COMAR-PRI-CUENTA                        
+                             END-IF                                             
+                             MOVE WS-CTA-CLAVE TO                               
+                                  WS-NUMEROS-AUX(WS-COMAR-I)                    
+                          ELSE                                                  
+                                                                                
+                             PERFORM 8200I-ENDBR-MAE-CUENTA                     
+                                THRU 8200F-ENDBR-MAE-CUENTA                     
+                                                                                
+                             MOVE 5 TO WS-COMAR-I                               
+                                                                                
+                             PERFORM 1560I-AUX-A-COM-IN                         
+                                THRU 1560F-AUX-A-COM-IN                         
+                                                                                
+                             MOVE WS-CM-NUMEROS(5) TO                           
+                                 WS-COMAR-ULT-CUENTA                            
+                                                                                
+                             PERFORM 1580I-COMAR-PANT                           
+                                THRU 1580F-COMAR-PANT                           
+                                                                                
+                            PERFORM 9500I-VISUALIZAR-MENSAJE                    
+                               THRU 9500F-VISUALIZAR-MENSAJE                    
+                                                                                
+                          END-IF                                                
+                       END-IF                                                   
+                                                                                
+                       PERFORM 8140I-READPREV-CUENTA                            
+                          THRU 8140F-READPREV-CUENTA                            
+                                                                                
+                    WHEN DFHRESP(ENDFILE)                                       
+      *             WHEN DFHRESP(NOTFND)                                        
+                                                                                
+                       PERFORM 8200I-ENDBR-MAE-CUENTA                           
+                          THRU 8200F-ENDBR-MAE-CUENTA                           
+                                                                                
+                       MOVE 'SE ALCANZO EL INICIO DE LA LISTA' TO               
+                            MSGO                                                
+                                                                                
+                       MOVE ZEROS TO WS-COMAR-PRI-CUENTA                        
+                       MOVE WS-USER-TIPDOC TO WS-COMAR-PRI-TIPDOC               
+                       MOVE WS-USER-NUMDOC TO WS-COMAR-PRI-NUMDOC               
+                       MOVE WS-COMAR-PRI-CUENTA TO WS-KEY-CUENTA-AUX            
+                                                                                
+                       PERFORM 1500I-AVANZAR-PAG                                
+                          THRU 1500F-AVANZAR-PAG                                
+                                                                                
+                       PERFORM 9500I-VISUALIZAR-MENSAJE                         
+                          THRU 9500F-VISUALIZAR-MENSAJE                         
+                                                                                
+                    WHEN OTHER                                                  
+                       MOVE 'ERROR ARCHIVO CUENTAS: READPREV' TO MSGO           
+                                                                                
+                       PERFORM 8200I-ENDBR-MAE-CUENTA                           
+                          THRU 8200F-ENDBR-MAE-CUENTA                           
+                                                                                
+                       PERFORM 9500I-VISUALIZAR-MENSAJE                         
+                          THRU 9500F-VISUALIZAR-MENSAJE                         
+                                                                                
+                    END-EVALUATE                                                
+                                                                                
+              END-PERFORM                                                       
+                                                                                
+           ELSE                                                                 
+              MOVE 'ERROR ARCHIVO CUENTAS: STARTBR DES' TO MSGO                 
+                                                                                
+              PERFORM 9500I-VISUALIZAR-MENSAJE                                  
+                 THRU 9500F-VISUALIZAR-MENSAJE                                  
+                                                                                
+           END-IF.                                                              
+                                                                                
+       1540F-RETRO-PAG. EXIT.                                                   
+                                                                                
+      *----------------------------------------------------------------         
+      * TRASLADAR VALORES DE LA TABLA DE CUENTA AUX A LA DE LA COMMAR INV       
+      *----------------------------------------------------------------         
+       1560I-AUX-A-COM-IN.                                                      
+      *  XXXX                                                                   
+           PERFORM VARYING WS-I FROM 1 BY 1 UNTIL WS-I > 5                      
+              MOVE WS-LOW-VALUE(1: 29)TO WS-CM-NUMEROS(WS-I)                    
+           END-PERFORM.                                                         
+                                                                                
+           MOVE ZEROS TO WS-J.                                                  
+                                                                                
+           PERFORM VARYING WS-I FROM WS-COMAR-I BY -1 UNTIL WS-I < 1            
+              ADD 1 TO WS-J                                                     
+              MOVE WS-NUMEROS-AUX(WS-I) TO                                      
+                   WS-CM-NUMEROS(WS-J)                                          
+           END-PERFORM.                                                         
+                                                                                
+       1560F-AUX-A-COM-IN. EXIT.                                                
+                                                                                
+      *----------------------------------------------------------------         
+      * MOVE CAMPOS DE LA TABLA DE LA COMMAR A LOS CAMPOS DEL MAPA.             
+      *----------------------------------------------------------------         
+       1580I-COMAR-PANT.                                                        
+                                                                                
+           MOVE WS-CM-TIPDOC(1)    TO   MTIPDOCO                                
+           MOVE WS-CM-NUMDOC(1)    TO   MNRODOCO.                               
+           MOVE WS-CM-SUCURSAL(1)  TO   MSUC1O.                                 
+           MOVE WS-CM-TIPCTA  (1)  TO   MTCTA1O.                                
+           MOVE WS-CM-NROCUENTA(1) TO   MNCTA1O.                                
+           MOVE WS-CM-SALDO(1)     TO   MSALDO1O.                               
+           MOVE WS-CM-SUCURSAL(2)  TO   MSUC2O.                                 
+           MOVE WS-CM-TIPCTA  (2)  TO   MTCTA2O.                                
+           MOVE WS-CM-NROCUENTA(2) TO   MNCTA2O.                                
+           MOVE WS-CM-SALDO (2)    TO   MSALDO2O.                               
+           MOVE WS-CM-SUCURSAL(3)  TO   MSUC3O.                                 
+           MOVE WS-CM-TIPCTA  (3)  TO   MTCTA3O.                                
+           MOVE WS-CM-NROCUENTA(3) TO   MNCTA3O.                                
+           MOVE WS-CM-SALDO(3)     TO   MSALDO3O.                               
+           MOVE WS-CM-SUCURSAL(4)  TO   MSUC4O.                                 
+           MOVE WS-CM-TIPCTA(4)    TO   MTCTA4O.                                
+           MOVE WS-CM-NROCUENTA(4) TO   MNCTA4O.                                
+           MOVE WS-CM-SALDO  (4)   TO MSALDO4O.                                 
+           MOVE WS-CM-SUCURSAL(5)  TO   MSUC5O.                                 
+           MOVE WS-CM-TIPCTA(5)    TO   MTCTA5O.                                
+           MOVE WS-CM-NROCUENTA(5) TO   MNCTA5O.                                
+           MOVE WS-CM-SALDO (5)    TO   MSALDO5O.                               
+                                                                                
+                                                                                
+                                                                                
+       1580F-COMAR-PANT. EXIT.                                                  
+                                                                                
+      *----------------------------------------------------------------         
+      * START BROWSE EN EL ARCHIVO MAESTRO DE CUENTAS DE SEGURIDAD ASC.         
+      *----------------------------------------------------------------         
+       8000I-STARTBR-CUENTA.                                                    
+                                                                                
+           MOVE LENGTH OF WS-CTA-CLAVE TO WS-DATASET-CUENTA-KEYLEN              
+                                                                                
+           EXEC CICS                                                            
+               STARTBR FILE (WS-DATASET-CUENTA)                                 
+               RIDFLD    (WS-KEY-CUENTA)                                        
+               KEYLENGTH (WS-DATASET-CUENTA-KEYLEN)                             
+               GTEQ                                                             
+               RESP   (WS-RESP)                                                 
+               RESP2  (WS-RESP2)                                                
+           END-EXEC.                                                            
+                                                                                
+       8000F-STARTBR-CUENTA. EXIT.                                              
+                                                                                
+      *----------------------------------------------------------------         
+      * LEER PROXIMO REGISTRO DEL ARCHIVO DE CUENTAS                            
+      *----------------------------------------------------------------         
+       8120I-READNEXT-CUENTA.                                                   
+                                                                                
+           MOVE LENGTH OF WS-REG-CUENTAS TO WS-DATASET-CUENTA-LEN               
+                                                                                
+           EXEC CICS                                                            
+              READNEXT FILE   (WS-DATASET-CUENTA)                               
+              INTO   (WS-REG-CUENTAS)                                           
+              LENGTH (WS-DATASET-CUENTA-LEN)                                    
+              RIDFLD (WS-KEY-CUENTA)                                            
+              RESP   (WS-RESP)                                                  
+              RESP2  (WS-RESP2)                                                 
+           END-EXEC.                                                            
+                                                                                
+       8120F-READNEXT-CUENTA. EXIT.                                             
+                                                                                
+      *----------------------------------------------------------------         
+      * LEER REGISTRO PREVIO DEL ARCHIVO DE CUENTAS                             
+      *----------------------------------------------------------------         
+       8140I-READPREV-CUENTA.                                                   
+                                                                                
+           MOVE LENGTH OF WS-REG-CUENTAS TO WS-DATASET-CUENTA-LEN               
+                                                                                
+           EXEC CICS                                                            
+              READPREV FILE (WS-DATASET-CUENTA)                                 
+              INTO   (WS-REG-CUENTAS)                                           
+              LENGTH (WS-DATASET-CUENTA-LEN)                                    
+              RIDFLD (WS-KEY-CUENTA)                                            
+              RESP   (WS-RESP)                                                  
+              RESP2  (WS-RESP2)                                                 
+           END-EXEC.                                                            
+                                                                                
+       8140F-READPREV-CUENTA. EXIT.                                             
+                                                                                
+      *----------------------------------------------------------------         
+      * END BROWSE EN EL ARCHIVO  DE CUENTAS                                    
+      *----------------------------------------------------------------         
+                                                                                
+       8200I-ENDBR-MAE-CUENTA.                                                  
+                                                                                
+           EXEC CICS                                                            
+              ENDBR DATASET (WS-DATASET-CUENTA)                                 
+           END-EXEC.                                                            
+                                                                                
+       8200F-ENDBR-MAE-CUENTA. EXIT.                                            
+                                                                                
+      *----------------------------------------------------------------         
+      * PROCESO PARA UTILIZAR EL MODO PSEUDO-CONVERSACIONAL.                    
+      *----------------------------------------------------------------         
+       9000I-RETURN-TRANSID.                                                    
+                                                                                
+           EXEC CICS                                                            
+              RETURN                                                            
+              TRANSID  ('HD1F')                                                 
+              COMMAREA (WS-COMMAREA)                                            
+           END-EXEC.                                                            
+                                                                                
+       9000F-RETURN-TRANSID. EXIT.                                              
+                                                                                
+                                                                                
+      *----------------------------------------------------------------         
+      * VISUALIZAR MENSAJE EN PANTALLA.                                         
+      *----------------------------------------------------------------         
+       9500I-VISUALIZAR-MENSAJE.                                                
+                                                                                
+           PERFORM 1400I-DATE-TIME                                              
+              THRU 1400F-DATE-TIME                                              
+                                                                                
+           MOVE LENGTH OF MAP6D1FO  TO WS-SEND-MAP-LONG                         
+                                                                                
+           PERFORM 1300I-SEND-MAP                                               
+              THRU 1300F-SEND-MAP                                               
+                                                                                
+           PERFORM 9000I-RETURN-TRANSID                                         
+              THRU 9000F-RETURN-TRANSID.                                        
+                                                                                
+       9500F-VISUALIZAR-MENSAJE. EXIT.                                          
+                                                                                
+      *----------------------------------------------------------------         
+      * VISUALIZAR MENSAJE DE ERROR.                                            
+      *----------------------------------------------------------------         
+       9900I-VISUALIZAR-ERROR.                                                  
+                                                                                
+           EXEC CICS                                                            
+              SEND CONTROL ERASE                                                
+           END-EXEC.                                                            
+                                                                                
+           MOVE WS-MAP-MSG TO MSGO                                              
+                                                                                
+           EXEC CICS                                                            
+              SEND TEXT                                                         
+              FROM (WS-MAP-MSG)                                                 
+           END-EXEC.                                                            
+                                                                                
+       9900F-VISUALIZAR-ERROR. EXIT.                                            
+                                                                                
+      *----------------------------------------------------------------         
+      * PROCESO PARA VOLVER CON PF12.                                           
+      *----------------------------------------------------------------         
+       9999I-VOLVER.                                                            
+                                                                                
+           EXEC CICS                                                            
+              SEND CONTROL ERASE                                                
+           END-EXEC                                                             
+                                                                                
+           EXEC CICS XCTL                                                       
+                PROGRAM ('PGMMED1F')                                            
+           END-EXEC.                                                            
+                                                                                
+       9999F-VOLVER. EXIT.                                                      
+                                                                                

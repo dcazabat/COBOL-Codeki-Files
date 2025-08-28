@@ -1,13 +1,5 @@
        IDENTIFICATION DIVISION.                                                 
-       PROGRAM-ID. PGMMED1F.                                                    
-      *                                                                         
-      *****************************************************************         
-      *                                                               *         
-      * MENú GENERAL                                                  *         
-      * SE AGREGA PF06 PARA CONSULTA GENERAL Y PAGINADO COMO EJEMPLO  *         
-      *                                                               *         
-      *****************************************************************         
-      *                                                                         
+       PROGRAM-ID. PGMMEN99.                                                    
        DATA DIVISION.                                                           
        FILE SECTION.                                                            
        WORKING-STORAGE SECTION.                                                 
@@ -24,13 +16,12 @@
              05 CT-MNS-06         PIC X(72) VALUE                               
                                   'MODIFICACION REALIZADA'.                     
              05 CT-MNS-07         PIC X(72) VALUE 'CONSULTA REALIZADA'.         
-             05 CT-MNS-08         PIC X(72) VALUE 'DOCUMENTO INVALIDO'.         
              05 CT-MNS-EXIT       PIC X(72) VALUE                               
-                                  'FIN TRANSACCION BD1F'.                       
+                                  'FIN TRANSACCION T699'.                       
                                                                                 
        01 WS-VARIABLES.                                                         
-          03 WS-MAP               PIC X(07)       VALUE 'MAP2D1F'.              
-          03 WS-MAPSET            PIC X(07)       VALUE 'MAP2D1F'.              
+          03 WS-MAP               PIC X(07)       VALUE 'MAP0299'.              
+          03 WS-MAPSET            PIC X(07)       VALUE 'MAP0299'.              
           03 WS-LONG              PIC S9(04) COMP.                              
           03 WS-ABSTIME           PIC S9(16) COMP VALUE +0.                     
           03 WS-FECHA             PIC X(10)       VALUE SPACES.                 
@@ -38,68 +29,61 @@
           03 WS-HORA              PIC X(08)       VALUE SPACES.                 
           03 WS-SEP-HOUR          PIC X           VALUE ':'.                    
           03 WS-RESP              PIC S9(04) COMP.                              
-          03 WS-ERR               PIC X(15).                                    
+          03 WS-COMMAREA          PIC X(20) VALUE SPACES.                       
                                                                                 
-       01 WS-COMMAREA.                                                          
-          03 WS-USER-DATA.                                                      
-             05 WS-USER-TIPDOC    PIC X(02).                                    
-             05 WS-USER-NUMDOC    PIC 9(11).                                    
-          03 WS-TIP-DOC           PIC X(02).                                    
-             88 WS-TIP-DOC-BOOLEAN                   VALUE 'DU'                 
-                                                           'PA'                 
-                                                           'PE'.                
-          03 WS-PRIMERA           PIC 9.                                        
-          03 FILLER               PIC X(4).                                     
-                                                                                
-                                                                                
-       COPY MAP2D1F.                                                            
+       COPY MAP0299.                                                            
        COPY DFHBMSCA.                                                           
        COPY DFHAID.                                                             
-                                                                                
        LINKAGE SECTION.                                                         
        01 DFHCOMMAREA PIC X(20).                                                
                                                                                 
        PROCEDURE DIVISION.                                                      
        MAIN-PROGRAM.                                                            
-                                                                                
+           MOVE DFHCOMMAREA TO WS-COMMAREA.                                     
            PERFORM 1000-I-INICIO THRU 1000-F-INICIO.                            
                                                                                 
            PERFORM 2000-I-PROCESO THRU 2000-F-PROCESO.                          
                                                                                 
+           PERFORM 9999-I-FINAL THRU 9999-F-FINAL.                              
                                                                                 
        1000-I-INICIO.                                                           
                                                                                 
-           MOVE DFHCOMMAREA TO WS-COMMAREA.                                     
+           MOVE LOW-VALUES TO MAP0299I.                                         
                                                                                 
-           IF EIBCALEN = 0 OR DFHAID = DFHPF5                                   
-               MOVE LENGTH OF MAP2D1FO TO WS-LONG                               
-               MOVE LOW-VALUES TO MAP2D1FO                                      
-               MOVE 'INGRESE LA OPCION DESEADA'  TO MSGO                        
-               PERFORM 9500-I-SENDMAP THRU 9500-F-SENDMAP                       
-           ELSE                                                                 
-               EXEC CICS                                                        
-                  RECEIVE MAP (WS-MAP)                                          
-                        MAPSET (WS-MAPSET)                                      
-                        INTO (MAP2D1FI)                                         
-                        RESP(WS-RESP)                                           
-                END-EXEC                                                        
+      *    IF EIBCALEN = 0                                                      
+              PERFORM 1500-I-RECEIVE-MAP THRU 1500-F-RECEIVE-MAP                
+      *    END-IF                                                               
                                                                                 
-            END-IF.                                                             
-                                                                                
+           .                                                                    
        1000-F-INICIO. EXIT.                                                     
+                                                                                
+       1500-I-RECEIVE-MAP.                                                      
+                                                                                
+           EXEC CICS                                                            
+                RECEIVE MAP (WS-MAP)                                            
+                        MAPSET (WS-MAPSET)                                      
+                        INTO (MAP0299I)                                         
+                        RESP(WS-RESP)                                           
+           END-EXEC                                                             
+            .                                                                   
+                                                                                
+       1500-F-RECEIVE-MAP. EXIT.                                                
                                                                                 
        2000-I-PROCESO.                                                          
                                                                                 
            EVALUATE WS-RESP                                                     
              WHEN DFHRESP (NORMAL)                                              
-               MOVE LENGTH OF MAP2D1FO TO WS-LONG                               
+               MOVE LENGTH OF MAP0299O TO WS-LONG                               
                PERFORM 2500-I-PULSAR-TECLA THRU 2500-F-PULSAR-TECLA             
                                                                                 
+             WHEN DFHRESP (MAPFAIL)                                             
+               MOVE LENGTH OF MAP0299O TO WS-LONG                               
+               MOVE LOW-VALUES TO MAP0299O                                      
+               MOVE 'INGRESE LA OPCION DESEADA'  TO MSGO                        
                                                                                 
              WHEN OTHER                                                         
-                 MOVE 'ERROR 2000-PROC' TO WS-ERR                               
-                 EXEC CICS SEND TEXT FROM (WS-ERR) END-EXEC                     
-                 PERFORM 5500-I-PF12 THRU 5500-F-PF12                           
+               INITIALIZE MAP0299O                                              
+               MOVE 'INGRESO DE DATOS' TO MSGO                                  
                                                                                 
            END-EVALUATE.                                                        
                                                                                 
@@ -110,11 +94,6 @@
        2500-I-PULSAR-TECLA.                                                     
                                                                                 
              EVALUATE EIBAID                                                    
-                                                                                
-             WHEN DFHENTER                                                      
-               MOVE LENGTH OF MAP2D1FO TO WS-LONG                               
-               MOVE LOW-VALUES TO MAP2D1FO                                      
-               MOVE 'INGRESE LA OPCION DESEADA'  TO MSGO                        
                                                                                 
              WHEN DFHPF1                                                        
                  PERFORM 3000-I-PF1 THRU 3000-F-PF1                             
@@ -131,9 +110,6 @@
              WHEN DFHPF5                                                        
                  PERFORM 4600-I-PF5 THRU 4600-F-PF5                             
                                                                                 
-             WHEN DFHPF6                                                        
-                 PERFORM 4700-I-PF6 THRU 4700-F-PF6                             
-                                                                                
              WHEN DFHPF12                                                       
                  PERFORM 5500-I-PF12 THRU 5500-F-PF12                           
                                                                                 
@@ -146,17 +122,12 @@
                                                                                 
        3000-I-PF1.                                                              
                                                                                 
-      *    HACER XCTL A LA TRANSACCIóN DD1F. PROGRAMA PGMALD1F                  
-           MOVE 0 TO WS-PRIMERA.                                                
            MOVE CT-MNS-05 TO MSGO.                                              
                                                                                 
        3000-F-PF1. EXIT.                                                        
                                                                                 
        3500-I-PF2.                                                              
                                                                                 
-      *    HACER XCTL A LA TRANSACCIóN ED1F. PROGRAMA PGMBAD1F                  
-                                                                                
-           MOVE 0 TO WS-PRIMERA.                                                
            MOVE CT-MNS-04 TO MSGO.                                              
                                                                                 
        3500-F-PF2. EXIT.                                                        
@@ -164,69 +135,26 @@
        4000-I-PF3.                                                              
                                                                                 
            MOVE CT-MNS-06 TO MSGO.                                              
-           MOVE 0 TO WS-PRIMERA.                                                
-      *    HACER XCTL A LA TRANSACCIóN FD1F. PROGRAMA PGMMOD1F                  
-                                                                                
                                                                                 
        4000-F-PF3. EXIT.                                                        
                                                                                 
        4500-I-PF4.                                                              
                                                                                 
-      *    MOVE 'CONSULTA REALIZADA' TO MSGO.                                   
-           MOVE TIPDOCI TO WS-TIP-DOC.                                          
-           IF NOT WS-TIP-DOC-BOOLEAN                                            
-              INITIALIZE MAP2D1FO                                               
-              MOVE CT-MNS-08 TO MSGO                                            
-           ELSE                                                                 
-              IF NUMDOCI NOT NUMERIC                                            
-                 INITIALIZE MAP2D1FO                                            
-                 MOVE CT-MNS-08 TO MSGO                                         
-              ELSE                                                              
-                 MOVE TIPDOCI TO WS-USER-TIPDOC                                 
-                 MOVE NUMDOCI TO WS-USER-NUMDOC                                 
-      *    HACER XCTL A LA TRANSACCIóN AD1F. PROGRAMA PGMPRD1F                  
+           MOVE 'CONSULTA REALIZADA' TO MSGO.                                   
                                                                                 
-                 EXEC CICS XCTL                                                 
-                      PROGRAM('PGMPRD1F')                                       
-                      COMMAREA (WS-COMMAREA)                                    
-                 END-EXEC                                                       
-              END-IF                                                            
-           END-IF.                                                              
-                                                                                
-           PERFORM 9500-I-SENDMAP THRU 9500-F-SENDMAP.                          
+      *    EXEC CICS XCTL                                                       
+      *                                                                         
+      *        PROGRAM('PGMCON99')                                              
+      *                                                                         
+      *    END-EXEC.                                                            
                                                                                 
        4500-F-PF4. EXIT.                                                        
                                                                                 
        4600-I-PF5.                                                              
                                                                                 
-           MOVE LOW-VALUES TO MAP2D1FO.                                         
+           MOVE LOW-VALUES TO MAP0299O.                                         
                                                                                 
        4600-F-PF5. EXIT.                                                        
-                                                                                
-       4700-I-PF6.                                                              
-                                                                                
-           MOVE TIPDOCI TO WS-TIP-DOC.                                          
-           IF NOT WS-TIP-DOC-BOOLEAN                                            
-              INITIALIZE MAP2D1FO                                               
-              MOVE CT-MNS-08 TO MSGO                                            
-           ELSE                                                                 
-              IF NUMDOCI NOT NUMERIC                                            
-                 INITIALIZE MAP2D1FO                                            
-                 MOVE CT-MNS-08 TO MSGO                                         
-              ELSE                                                              
-                 MOVE TIPDOCI TO WS-USER-TIPDOC                                 
-                 MOVE NUMDOCI TO WS-USER-NUMDOC                                 
-                                                                                
-                 EXEC CICS                                                      
-                      XCTL PROGRAM ('PGMACD1F')                                 
-                      COMMAREA (WS-COMMAREA)                                    
-                 END-EXEC                                                       
-              END-IF                                                            
-           END-IF.                                                              
-                                                                                
-           PERFORM 9500-I-SENDMAP THRU 9500-F-SENDMAP.                          
-                                                                                
-       4700-F-PF6. EXIT.                                                        
                                                                                 
        5500-I-PF12.                                                             
                                                                                 
@@ -245,26 +173,7 @@
                                                                                 
        5500-F-PF12. EXIT.                                                       
                                                                                 
-       9500-I-SENDMAP.                                                          
-                                                                                
-           PERFORM 9600-I-TIME THRU 9600-F-TIME                                 
-           EXEC CICS                                                            
-                SEND MAP    (WS-MAP)                                            
-                     MAPSET (WS-MAPSET)                                         
-                     FROM   (MAP2D1FO)                                          
-                     LENGTH (WS-LONG)                                           
-                     ERASE                                                      
-                     FREEKB                                                     
-           END-EXEC.                                                            
-                                                                                
-           EXEC CICS                                                            
-                RETURN                                                          
-                TRANSID  ('BD1F')                                               
-                COMMAREA (WS-COMMAREA)                                          
-           END-EXEC.                                                            
-       9500-F-SENDMAP. EXIT.                                                    
-                                                                                
-       9600-I-TIME.                                                             
+       7000-I-TIME.                                                             
                                                                                 
            EXEC CICS ASKTIME                                                    
              ABSTIME (WS-ABSTIME)                                               
@@ -278,7 +187,24 @@
                                                                                 
            MOVE WS-FECHA TO FECHAO.                                             
                                                                                 
-       9600-F-TIME. EXIT.                                                       
+       7000-F-TIME. EXIT.                                                       
+                                                                                
+       9500-I-SENDMAP.                                                          
+                                                                                
+           PERFORM 7000-I-TIME THRU 7000-F-TIME                                 
+           EXEC CICS                                                            
+                SEND MAP    (WS-MAP)                                            
+                     MAPSET (WS-MAPSET)                                         
+                     FROM   (MAP0299O)                                          
+                     LENGTH (WS-LONG)                                           
+                     ERASE                                                      
+                     FREEKB                                                     
+           END-EXEC.                                                            
+           EXEC CICS                                                            
+                RETURN                                                          
+                TRANSID  ('T699')                                               
+           END-EXEC.                                                            
+       9500-F-SENDMAP. EXIT.                                                    
                                                                                 
        9999-I-FINAL.                                                            
                                                                                 
