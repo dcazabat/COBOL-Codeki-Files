@@ -90,8 +90,8 @@
        77  WS-TIPCUEN-DISP              PIC X(2).
 
       * Variables auxiliares para conversiones seguras
-       77  WS-NROCUEN-EDIT              PIC 9(5).
-       77  WS-SALDO-EDIT                PIC -9(5).99.
+       77  WS-NROCUEN-EDIT              PIC ZZZZ9.
+       77  WS-SALDO-EDIT                PIC -$$.$$$.$$9,99.
 
        01  WS-FECHA.
            03  WS-DIA   PIC 99.
@@ -121,6 +121,7 @@
               FOR
                  SELECT * 
                  FROM KC02803.TBCURCTA 
+                 WHERE FECSAL < '2025-06-05'
                  ORDER BY TIPCUEN, SUCUEN 
            END-EXEC.
 
