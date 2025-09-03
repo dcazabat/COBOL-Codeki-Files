@@ -1,5 +1,5 @@
        IDENTIFICATION DIVISION.
-       PROGRAM-ID. PGMDBDAC.
+       PROGRAM-ID. PGMFBC7C.
        AUTHOR.        D. CAZABAT.
        INSTALLATION.  CURSO CODEKI.
        DATE-WRITTEN.  02/09/2025.
@@ -57,6 +57,8 @@
               88 SW-FS-NOK           VALUE '01' THRU '09'
                                            '11' THRU '99'.
        77  WS-LINEAS-PAG             PIC 99    VALUE ZEROS.
+       77  WS-NUM-PAGINA             PIC 999   VALUE 1.
+       77  WS-NUM-PAGINA-DISP        PIC 999.
        01  WS-FLAG-FIN               PIC X.
            88  WS-SI-PROCESO               VALUE ' '.
            88  WS-FIN-PROCESO              VALUE 'F'.
@@ -190,15 +192,10 @@
                        MOVE WS-NROCUEN TO WS-NROCUEN-EDIT
                        MOVE WS-SALDO TO WS-SALDO-EDIT
                        MOVE WS-NROCLI TO WS-NROCLI-EDIT
-                       STRING WS-TIPCUEN
-                              '    '
-                              WS-NROCUEN-EDIT
-                              '  '
-                              WS-SALDO-EDIT
-                              '  '
-                              WS-NROCLI-EDIT
-                              DELIMITED BY SIZE
-                              INTO REG-SALIDA
+                       MOVE WS-TIPCUEN TO REG-SALIDA(2:2)
+                       MOVE WS-NROCUEN-EDIT TO REG-SALIDA(9:5)
+                       MOVE WS-SALDO-EDIT TO REG-SALIDA(19:14)
+                       MOVE WS-NROCLI-EDIT TO REG-SALIDA(37:3)
                        WRITE REG-SALIDA
                        ADD 1 TO WS-TOT-GRABADOS
                        ADD 1 TO WS-CONT-IMPRESOS
@@ -227,7 +224,7 @@
        1100-I-WRITE-DISPLAY.
            MOVE FUNCTION CURRENT-DATE TO WS-CURRENT-DATE
            DISPLAY WS-ASTERISCOS 
-           DISPLAY WS-TITULO
+           DISPLAY 'SALIDA POR DISPLAY PROGRAMA PGMFBC7C'
            DISPLAY WS-GUIONES
            DISPLAY 'FECHA DE EJECUCION: ' 
               WS-YEAR '-' WS-MONTH '-' WS-DAY
@@ -247,20 +244,38 @@
            STRING WS-DAY '/' WS-MONTH '/' WS-YEAR
                   DELIMITED BY SIZE
                   INTO WS-FECHA-FORMATEADA
+           
+           MOVE WS-NUM-PAGINA TO WS-NUM-PAGINA-DISP
            MOVE SPACES TO WS-TITULO
+           
            STRING WS-FECHA-FORMATEADA
                   DELIMITED BY SIZE
                   INTO WS-TITULO(1:10)
-           STRING '        DETALLE DE CUENTAS'
+           
+           STRING 'DETALLE DE CUENTAS'
                   DELIMITED BY SIZE
-                  INTO WS-TITULO(45:25)
-           STRING 'PGMDBDAC'
+                  INTO WS-TITULO(50:18)
+           
+           STRING 'ALUMNO: C7C  PAG: ' WS-NUM-PAGINA-DISP
                   DELIMITED BY SIZE  
-                  INTO WS-TITULO(120:8)
+                  INTO WS-TITULO(100:25)
+           
            WRITE REG-SALIDA FROM WS-GUIONES
            WRITE REG-SALIDA FROM WS-TITULO 
            WRITE REG-SALIDA FROM WS-GUIONES
            ADD 3 TO WS-LINEAS-PAG.
+
+      ***************************************
+      *                                     *
+      *  SALTO DE PÁGINA                    *
+      *                                     *
+      ***************************************
+       1250-SALTO-PAGINA.
+           MOVE X'0C' TO REG-SALIDA
+           WRITE REG-SALIDA
+           MOVE ZEROS TO WS-LINEAS-PAG
+           ADD 1 TO WS-NUM-PAGINA
+           PERFORM 1200-I-WRITE-SALIDA.
 
        1300-I-WRITE-TIPCUEN.
            EVALUATE WS-TIPCUEN
@@ -274,7 +289,7 @@
                  MOVE 'TIPO DESCONOCIDO' TO WS-DESC-TIPO-ACTUAL
            END-EVALUATE
            IF WS-LINEAS-PAG > 10
-              PERFORM 1200-I-WRITE-SALIDA
+              PERFORM 1250-SALTO-PAGINA
            END-IF
            MOVE WS-TIPCUEN TO WS-TIPCUEN-DISP
            DISPLAY WS-GUIONES
@@ -287,7 +302,7 @@
                   DELIMITED BY SIZE
                   INTO REG-SALIDA
            WRITE REG-SALIDA
-           WRITE REG-SALIDA FROM WS-GUIONES
+      *     WRITE REG-SALIDA FROM WS-GUIONES
            ADD 2 TO WS-LINEAS-PAG.
 
        1400-I-WRITE-SUCUEN.
@@ -296,14 +311,13 @@
            ELSE
               MOVE 0 TO WS-SUCUEN-DISP
            END-IF
-           DISPLAY '  SUCURSAL: ' WS-SUCUEN-DISP
            MOVE SPACES TO REG-SALIDA
-           STRING '  SUCURSAL: ' WS-SUCUEN-DISP
+           STRING 'SUCURSAL: ' WS-SUCUEN-DISP
                   DELIMITED BY SIZE
                   INTO REG-SALIDA
            WRITE REG-SALIDA
            MOVE SPACES TO REG-SALIDA
-           STRING 'TIPO  NRO.CUENTA    SALDO          NRO.CLIENTE'
+           STRING 'TIPO  NRO.CUENTA  SALDO           NRO.CLIENTE'
                   DELIMITED BY SIZE
                   INTO REG-SALIDA
            WRITE REG-SALIDA
@@ -361,23 +375,16 @@
                  MOVE WS-NROCUEN TO WS-NROCUEN-EDIT
                  MOVE WS-SALDO TO WS-SALDO-EDIT
                  MOVE WS-NROCLI TO WS-NROCLI-EDIT
-                 
-                 STRING WS-TIPCUEN
-                        '    '
-                        WS-NROCUEN-EDIT
-                        '  '
-                        WS-SALDO-EDIT
-                        '  '
-                        WS-NROCLI-EDIT
-                        DELIMITED BY SIZE
-                        INTO REG-SALIDA
+                 MOVE WS-TIPCUEN TO REG-SALIDA(2:2)
+                 MOVE WS-NROCUEN-EDIT TO REG-SALIDA(9:5)
+                 MOVE WS-SALDO-EDIT TO REG-SALIDA(19:14)
+                 MOVE WS-NROCLI-EDIT TO REG-SALIDA(37:3)
                  WRITE REG-SALIDA
                  ADD 1 TO WS-TOT-GRABADOS
                  ADD 1 TO WS-CONT-IMPRESOS
                  ADD 1 TO WS-LINEAS-PAG
                  IF WS-LINEAS-PAG > 15
-                    MOVE ZEROS TO WS-LINEAS-PAG
-                    PERFORM 1200-I-WRITE-SALIDA
+                    PERFORM 1250-SALTO-PAGINA
                  END-IF
               WHEN +100
                  IF WS-CONT-TOTALLEI > 0
@@ -443,11 +450,11 @@
            ELSE
               MOVE 0 TO WS-SUCUEN-DISP
            END-IF
-           DISPLAY '  TOTAL SUCURSAL ' WS-SUCUEN-DISP ': ' 
-                  WS-TOT-SALDOS-SUCCUEN-DISP
-           DISPLAY '  CANTIDAD DE CUENTAS: ' WS-CONT-SUCCUEN-DISP
-           DISPLAY WS-GUIONES
+           DISPLAY 'SUCURSAL: ' WS-SUCUEN-DISP ' // CLIENTES : ' 
+                  WS-CONT-SUCCUEN-DISP ' // TOTAL : ' 
+                  WS-TOT-SALDOS-SUCCUEN-DISP.
            
+           WRITE REG-SALIDA FROM WS-GUIONES
            MOVE SPACES TO REG-SALIDA
            STRING '  TOTAL SUCURSAL ' 
                   WS-SUCUEN-DISP 
@@ -465,7 +472,7 @@
            WRITE REG-SALIDA
            
            WRITE REG-SALIDA FROM WS-GUIONES
-           ADD 3 TO WS-LINEAS-PAG.
+           ADD 4 TO WS-LINEAS-PAG.
 
       **************************************
       *                                    *
@@ -474,6 +481,12 @@
       **************************************
        9999-I-FINAL.
            DISPLAY ' '
+           DISPLAY WS-ASTERISCOS
+           DISPLAY 'TOTAL GENERAL POR TIPO DE CUENTA'
+           DISPLAY WS-GUIONES
+           MOVE WS-TOT-SALDOS TO WS-TOT-SALDOS-DISP
+           DISPLAY 'TOTAL GENERAL DE SALDOS: ' WS-TOT-SALDOS-DISP
+           DISPLAY WS-GUIONES
            DISPLAY WS-ASTERISCOS
            DISPLAY 'TOTALES ESTADÍSTICOS FINALES'
            DISPLAY WS-GUIONES
@@ -489,6 +502,7 @@
                   INTO REG-SALIDA
            WRITE REG-SALIDA
            WRITE REG-SALIDA FROM WS-GUIONES
+           MOVE WS-TOT-SALDOS TO WS-TOT-SALDOS-DISP
            MOVE SPACES TO REG-SALIDA
            STRING 'SALDOS TOTALES: ' WS-TOT-SALDOS-DISP
                   DELIMITED BY SIZE

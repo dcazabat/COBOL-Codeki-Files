@@ -1,0 +1,36 @@
+//KC03C7CE JOB CLASS=A,MSGCLASS=O,MSGLEVEL=(1,1),NOTIFY=&SYSUID
+//JOBLIB  DD  DSN=DSND10.SDSNLOAD,DISP=SHR
+//***************************************************************
+//* PASO QUE ELIMINA EL ARCHIVO SI EXISTE                       *
+//***************************************************************
+//STEP1    EXEC PGM=IDCAMS
+//SYSPRINT DD SYSOUT=*
+//SYSIN    DD *
+  DELETE KC03C7C.LISTADO.PGMFBC7C
+  SET MAXCC = 0
+//***************************************************************
+//* PASO QUE DEFINE EL ARCHIVO DE SALIDA                        *
+//***************************************************************
+//STEP2    EXEC PGM=IEFBR14,COND=(0,NE,STEP1)
+//DD1      DD DSN=KC03C7C.LISTADO.PGMFBC7C,
+//            SPACE=(TRK,(1,1),RLSE),
+//            DCB=(RECFM=FB,LRECL=132,BLKSIZE=0),
+//            DISP=(NEW,CATLG),UNIT=SYSDA
+//***************************************************************
+//*      EJECUTAR PROGRAMA COBOL CON SQL EMBEBIDO               *
+//***************************************************************
+//STEP3    EXEC PGM=IKJEFT01,DYNAMNBR=20,COND=(0,NE,STEP2)
+//SYSTSPRT DD SYSOUT=*
+//DDSALE   DD DSN=KC03C7C.LISTADO.PGMFBC7C,DISP=SHR
+//SYSTSIN  DD *
+  DSN SYSTEM(DBDG)
+  RUN  PROGRAM(PGMFBC7C) PLAN(CURSOC7C) +
+      LIB('KC03C7C.CURSOS.PGMLIB')
+  END
+//SYSOUT   DD DSN=KC03C7C.CURSOS.SPOOL.PGMFBC7C,
+//            DCB=(LRECL=133,BLKSIZE=1330,RECFM=FBA),
+//            SPACE=(TRK,(1,1),RLSE),DISP=(MOD,CATLG,KEEP)
+//SYSPRINT DD SYSOUT=*
+//SYSUDUMP DD SYSOUT=*
+//SYSIN    DD *
+//*
